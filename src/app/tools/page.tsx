@@ -39,7 +39,7 @@ export default function ToolsPage() {
                   {tools.map((tool) => (
                     <Link
                       key={tool.id}
-                      href={tool.available ? `/tool/${tool.id}` : "#"}
+                      href={tool.available ? `/?tool=${tool.id}` : "#"}
                       onClick={tool.available ? undefined : (e) => e.preventDefault()}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition group ${
                         tool.available

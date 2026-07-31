@@ -1,0 +1,145 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+interface Props {
+  file: File;
+  mode: "watermark" | "page-num" | "redact" | "crop" | "rotate";
+  watermarkText?: string;
+  watermarkOpacity?: number;
+  numPosition?: "bottom" | "top";
+  crop?: { l: number; t: number; r: number; b: number };
+  rotateDeg?: number;
+}
+
+export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCIAL", watermarkOpacity = 0.2, numPosition = "bottom", crop = { l: 5, t: 5, r: 5, b: 5 }, rotateDeg = 0 }: Props) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [pageSize, setPageSize] = useState({ w: 595, h: 842 });
+  const [imgUrl, setImgUrl] = useState<string | null>(null);
+  const [aspect, setAspect] = useState(595 / 842);
+
+  // Render first page with pdf.js
+  useEffect(() => {
+    let cancelled = false;
+    const render = async () => {
+      try {
+        const pdfjs = await import("pdfjs-dist");
+        if (!(pdfjs as any).GlobalWorkerOptions?.workerSrc) {
+          (pdfjs as any).GlobalWorkerOptions.workerSrc =
+            new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+        }
+        const data = new Uint8Array(await file.arrayBuffer());
+        const doc = await pdfjs.getDocument({ data }).promise;
+        if (cancelled) { return; }
+        const page = await doc.getPage(1);
+        const vp = page.getViewport({ scale: 1.2 });
+        setPageSize({ w: vp.width, h: vp.height });
+        setAspect(vp.width / vp.height);
+        const canvas = canvasRef.current;
+        if (canvas) {
+          canvas.width = Math.floor(vp.width);
+          canvas.height = Math.floor(vp.height);
+          const ctx = canvas.getContext("2d");
+          if (ctx) await page.render({ canvasContext: ctx, viewport: vp } as any).promise;
+        }
+      } catch (e) {
+        console.error("PDF preview error", e);
+      }
+    };
+    render();
+    return () => { cancelled = true; };
+  }, [file]);
+
+  // Overlay drawing (in canvas pixel coords, page is pageSize)
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    const { w, h } = pageSize;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Redraw base page is already there (we only draw overlay on top); we need base image to persist,
+    // so we redraw from stored state instead. We'll draw the overlay only and rely on the page render above
+    // NOT clearing (we use a separate approach: draw overlay on a temp then composite).
+    // Simplest: draw semi-transparent overlay on top of the already-rendered page.
+    ctx.save();
+
+    if (mode === "rotate") {
+      // Rotation handled via CSS on the container; nothing extra on canvas
+    }
+
+    if (mode === "watermark") {
+      const size = Math.min(w, h) * 0.09;
+      ctx.globalAlpha = watermarkOpacity;
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `bold ${size}px Arial`;
+      ctx.translate(w / 2, h / 2);
+      ctx.rotate(-Math.PI / 4);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(watermarkText || "", 0, 0);
+    }
+
+    if (mode === "page-num") {
+      const text = "1 / N";
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.font = `${Math.min(w, h) * 0.02}px Arial`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+      const y = numPosition === "bottom" ? h * 0.04 : h * 0.95;
+      ctx.fillText(text, w / 2, y);
+    }
+
+    if (mode === "redact") {
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, w, h * 0.05);
+      ctx.fillRect(0, h - h * 0.05, w, h * 0.05);
+    }
+
+    if (mode === "crop") {
+      const { l, t, r, b } = crop;
+      const x = (l / 100) * w;
+      const y = (b / 100) * h;
+      const cw = ((100 - l - r) / 100) * w;
+      const ch = ((100 - t - b) / 100) * h;
+      // Darken outside crop area
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, w, y);                    // bottom
+      ctx.fillRect(0, y + ch, w, h - y - ch);      // top
+      ctx.fillRect(0, y, x, ch);                   // left
+      ctx.fillRect(x + cw, y, w - x - cw, ch);     // right
+      // Crop border
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = "#f97316";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, cw, ch);
+    }
+
+    ctx.restore();
+  }, [mode, watermarkText, watermarkOpacity, numPosition, crop, pageSize]);
+
+  const previewH = 280;
+  const isRotate = mode === "rotate";
+  const rot = rotateDeg % 360;
+  const boxStyle: React.CSSProperties = isRotate
+    ? {
+        width: previewH * aspect,
+        height: previewH,
+        transform: `rotate(${rot}deg)`,
+        transition: "transform 0.3s ease",
+      }
+    : { width: previewH * aspect, height: previewH };
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div
+        className={`relative rounded-lg overflow-hidden border border-white/10 shadow-xl bg-white ${isRotate ? "m-8" : ""}`}
+        style={boxStyle}
+      >
+        <canvas ref={canvasRef} className="w-full h-full object-contain" style={{ width: "100%", height: "100%" }} />
+      </div>
+    </div>
+  );
+}

@@ -32,19 +32,15 @@ export const TOOLS: Tool[] = [
   { id: "pdf-excel", name: "PDF a EXCEL", desc: "Convierte tu PDF en una hoja de cálculo de Excel editable.", icon: "X", category: "desde-pdf", available: false },
   { id: "pdf-a", name: "PDF a PDF/A", desc: "Convierte tu PDF al formato de archivo estándar para conservación a largo plazo.", icon: "📦", category: "desde-pdf", available: false },
   // EDITAR
-  { id: "page-num", name: "Números de página", desc: "Añade números de página a tu PDF en la posición que elijas.", icon: "🔢", category: "editar", available: false },
-  { id: "watermark", name: "Marca de agua", desc: "Añade un texto o imagen de marca a todas las páginas de tu PDF.", icon: "💧", category: "editar", available: false },
-  { id: "crop", name: "Recortar PDF", desc: "Recorta el contenido de las páginas de tu PDF a la zona que necesites.", icon: "✂️", category: "editar", available: false },
+  { id: "page-num", name: "Números de página", desc: "Añade números de página a tu PDF en la posición que elijas.", icon: "🔢", category: "editar", available: true },
+  { id: "watermark", name: "Marca de agua", desc: "Añade un texto semitransparente a todas las páginas de tu PDF.", icon: "💧", category: "editar", available: true },
+  { id: "redact", name: "Censurar PDF", desc: "Oculta de forma permanente la información sensible de tu PDF.", icon: "🕶️", category: "editar", available: true },
+  { id: "crop", name: "Recortar PDF", desc: "Recorta el contenido de las páginas de tu PDF a la zona que necesites.", icon: "✂️", category: "editar", available: true },
   { id: "edit", name: "Editar PDF", desc: "Modifica el texto e imágenes directamente dentro de tu PDF.", icon: "✏️", category: "editar", available: false },
   // SEGURIDAD
+  { id: "sign", name: "Firmar PDF", desc: "Añade tu firma a tu PDF sin necesidad de imprimirlo.", icon: "🖊️", category: "seguridad", available: true },
   { id: "unlock", name: "Desbloquear PDF", desc: "Elimina la contraseña de tu PDF para acceder libremente a su contenido.", icon: "🔓", category: "seguridad", available: false },
   { id: "protect", name: "Proteger PDF", desc: "Añade una contraseña para que solo las personas autorizadas puedan abrir tu PDF.", icon: "🔒", category: "seguridad", available: false },
-  { id: "sign", name: "Firmar PDF", desc: "Añade tu firma electrónica a tu PDF sin necesidad de imprimirlo.", icon: "🖊️", category: "seguridad", available: false },
-  { id: "redact", name: "Censurar PDF", desc: "Oculta de forma permanente la información sensible de tu PDF.", icon: "🕶️", category: "seguridad", available: false },
-  // IA
-  { id: "ai-summary", name: "Resumir con IA", desc: "Obtén un resumen automático e inteligente del contenido de tu PDF.", icon: "✨", category: "ia", available: false },
-  { id: "translate", name: "Traducir PDF", desc: "Traduce el contenido de tu PDF a otro idioma manteniendo el formato.", icon: "🌍", category: "ia", available: false },
-  { id: "pdf-md", name: "PDF a Markdown", desc: "Convierte tu PDF al formato Markdown, ideal para notas y documentación.", icon: "#", category: "ia", available: false },
 ];
 
 export const CATEGORIES: { id: string; name: string }[] = [
@@ -54,5 +50,4 @@ export const CATEGORIES: { id: string; name: string }[] = [
   { id: "desde-pdf", name: "Convertir desde PDF" },
   { id: "editar", name: "Editar PDF" },
   { id: "seguridad", name: "Seguridad" },
-  { id: "ia", name: "PDF Inteligente" },
 ];
