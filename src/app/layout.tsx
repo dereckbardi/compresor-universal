@@ -14,15 +14,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Compresor Universal — Comprime imágenes y PDF gratis",
+  title: "COMPRIMEME — Comprime imágenes y PDF gratis",
   description: "Comprime imágenes (JPG, PNG, WebP) y PDFs gratis y sin subir archivos a servidores. 100% en tu navegador.",
   keywords: ["comprimir imagen", "comprimir pdf", "reducir tamaño", "compresor gratis"],
   openGraph: {
-    title: "Compresor Universal",
+    title: "COMPRIMEME",
     description: "Comprime imágenes y PDFs gratis, sin subir archivos.",
     type: "website",
   },
   manifest: "/manifest.webmanifest",
+  robots: { index: true, follow: true },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

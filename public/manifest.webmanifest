@@ -1,6 +1,6 @@
 {
-  "name": "Compresor Universal",
-  "short_name": "Compresor",
+  "name": "COMPRIMEME",
+  "short_name": "COMPRIMEME",
   "description": "Comprime imágenes y PDFs gratis, sin subir archivos a servidores.",
   "start_url": "/",
   "display": "standalone",
