@@ -14,6 +14,7 @@ import PdfRedactEditor from "@/components/PdfRedactEditor";
 import SignatureModal, { SignatureResult } from "@/components/SignatureModal";
 import PdfFullViewer from "@/components/PdfFullViewer";
 import ResultScreen from "@/components/ResultScreen";
+import OfficePreview from "@/components/OfficePreview";
 import { compressImage, formatBytes, formatPercent, CompressedImage } from "@/lib/imageCompressor";
 import { compressPdf, CompressedPdf } from "@/lib/pdfCompressor";
 import {
@@ -1198,23 +1199,9 @@ function HomeContent() {
                     onSignCopy={() => { if (signature) setClipSignature(signature.dataUrl); }}
                   />
                 ) : (mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf") ? (
-                  <div className="w-full flex flex-col items-center justify-center py-10 text-center">
-                    <div className="w-20 h-20 rounded-2xl bg-orange-500/15 border border-orange-500/40 flex items-center justify-center text-4xl mb-4">
-                      {mode === "word-pdf" ? "W" : mode === "ppt-pdf" ? "P" : "X"}
-                    </div>
-                    <p className="text-neutral-300 font-medium">{files[0].name}</p>
-                    <p className="text-xs text-neutral-500 mt-1">Se convertirá a PDF en el servidor manteniendo el formato.</p>
-                  </div>
+                  <OfficePreview file={files[0]} />
                 ) : (mode === "unlock" || mode === "protect" || mode === "pdf-a") ? (
-                  <div className="w-full flex flex-col items-center justify-center py-10 text-center">
-                    <div className="w-20 h-20 rounded-2xl bg-orange-500/15 border border-orange-500/40 flex items-center justify-center text-4xl mb-4">
-                      {mode === "unlock" ? "🔓" : mode === "protect" ? "🔒" : "📦"}
-                    </div>
-                    <p className="text-neutral-300 font-medium">{files[0].name}</p>
-                    <p className="text-xs text-neutral-500 mt-1">
-                      {mode === "unlock" ? "Se eliminará la contraseña de este PDF." : mode === "protect" ? "Se añadirá una contraseña a este PDF." : "Se convertirá al estándar PDF/A."}
-                    </p>
-                  </div>
+                  <PdfPreview file={files[0]} />
                 ) : isImageInput ? (
                   <img src={URL.createObjectURL(files[0])} alt={files[0].name} className="max-w-full max-h-[500px] rounded-xl object-contain" />
                 ) : (
