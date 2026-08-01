@@ -108,6 +108,8 @@ function HomeContent() {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [protectPassword, setProtectPassword] = useState("");
   const [unlockPassword, setUnlockPassword] = useState("");
+  const [showProtectPw, setShowProtectPw] = useState(false);
+  const [showUnlockPw, setShowUnlockPw] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const signInputRef = useRef<HTMLInputElement>(null);
 
@@ -847,13 +849,23 @@ function HomeContent() {
           </p>
           <div>
             <label className="text-sm text-neutral-400 block mb-2">Contraseña (opcional)</label>
-            <input
-              type="password"
-              value={unlockPassword}
-              onChange={(e) => setUnlockPassword(e.target.value)}
-              placeholder="Contraseña del PDF"
-              className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
-            />
+            <div className="relative">
+              <input
+                type={showUnlockPw ? "text" : "password"}
+                value={unlockPassword}
+                onChange={(e) => setUnlockPassword(e.target.value)}
+                placeholder="Contraseña del PDF"
+                className="w-full bg-black border border-neutral-700 rounded-lg pl-4 pr-12 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowUnlockPw(!showUnlockPw)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-orange-400 transition"
+                title={showUnlockPw ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showUnlockPw ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
         </div>
       );
@@ -866,13 +878,23 @@ function HomeContent() {
           </p>
           <div>
             <label className="text-sm text-neutral-400 block mb-2">Contraseña</label>
-            <input
-              type="password"
-              value={protectPassword}
-              onChange={(e) => setProtectPassword(e.target.value)}
-              placeholder="Mínimo 4 caracteres"
-              className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
-            />
+            <div className="relative">
+              <input
+                type={showProtectPw ? "text" : "password"}
+                value={protectPassword}
+                onChange={(e) => setProtectPassword(e.target.value)}
+                placeholder="Mínimo 4 caracteres"
+                className="w-full bg-black border border-neutral-700 rounded-lg pl-4 pr-12 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowProtectPw(!showProtectPw)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-orange-400 transition"
+                title={showProtectPw ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                {showProtectPw ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
           {protectPassword && protectPassword.length < 4 && (
             <p className="text-xs text-red-400">⚠️ La contraseña debe tener al menos 4 caracteres.</p>
