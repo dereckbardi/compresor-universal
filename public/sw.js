@@ -1,33 +1,34 @@
-// COMPRIMEME Service Worker v3 — MODO DESACTIVACIÓN
-// Esta versión se desregistra a sí misma y borra TODAS las cachés.
-// Usado para eliminar de raíz los errores causados por SW viejos en dispositivos.
-// Después de esto, la app funciona sin service worker (sin PWA offline) hasta reactivarlo.
+const CACHE_NAME = "comprimeme-v1";
+const APP_SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
+// Install: cache the app shell
 self.addEventListener("install", (event) => {
-  // Borrar todas las cachés inmediatamente
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
   );
   self.skipWaiting();
 });
 
+// Activate: clean old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    (async () => {
-      // Borrar todas las cachés
-      const keys = await caches.keys();
-      await Promise.all(keys.map((k) => caches.delete(k)));
-      // Desregistrar este service worker
-      await self.registration.unregister();
-      // Tomar control de todos los clientes para que recarguen
-      const clients = await self.clients.matchAll();
-      clients.forEach((client) => client.navigate(client.url));
-    })()
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
   );
   self.clients.claim();
 });
 
-// No interceptar nada (dejar pasar todo a la red)
+// Fetch: network-first for pages, cache fallback for offline
 self.addEventListener("fetch", (event) => {
-  return;
+  if (event.request.method !== "GET") return;
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/")))
+  );
 });
