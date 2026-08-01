@@ -40,6 +40,12 @@ const ACTION_TEXT: Record<string, { msg: string; btn: string }> = {
   sign: { msg: "Tu PDF ha sido firmado", btn: "Descargar PDF firmado" },
   redact: { msg: "Tu PDF ha sido censurado", btn: "Descargar PDF censurado" },
   crop: { msg: "Tu PDF ha sido recortado", btn: "Descargar PDF recortado" },
+  "word-pdf": { msg: "Tu documento Word se ha convertido a PDF", btn: "Descargar PDF" },
+  "ppt-pdf": { msg: "Tu presentación se ha convertido a PDF", btn: "Descargar PDF" },
+  "excel-pdf": { msg: "Tu hoja de cálculo se ha convertido a PDF", btn: "Descargar PDF" },
+  unlock: { msg: "Tu PDF ha sido desbloqueado", btn: "Descargar PDF desbloqueado" },
+  protect: { msg: "Tu PDF ha sido protegido con contraseña", btn: "Descargar PDF protegido" },
+  "pdf-a": { msg: "Tu PDF se ha convertido a PDF/A", btn: "Descargar PDF/A" },
 };
 
 const CONTINUE: Record<string, { id: string; icon: string; label: string }[]> = {
@@ -58,6 +64,12 @@ const CONTINUE: Record<string, { id: string; icon: string; label: string }[]> = 
     { id: "sign", icon: "🖊️", label: "Firmar PDF" },
     { id: "page-num", icon: "🔢", label: "Números de página" },
     { id: "crop", icon: "✂️", label: "Recortar PDF" },
+    { id: "word-pdf", icon: "W", label: "WORD a PDF" },
+    { id: "ppt-pdf", icon: "P", label: "PPT a PDF" },
+    { id: "excel-pdf", icon: "X", label: "EXCEL a PDF" },
+    { id: "unlock", icon: "🔓", label: "Desbloquear PDF" },
+    { id: "protect", icon: "🔒", label: "Proteger PDF" },
+    { id: "pdf-a", icon: "📦", label: "PDF a PDF/A" },
   ],
 };
 
