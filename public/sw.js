@@ -1,56 +1,33 @@
-// COMPRIMEME Service Worker v2
-// v2: no cachear el HTML (solo assets estáticos con hash) para evitar errores tras actualizar.
-const CACHE_NAME = "comprimeme-v2";
-const STATIC_ASSETS = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
+// COMPRIMEME Service Worker v3 — MODO DESACTIVACIÓN
+// Esta versión se desregistra a sí misma y borra TODAS las cachés.
+// Usado para eliminar de raíz los errores causados por SW viejos en dispositivos.
+// Después de esto, la app funciona sin service worker (sin PWA offline) hasta reactivarlo.
 
-// Install: cache solo assets estáticos (NUNCA el HTML "/", que cambia en cada deploy)
 self.addEventListener("install", (event) => {
+  // Borrar todas las cachés inmediatamente
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
   );
   self.skipWaiting();
 });
 
-// Activate: borrar TODAS las cachés viejas y tomar control
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    (async () => {
+      // Borrar todas las cachés
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+      // Desregistrar este service worker
+      await self.registration.unregister();
+      // Tomar control de todos los clientes para que recarguen
+      const clients = await self.clients.matchAll();
+      clients.forEach((client) => client.navigate(client.url));
+    })()
   );
   self.clients.claim();
 });
 
-// Fetch:
-// - Navegación (HTML): SIEMPRE red, nunca caché (para no servir versiones viejas).
-// - Assets estáticos (_next/static, con hash): red primero, caché como fallback.
-// - Otros: red normal.
+// No interceptar nada (dejar pasar todo a la red)
 self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-
-  // Solo GET y mismo origen
-  if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
-
-  // Navegación (petición del HTML): red directa, sin tocar caché
-  if (event.request.mode === "navigate") {
-    event.respondWith(fetch(event.request).catch(() => caches.match("/")));
-    return;
-  }
-
-  // Assets estáticos con hash: red primero, caché de respaldo (offline)
-  if (url.pathname.startsWith("/_next/static/")) {
-    event.respondWith(
-      fetch(event.request)
-        .then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return res;
-        })
-        .catch(() => caches.match(event.request))
-    );
-    return;
-  }
-
-  // Resto: red normal
   return;
 });
