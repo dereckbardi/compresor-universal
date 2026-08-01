@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Standalone output para correr en Docker/Cloud Run sin node_modules completos
+  output: "standalone",
 };
 
 export default nextConfig;
