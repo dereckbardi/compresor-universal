@@ -87,7 +87,7 @@ export default function PdfPageSelector({ file, selected, onToggle, totalPages, 
     <div className="w-full">
       {grouped ? (
         /* Vista agrupada por rangos (solo lo agrupado) */
-        <div className="space-y-5 max-h-[70vh] overflow-y-auto pb-4">
+        <div className="pdf-scroll space-y-5 max-h-[70vh] overflow-y-auto pb-4">
           {grouped.map((group, gi) => group.length > 0 && (
             <div key={gi} className="space-y-2">
               <p className="text-xs font-semibold" style={{ color: rangeColors[gi % rangeColors.length] }}>
@@ -103,7 +103,7 @@ export default function PdfPageSelector({ file, selected, onToggle, totalPages, 
         </div>
       ) : (
         /* Vista normal (cuadrícula) */
-        <div className="flex flex-wrap gap-4 justify-center max-h-[70vh] overflow-y-auto pb-4">
+        <div className="pdf-scroll flex flex-wrap gap-4 justify-center max-h-[70vh] overflow-y-auto pb-4">
           {pages.map((pg) => (
             <button
               key={pg.num}

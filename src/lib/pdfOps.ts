@@ -251,9 +251,9 @@ export async function pdfToJpg(file: File, scale = 1.5, fileLabel = ""): Promise
 }
 
 /** Add a text watermark to all pages */
-export async function addWatermark(file: File, text: string, opts: { opacity?: number; size?: number; diagonal?: boolean } = {}): Promise<PdfResult> {
+export async function addWatermark(file: File, text: string, opts: { opacity?: number; size?: number; diagonal?: boolean; color?: [number, number, number] } = {}): Promise<PdfResult> {
   const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
-  const { opacity = 0.2, size = 40, diagonal = true } = opts;
+  const { opacity = 0.2, size = 40, diagonal = true, color = [1, 1, 1] } = opts;
   const font = await src.embedFont(await import("pdf-lib").then(m => m.StandardFonts.Helvetica));
   const pages = src.getPages();
   for (const page of pages) {
@@ -265,7 +265,7 @@ export async function addWatermark(file: File, text: string, opts: { opacity?: n
       font,
       opacity,
       rotate: diagonal ? degrees(45) : degrees(0),
-      color: (await import("pdf-lib")).rgb(1, 1, 1),
+      color: (await import("pdf-lib")).rgb(color[0], color[1], color[2]),
     });
   }
   const bytes = await src.save({ useObjectStreams: true });
@@ -296,20 +296,21 @@ export async function addPageNumbers(file: File, position: "bottom" | "top" = "b
 }
 
 /** Add a signature image at a position */
-export async function addSignature(file: File, imageFile: File, position: "bottom-right" | "bottom-left" | "center" = "bottom-right"): Promise<PdfResult> {
+export async function addSignature(file: File, imageFile: File, opts: { page?: number; x?: number; y?: number; w?: number } = {}): Promise<PdfResult> {
   const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
   const imgBytes = new Uint8Array(await imageFile.arrayBuffer());
   const img = imageFile.type === "image/png" ? await src.embedPng(imgBytes) : await src.embedJpg(imgBytes);
   const pages = src.getPages();
-  for (const page of pages) {
-    const { width, height } = page.getSize();
-    const iw = Math.min(img.width, width * 0.25);
-    const ih = (img.height / img.width) * iw;
-    let x = width - iw - 30, y = 30;
-    if (position === "bottom-left") { x = 30; y = 30; }
-    else if (position === "center") { x = width / 2 - iw / 2; y = height / 2 - ih / 2; }
-    page.drawImage(img, { x, y, width: iw, height: ih });
-  }
+  const { page = pages.length - 1, x, y, w } = opts;
+  const target = pages[page] || pages[pages.length - 1];
+  const { width, height } = target.getSize();
+  const iw = w && w > 0 ? w : Math.min(img.width, width * 0.25);
+  const ih = (img.height / img.width) * iw;
+  // posiciones en puntos, y desde arriba -> convertir a pdf-lib (desde abajo)
+  const px = x !== undefined ? x : width - iw - 30;
+  const pyTop = y !== undefined ? y : height - ih - 30;
+  const py = height - pyTop - ih;
+  target.drawImage(img, { x: px, y: py, width: iw, height: ih });
   const bytes = await src.save({ useObjectStreams: true });
   return { blobs: [bytesToBlob(bytes, "firmado.pdf")], names: ["firmado.pdf"], originalSize: file.size, compressedSize: bytes.length };
 }

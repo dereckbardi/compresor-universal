@@ -10,41 +10,60 @@ export interface CompressedPdf {
 }
 
 /**
- * Compress a PDF by re-saving it cleanly.
- * pdf-lib rebuilds the document which:
- *  - removes unused/redundant objects
- *  - strips redundant metadata
- *  - re-encodes with object streams (smaller)
- * This is reliable and cross-browser (no fragile internal node access).
+ * Compress a PDF by rendering pages at high resolution and re-encoding to JPEG.
+ * High scale keeps text legible; JPEG compresses images effectively.
+ * This gives real size reduction (unlike metadata-stripping).
  */
 export async function compressPdf(
   file: File,
-  _quality: number // kept for API consistency
+  quality: number = 0.7
 ): Promise<CompressedPdf> {
-  const arrayBuffer = await file.arrayBuffer();
-  const pdfDoc = await PDFDocument.load(arrayBuffer, {
-    ignoreEncryption: true,
-    updateMetadata: false,
-  });
+  const pdfjs = await import("pdfjs-dist");
+  if (!(pdfjs as any).GlobalWorkerOptions?.workerSrc) {
+    (pdfjs as any).GlobalWorkerOptions.workerSrc =
+      new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+  }
+  const data = new Uint8Array(await file.arrayBuffer());
+  const srcDoc = await pdfjs.getDocument({ data }).promise;
+  const { PDFDocument } = await import("pdf-lib");
+  const outDoc = await PDFDocument.create();
 
-  // Remove existing metadata to shave bytes
-  pdfDoc.setTitle("");
-  pdfDoc.setAuthor("");
-  pdfDoc.setSubject("");
-  pdfDoc.setKeywords([]);
-  pdfDoc.setProducer("");
-  pdfDoc.setCreator("");
+  // Escala según calidad: 1x mantiene tamaño, menor escala reduce más
+  const scale = quality >= 0.9 ? 1.2 : quality >= 0.7 ? 1.0 : quality >= 0.4 ? 0.8 : 0.65;
+  const jpegQ = quality >= 0.9 ? 0.75 : quality >= 0.7 ? 0.68 : quality >= 0.4 ? 0.6 : 0.5;
 
-  const savedBytes = await pdfDoc.save({ useObjectStreams: true });
-  const byteArray = new Uint8Array(savedBytes);
-  const blob = new Blob([byteArray.buffer], { type: "application/pdf" });
+  let totalBytes = 0;
+  for (let i = 1; i <= srcDoc.numPages; i++) {
+    const page = await srcDoc.getPage(i);
+    const vp = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.floor(vp.width);
+    canvas.height = Math.floor(vp.height);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) continue;
+    await page.render({ canvasContext: ctx, viewport: vp } as any).promise;
+    const jpgBytes = await new Promise<Uint8Array | null>((resolve) => {
+      canvas.toBlob(async (b) => {
+        if (!b) return resolve(null);
+        resolve(new Uint8Array(await b.arrayBuffer()));
+      }, "image/jpeg", jpegQ);
+    });
+    if (!jpgBytes) continue;
+    totalBytes += jpgBytes.length;
+    const jpg = await outDoc.embedJpg(jpgBytes);
+    const pw = vp.width, ph = vp.height;
+    const pg = outDoc.addPage([pw, ph]);
+    pg.drawImage(jpg, { x: 0, y: 0, width: pw, height: ph });
+  }
+  const saved = await outDoc.save({ useObjectStreams: true });
+  const blob = new Blob([saved.buffer as ArrayBuffer], { type: "application/pdf" });
+  const result = { blob, originalSize: file.size, compressedSize: blob.size, ratio: blob.size / file.size };
 
-  return {
-    blob,
-    originalSize: file.size,
-    compressedSize: blob.size,
-    ratio: blob.size / file.size,
-  };
+  // Si el render NO redujo, devolver el PDF original (sin empeorar)
+  if (result.compressedSize >= file.size) {
+    return { blob: file, originalSize: file.size, compressedSize: file.size, ratio: 1 };
+  }
+  return result;
 }
 
 export function formatBytes(bytes: number): string {

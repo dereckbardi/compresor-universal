@@ -11,6 +11,9 @@ import PdfThumbnail from "@/components/PdfThumbnail";
 import BallSlider from "@/components/BallSlider";
 import PdfPageSelector from "@/components/PdfPageSelector";
 import PdfRedactEditor from "@/components/PdfRedactEditor";
+import SignatureModal, { SignatureResult } from "@/components/SignatureModal";
+import PdfFullViewer from "@/components/PdfFullViewer";
+import ResultScreen from "@/components/ResultScreen";
 import { compressImage, formatBytes, formatPercent, CompressedImage } from "@/lib/imageCompressor";
 import { compressPdf, CompressedPdf } from "@/lib/pdfCompressor";
 import {
@@ -68,6 +71,7 @@ function HomeContent() {
   const [rotateDeg, setRotateDeg] = useState(90);
   const [watermarkText, setWatermarkText] = useState("CONFIDENCIAL");
   const [watermarkOpacity, setWatermarkOpacity] = useState(0.2);
+  const [watermarkColor, setWatermarkColor] = useState<[number, number, number]>([1, 1, 1]);
   const [numPosition, setNumPosition] = useState<"bottom" | "top">("bottom");
   const [signPosition, setSignPosition] = useState<"bottom-right" | "bottom-left" | "center">("bottom-right");
   const [signFile, setSignFile] = useState<File | null>(null);
@@ -93,6 +97,11 @@ function HomeContent() {
   const [splitSize, setSplitSize] = useState(2);
   const [splitUnify, setSplitUnify] = useState(false);
   const [redactRects, setRedactRects] = useState<{ page: number; x: number; y: number; w: number; h: number }[]>([]);
+  const [signOpen, setSignOpen] = useState(false);
+  const [signature, setSignature] = useState<SignatureResult | null>(null);
+  const [clipSignature, setClipSignature] = useState<string | null>(null);
+  const [signPos, setSignPos] = useState({ x: 20, y: 40, w: 120 });
+  const [signPage, setSignPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -262,12 +271,13 @@ function HomeContent() {
         case "jpg-pdf": r = await imagesToPdf(files, { pageSize: imgPageSize, orientation: imgOrientation, margin: imgMargin, unify: imgUnify }); break;
         case "watermark": {
           if (!watermarkText.trim()) throw new Error("Escribe el texto de la marca de agua");
-          r = await addWatermark(files[0], watermarkText, { opacity: watermarkOpacity }); break;
+          r = await addWatermark(files[0], watermarkText, { opacity: watermarkOpacity, color: watermarkColor }); break;
         }
         case "page-num": r = await addPageNumbers(files[0], numPosition); break;
         case "sign": {
-          if (!signFile) throw new Error("Sube la imagen de tu firma");
-          r = await addSignature(files[0], signFile, signPosition); break;
+          if (!signature) throw new Error("Crea tu firma primero (botón Crear firma)");
+          const sigFile = new File([signature.blob], "firma.png", { type: "image/png" });
+          r = await addSignature(files[0], sigFile, { page: signPage, x: signPos.x, y: signPos.y, w: signPos.w }); break;
         }
         case "redact": {
           if (!redactRects.length) throw new Error("Marca los textos a censurar en la vista previa primero");
@@ -587,11 +597,34 @@ function HomeContent() {
       );
     }
     if (mode === "watermark") {
+      const colors = [
+        { name: "Negro", rgb: [0, 0, 0] as [number, number, number] },
+        { name: "Blanco", rgb: [1, 1, 1] as [number, number, number] },
+        { name: "Gris", rgb: [0.5, 0.5, 0.5] as [number, number, number] },
+        { name: "Humo", rgb: [0.85, 0.85, 0.85] as [number, number, number] },
+      ];
       return (
         <div className="space-y-4">
           <div>
             <label className="text-sm text-neutral-400 block mb-2">Texto de la marca de agua</label>
             <input value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} placeholder="ej: CONFIDENCIAL, tu nombre, tu web" className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500" />
+          </div>
+          <div>
+            <label className="text-sm text-neutral-400 block mb-2">Color de la letra</label>
+            <div className="flex gap-2">
+              {colors.map((c) => {
+                const active = watermarkColor[0] === c.rgb[0] && watermarkColor[1] === c.rgb[1] && watermarkColor[2] === c.rgb[2];
+                return (
+                  <button
+                    key={c.name}
+                    onClick={() => setWatermarkColor(c.rgb)}
+                    className={`flex-1 py-2 rounded-lg border text-xs font-medium transition ${active ? "border-orange-500 bg-orange-500/10 text-orange-400" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+                  >
+                    {c.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
           <div>
             <div className="flex justify-between mb-2"><span className="text-sm text-neutral-400">Transparencia</span><span className="text-sm font-semibold text-orange-500">{Math.round(watermarkOpacity * 100)}%</span></div>
@@ -616,17 +649,23 @@ function HomeContent() {
       return (
         <div className="space-y-4">
           <div>
-            <label className="text-sm text-neutral-400 block mb-2">Imagen de tu firma (PNG transparente)</label>
-            <button onClick={() => signInputRef.current?.click()} className="w-full py-3 rounded-lg border border-dashed border-neutral-600 text-sm text-neutral-300 hover:border-orange-500 transition">{signFile ? `✅ ${signFile.name}` : "📎 Subir firma"}</button>
-            <input ref={signInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => setSignFile(e.target.files?.[0] || null)} />
-          </div>
-          <div>
-            <label className="text-sm text-neutral-400 block mb-2">Posición</label>
-            <div className="flex gap-2">
-              {(["bottom-right", "bottom-left", "center"] as const).map((p) => (
-                <button key={p} onClick={() => setSignPosition(p)} className={`flex flex-1 items-center justify-center py-2.5 rounded-lg border text-sm font-medium transition ${signPosition === p ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}>{p.replace("-", " ")}</button>
-              ))}
+            <label className="text-sm text-neutral-400 block mb-2">Tu firma</label>
+            {signature ? (
+              <div className="border border-white/10 rounded-lg p-2 bg-white/5 relative">
+                <img src={signature.dataUrl} alt="Firma" className="w-full h-20 object-contain" />
+                <button onClick={() => { setSignature(null); setSignPage(0); }} className="absolute top-1 right-1 w-6 h-6 rounded-md bg-red-600 text-white text-xs hover:bg-red-500" title="Eliminar firma">✕</button>
+              </div>
+            ) : (
+              <p className="text-xs text-neutral-500">Aún no has creado una firma.</p>
+            )}
+            <button onClick={() => setSignOpen(true)} className="w-full mt-2 py-2.5 rounded-lg bg-orange-500 hover:bg-orange-400 text-black text-sm font-semibold transition">
+              {signature ? "Cambiar firma" : "Crear firma"}
+            </button>
+            <div className="flex gap-2 mt-2">
+              <button onClick={() => setClipSignature(signature?.dataUrl ?? null)} disabled={!signature} className="flex-1 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:border-orange-500 text-xs font-medium disabled:opacity-40 transition">⧉ Copiar</button>
+              <button onClick={() => { if (clipSignature) { setSignature({ ...(signature ?? { dataUrl: clipSignature, blob: new Blob(), width: 500, height: 180 }), dataUrl: clipSignature }); } }} disabled={!clipSignature} className="flex-1 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:border-orange-500 text-xs font-medium disabled:opacity-40 transition">📋 Pegar</button>
             </div>
+            <p className="text-xs text-neutral-600 mt-2">💡 Arrastra la firma sobre el PDF para colocarla, usa la esquina para ajustar su tamaño, y elige la página con las miniaturas.</p>
           </div>
         </div>
       );
@@ -795,8 +834,20 @@ function HomeContent() {
       {/* Input de archivos SIEMPRE montado (para poder añadir más desde la vista de trabajo) */}
       <input ref={inputRef} type="file" multiple accept={acceptedExt} className="hidden" onChange={(e) => { handleFiles(e.target.files); e.target.value = ""; }} />
 
-      {/* Cuerpo: home (sin archivos) vs vista de trabajo (con archivos) */}
-      {files.length === 0 ? (
+      {/* Cuerpo: resultado | home (sin archivos) | vista de trabajo (con archivos) */}
+      {results.length > 0 ? (
+        <ResultScreen
+          mode={mode}
+          results={results}
+          totalOriginal={totalOriginal}
+          totalCompressed={totalCompressed}
+          onDownloadAll={() => results.forEach(download)}
+          onDownloadOne={(r) => download(r)}
+          onDelete={() => { setResults([]); setFiles([]); }}
+          onBack={() => { setResults([]); }}
+          onContinue={(m) => switchMode(m as Mode)}
+        />
+      ) : files.length === 0 ? (
         <div className="max-w-3xl mx-auto px-6 py-14 sm:py-16">
           <HeroFade>
             <div className="text-center mb-10">
@@ -1016,9 +1067,21 @@ function HomeContent() {
                     mode={mode}
                     watermarkText={watermarkText}
                     watermarkOpacity={watermarkOpacity}
+                    watermarkColor={watermarkColor}
                     numPosition={numPosition}
                     crop={{ l: cropL, t: cropT, r: cropR, b: cropB }}
                     rotateDeg={rotateDeg}
+                  />
+                ) : mode === "sign" ? (
+                  <PdfFullViewer
+                    file={files[0]}
+                    signature={signature?.dataUrl}
+                    signPos={signPos}
+                    signPage={signPage}
+                    onSignMove={(pos) => setSignPos(pos)}
+                    onSignPage={(page) => setSignPage(page)}
+                    onSignRemove={() => { setSignature(null); }}
+                    onSignCopy={() => { if (signature) setClipSignature(signature.dataUrl); }}
                   />
                 ) : isImageInput ? (
                   <img src={URL.createObjectURL(files[0])} alt={files[0].name} className="max-w-full max-h-[500px] rounded-xl object-contain" />
@@ -1057,27 +1120,6 @@ function HomeContent() {
                 </motion.button>
               </div>
 
-              {/* Resultados debajo de opciones */}
-              {results.length > 0 && (
-                <div className="mt-4">
-                  <div className="bg-neutral-900 border border-emerald-500/20 rounded-xl p-3 text-center mb-3">
-                    <p className="text-xs text-neutral-400">
-                      {formatBytes(totalOriginal)} → <span className="text-emerald-400 font-semibold">{formatBytes(totalCompressed)}</span>
-                      {totalCompressed < totalOriginal && <span className="text-emerald-500 font-bold ml-1">{formatPercent(totalCompressed / totalOriginal)}</span>}
-                    </p>
-                  </div>
-                  <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                    {results.map((r, i) => (
-                      <ResultPop key={i} index={i}>
-                        <li className="bg-neutral-900 rounded-xl p-3 flex items-center justify-between border border-white/5">
-                          <span className="text-xs text-neutral-300 truncate pr-2">{r.name}</span>
-                          <motion.button whileTap={{ scale: 0.95 }} onClick={() => download(r)} className="px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-400 text-black text-xs font-semibold shrink-0">⬇️</motion.button>
-                        </li>
-                      </ResultPop>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -1089,6 +1131,14 @@ function HomeContent() {
           <p>COMPRIMEME — 100% gratis y sin registro.</p>
         </div>
       </footer>
+
+      {/* Modal de firma */}
+      {signOpen && (
+        <SignatureModal
+          onConfirm={(sig) => { setSignature(sig); setSignOpen(false); }}
+          onCancel={() => setSignOpen(false)}
+        />
+      )}
     </main>
   );
 }

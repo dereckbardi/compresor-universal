@@ -7,12 +7,13 @@ interface Props {
   mode: "watermark" | "page-num" | "redact" | "crop" | "rotate";
   watermarkText?: string;
   watermarkOpacity?: number;
+  watermarkColor?: [number, number, number];
   numPosition?: "bottom" | "top";
   crop?: { l: number; t: number; r: number; b: number };
   rotateDeg?: number;
 }
 
-export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCIAL", watermarkOpacity = 0.2, numPosition = "bottom", crop = { l: 5, t: 5, r: 5, b: 5 }, rotateDeg = 0 }: Props) {
+export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCIAL", watermarkOpacity = 0.2, watermarkColor = [1, 1, 1], numPosition = "bottom", crop = { l: 5, t: 5, r: 5, b: 5 }, rotateDeg = 0 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pageSize, setPageSize] = useState({ w: 595, h: 842 });
   const [aspect, setAspect] = useState(595 / 842);
@@ -78,7 +79,7 @@ export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCI
     if (mode === "watermark") {
       const size = Math.min(w, h) * 0.09;
       ctx.globalAlpha = watermarkOpacity;
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = `rgb(${Math.round(watermarkColor[0] * 255)}, ${Math.round(watermarkColor[1] * 255)}, ${Math.round(watermarkColor[2] * 255)})`;
       ctx.font = `bold ${size}px Arial`;
       ctx.translate(w / 2, h / 2);
       ctx.rotate(-Math.PI / 4);
@@ -123,7 +124,7 @@ export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCI
     }
 
     ctx.restore();
-  }, [mode, watermarkText, watermarkOpacity, numPosition, crop, pageSize, rotateDeg]);
+  }, [mode, watermarkText, watermarkOpacity, watermarkColor, numPosition, crop, pageSize, rotateDeg]);
 
   const previewH = 300;
   const isRotate = mode === "rotate";

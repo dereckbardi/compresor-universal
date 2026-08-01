@@ -89,3 +89,15 @@ body {
 *::-webkit-scrollbar-corner {
   background: #0a0a0a;
 }
+
+/* Ocultar barra de scroll en visores de PDF y previews */
+iframe,
+.pdf-scroll,
+.pdf-scroll::-webkit-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pdf-scroll::-webkit-scrollbar {
+  display: none;
+}

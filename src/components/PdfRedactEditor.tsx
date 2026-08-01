@@ -153,7 +153,7 @@ export default function PdfRedactEditor({ file, onRects }: Props) {
   return (
     <div className="w-full flex gap-4">
       {/* Barra lateral de miniaturas */}
-      <div className="w-20 shrink-0 max-h-[75vh] overflow-y-auto space-y-2 rounded-xl border border-white/10 bg-neutral-900/60 p-2">
+      <div className="pdf-scroll w-20 shrink-0 max-h-[75vh] overflow-y-auto space-y-2 rounded-xl border border-white/10 bg-neutral-900/60 p-2">
         {pages.map((pg, i) => (
           <button
             key={i}
@@ -181,7 +181,7 @@ export default function PdfRedactEditor({ file, onRects }: Props) {
           </div>
         </div>
 
-        <div className="max-h-[75vh] overflow-y-auto overflow-x-hidden rounded-xl border border-white/10 bg-neutral-900/60 p-4 space-y-4">
+        <div className="pdf-scroll max-h-[75vh] overflow-y-auto overflow-x-hidden rounded-xl border border-white/10 bg-neutral-900/60 p-4 space-y-4">
           {pages.map((pg, pi) => (
             <div
               key={pi}
