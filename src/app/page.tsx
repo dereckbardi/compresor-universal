@@ -259,24 +259,10 @@ function HomeContent() {
               ))}
             </div>
           </div>
-          {/* Ajuste fino con bolitas */}
+          {/* Ajuste fino con bolitas (componente arrastrable) */}
           <div>
             <div className="flex justify-between items-center mb-2"><span className="text-sm text-neutral-400">Ajuste fino (calidad)</span><span className="text-sm font-semibold text-orange-500">{Math.round(quality * 100)}%</span></div>
-            <div className="flex justify-between gap-1">
-              {[10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((pct) => {
-                const val = pct / 100;
-                const active = Math.abs(quality - val) < 0.05;
-                const passed = val <= quality;
-                return (
-                  <button
-                    key={pct}
-                    onClick={() => setQuality(val)}
-                    className={`h-7 flex-1 rounded-full transition ${active ? "bg-orange-500 shadow-lg shadow-orange-500/40 scale-110" : passed ? "bg-orange-500/50 hover:bg-orange-500/70" : "bg-neutral-700 hover:bg-neutral-600"}`}
-                    title={`${pct}%`}
-                  />
-                );
-              })}
-            </div>
+            <BallSlider value={Math.round(quality * 100)} onChange={(v) => setQuality(v / 100)} min={10} max={100} step={10} />
             <div className="flex justify-between text-[10px] text-neutral-600 mt-1"><span>Menos calidad<br/>(más compresión)</span><span>Más calidad<br/>(menos compresión)</span></div>
           </div>
           <p className="text-[11px] text-neutral-500">
@@ -573,9 +559,9 @@ function HomeContent() {
                     <p className="text-sm text-neutral-500 text-center">{files.length} imagen(es) · {formatBytes(files.reduce((s, f) => s + f.size, 0))}</p>
                     {files.length > 1 && <p className="text-[10px] text-neutral-600 text-center mt-1">Arrastra para cambiar el orden</p>}
                   </div>
-                ) : (mode === "image" || mode === "pdf") ? (
+                ) : (mode === "image" || mode === "pdf" || mode === "merge") ? (
                   <div className="w-full">
-                    {/* Miniaturas de todos los archivos a comprimir + botón añadir */}
+                    {/* Miniaturas de todos los archivos a comprimir/unir + botón añadir */}
                     <div className="flex flex-wrap gap-4 justify-center mb-5">
                       {files.map((f, i) => (
                         <div
