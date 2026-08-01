@@ -51,6 +51,51 @@ export async function splitPdf(file: File): Promise<PdfResult> {
   return { blobs, names, originalSize: file.size, compressedSize: totalBytes };
 }
 
+/** Split PDF into custom ranges: each range [start, end] becomes its own PDF */
+export async function splitByRanges(file: File, ranges: { start: number; end: number }[], fileLabel = "", unify = false): Promise<PdfResult> {
+  const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+  const blobs: Blob[] = [];
+  const names: string[] = [];
+  const prefix = fileLabel || file.name.replace(/\.pdf$/i, "");
+  let total = 0;
+  for (let ri = 0; ri < ranges.length; ri++) {
+    const { start, end } = ranges[ri];
+    const idx = [];
+    for (let p = start; p <= end; p++) idx.push(p - 1);
+    const doc = await PDFDocument.create();
+    const pages = await doc.copyPages(src, idx);
+    pages.forEach((pg) => doc.addPage(pg));
+    const bytes = await doc.save({ useObjectStreams: true });
+    total += bytes.length;
+    blobs.push(bytesToBlob(bytes, `${prefix}-rango-${ri + 1}.pdf`));
+    names.push(`${prefix}-rango-${ri + 1}.pdf`);
+  }
+  return { blobs, names, originalSize: file.size, compressedSize: total };
+}
+
+/** Split PDF into chunks of N pages each (modo fijo) */
+export async function splitBySize(file: File, pagesPerChunk: number, fileLabel = "", unify = false): Promise<PdfResult> {
+  const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+  const count = src.getPageCount();
+  const blobs: Blob[] = [];
+  const names: string[] = [];
+  const prefix = fileLabel || file.name.replace(/\.pdf$/i, "");
+  let total = 0;
+  for (let start = 0; start < count; start += pagesPerChunk) {
+    const end = Math.min(start + pagesPerChunk, count);
+    const idx = [];
+    for (let p = start; p < end; p++) idx.push(p);
+    const doc = await PDFDocument.create();
+    const pages = await doc.copyPages(src, idx);
+    pages.forEach((pg) => doc.addPage(pg));
+    const bytes = await doc.save({ useObjectStreams: true });
+    total += bytes.length;
+    blobs.push(bytesToBlob(bytes, `${prefix}-${Math.floor(start / pagesPerChunk) + 1}.pdf`));
+    names.push(`${prefix}-${Math.floor(start / pagesPerChunk) + 1}.pdf`);
+  }
+  return { blobs, names, originalSize: file.size, compressedSize: total };
+}
+
 /** Remove specific pages (1-indexed array) */
 export async function removePages(file: File, pagesToRemove: number[]): Promise<PdfResult> {
   const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
@@ -435,3 +480,20 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
   if (!blobs.length) throw new Error("No se encontraron imágenes extraíbles en este PDF");
   return { blobs, names, originalSize: file.size, compressedSize: total };
 }
+
+/** Redact (black-out) text areas on PDF pages. rects use PDF points, y from top */
+export async function redactPdfAtPoints(file: File, rects: { page: number; x: number; y: number; w: number; h: number }[], fileLabel = ""): Promise<PdfResult> {
+  const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+  const { rgb } = await import('pdf-lib');
+  const pages = src.getPages();
+  for (const rect of rects) {
+    const page = pages[rect.page];
+    if (!page) continue;
+    const { height } = page.getSize();
+    const yFromBottom = height - rect.y - rect.h; // convertir de arriba a abajo
+    page.drawRectangle({ x: rect.x, y: yFromBottom, width: rect.w, height: rect.h, color: rgb(0, 0, 0) });
+  }
+  const bytes = await src.save({ useObjectStreams: true });
+  return { blobs: [bytesToBlob(bytes, 'censurado.pdf')], names: ['censurado.pdf'], originalSize: file.size, compressedSize: bytes.length };
+}
+

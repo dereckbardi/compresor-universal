@@ -15,10 +15,11 @@ interface Props {
 export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCIAL", watermarkOpacity = 0.2, numPosition = "bottom", crop = { l: 5, t: 5, r: 5, b: 5 }, rotateDeg = 0 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pageSize, setPageSize] = useState({ w: 595, h: 842 });
-  const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [aspect, setAspect] = useState(595 / 842);
+  // Guardamos la imagen de la página para poder redibujarla sin borrarla
+  const pageBitmapRef = useRef<ImageBitmap | null>(null);
 
-  // Render first page with pdf.js
+  // Render primera página con pdf.js
   useEffect(() => {
     let cancelled = false;
     const render = async () => {
@@ -30,17 +31,23 @@ export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCI
         }
         const data = new Uint8Array(await file.arrayBuffer());
         const doc = await pdfjs.getDocument({ data }).promise;
-        if (cancelled) { return; }
+        if (cancelled) return;
         const page = await doc.getPage(1);
         const vp = page.getViewport({ scale: 1.2 });
         setPageSize({ w: vp.width, h: vp.height });
         setAspect(vp.width / vp.height);
         const canvas = canvasRef.current;
-        if (canvas) {
-          canvas.width = Math.floor(vp.width);
-          canvas.height = Math.floor(vp.height);
-          const ctx = canvas.getContext("2d");
-          if (ctx) await page.render({ canvasContext: ctx, viewport: vp } as any).promise;
+        if (!canvas) return;
+        canvas.width = Math.floor(vp.width);
+        canvas.height = Math.floor(vp.height);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        await page.render({ canvasContext: ctx, viewport: vp } as any).promise;
+        // Guardar la imagen renderizada para redibujarla después
+        try {
+          pageBitmapRef.current = await createImageBitmap(canvas);
+        } catch {
+          pageBitmapRef.current = null;
         }
       } catch (e) {
         console.error("PDF preview error", e);
@@ -50,21 +57,22 @@ export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCI
     return () => { cancelled = true; };
   }, [file]);
 
-  // Overlay drawing (in canvas pixel coords, page is pageSize)
+  // Overlay: primero redibuja la página guardada, luego el efecto
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
     const { w, h } = pageSize;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Redraw base page is already there (we only draw overlay on top); we need base image to persist,
-    // so we redraw from stored state instead. We'll draw the overlay only and rely on the page render above
-    // NOT clearing (we use a separate approach: draw overlay on a temp then composite).
-    // Simplest: draw semi-transparent overlay on top of the already-rendered page.
+    // Redibujar la página base (evita que se ponga en blanco)
+    if (pageBitmapRef.current) {
+      ctx.drawImage(pageBitmapRef.current, 0, 0, canvas.width, canvas.height);
+    }
     ctx.save();
 
     if (mode === "rotate") {
-      // Rotation handled via CSS on the container; nothing extra on canvas
+      // Rotación manejada por CSS en el contenedor
     }
 
     if (mode === "watermark") {
@@ -80,14 +88,13 @@ export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCI
     }
 
     if (mode === "page-num") {
-      const text = "1 / N";
       ctx.globalAlpha = 1;
       ctx.fillStyle = "rgba(0,0,0,0.6)";
       ctx.font = `${Math.min(w, h) * 0.02}px Arial`;
       ctx.textAlign = "center";
       ctx.textBaseline = "alphabetic";
       const y = numPosition === "bottom" ? h * 0.04 : h * 0.95;
-      ctx.fillText(text, w / 2, y);
+      ctx.fillText("1 / N", w / 2, y);
     }
 
     if (mode === "redact") {
@@ -103,14 +110,12 @@ export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCI
       const y = (b / 100) * h;
       const cw = ((100 - l - r) / 100) * w;
       const ch = ((100 - t - b) / 100) * h;
-      // Darken outside crop area
       ctx.globalAlpha = 0.55;
       ctx.fillStyle = "#000000";
-      ctx.fillRect(0, 0, w, y);                    // bottom
-      ctx.fillRect(0, y + ch, w, h - y - ch);      // top
-      ctx.fillRect(0, y, x, ch);                   // left
-      ctx.fillRect(x + cw, y, w - x - cw, ch);     // right
-      // Crop border
+      ctx.fillRect(0, 0, w, y);
+      ctx.fillRect(0, y + ch, w, h - y - ch);
+      ctx.fillRect(0, y, x, ch);
+      ctx.fillRect(x + cw, y, w - x - cw, ch);
       ctx.globalAlpha = 1;
       ctx.strokeStyle = "#f97316";
       ctx.lineWidth = 2;
@@ -118,11 +123,11 @@ export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCI
     }
 
     ctx.restore();
-  }, [mode, watermarkText, watermarkOpacity, numPosition, crop, pageSize]);
+  }, [mode, watermarkText, watermarkOpacity, numPosition, crop, pageSize, rotateDeg]);
 
-  const previewH = 280;
+  const previewH = 300;
   const isRotate = mode === "rotate";
-  const rot = rotateDeg % 360;
+  const rot = rotateDeg; // rotación acumulada, sin módulo (para que gire continuamente)
   const boxStyle: React.CSSProperties = isRotate
     ? {
         width: previewH * aspect,
@@ -135,7 +140,7 @@ export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCI
   return (
     <div className="flex flex-col items-center gap-2">
       <div
-        className={`relative rounded-lg overflow-hidden border border-white/10 shadow-xl bg-white ${isRotate ? "m-8" : ""}`}
+        className={`relative rounded-lg overflow-hidden border border-white/10 shadow-xl bg-white ${isRotate ? "m-10" : ""}`}
         style={boxStyle}
       >
         <canvas ref={canvasRef} className="w-full h-full object-contain" style={{ width: "100%", height: "100%" }} />

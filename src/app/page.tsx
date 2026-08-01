@@ -10,11 +10,12 @@ import PdfLivePreview from "@/components/PdfLivePreview";
 import PdfThumbnail from "@/components/PdfThumbnail";
 import BallSlider from "@/components/BallSlider";
 import PdfPageSelector from "@/components/PdfPageSelector";
+import PdfRedactEditor from "@/components/PdfRedactEditor";
 import { compressImage, formatBytes, formatPercent, CompressedImage } from "@/lib/imageCompressor";
 import { compressPdf, CompressedPdf } from "@/lib/pdfCompressor";
 import {
-  mergePdfs, splitPdf, removePages, extractPages, rotatePdf,
-  imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, PdfResult,
+  mergePdfs, splitPdf, splitByRanges, splitBySize, removePages, extractPages, rotatePdf,
+  imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, redactPdfAtPoints, PdfResult,
 } from "@/lib/pdfOps";
 
 type Mode = "image" | "pdf" | "merge" | "split" | "pdf-jpg" | "rotate" | "extract" | "remove" | "jpg-pdf" | "watermark" | "page-num" | "sign" | "redact" | "crop";
@@ -85,6 +86,13 @@ function HomeContent() {
   const [pagesError, setPagesError] = useState<string | null>(null);
   const [showAllWarning, setShowAllWarning] = useState(false);
   const [extractAllMode, setExtractAllMode] = useState(false);
+  const [splitMode, setSplitMode] = useState<"personalizado" | "fijo">("personalizado");
+  const [splitRanges, setSplitRanges] = useState<{ start: number; end: number }[]>([]);
+  const [splitStart, setSplitStart] = useState(1);
+  const [splitEnd, setSplitEnd] = useState(1);
+  const [splitSize, setSplitSize] = useState(2);
+  const [splitUnify, setSplitUnify] = useState(false);
+  const [redactRects, setRedactRects] = useState<{ page: number; x: number; y: number; w: number; h: number }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -197,7 +205,17 @@ function HomeContent() {
           if (files.length < 2) throw new Error("Necesitas al menos 2 archivos PDF para unirlos");
           r = await mergePdfs(files); break;
         }
-        case "split": r = await splitPdf(files[0]); break;
+        case "split": {
+          const label = files[0].name.replace(/\.pdf$/i, "");
+          if (splitMode === "fijo") {
+            if (!splitSize || splitSize < 1) throw new Error("Indica cada cuántas páginas dividir");
+            r = await splitBySize(files[0], Math.floor(splitSize), label);
+          } else {
+            if (!splitRanges.length) throw new Error("Añade al menos un rango de páginas");
+            r = await splitByRanges(files[0], splitRanges, label);
+          }
+          break;
+        }
         case "pdf-jpg": {
           const out: Result[] = [];
           for (const file of files) {
@@ -251,7 +269,10 @@ function HomeContent() {
           if (!signFile) throw new Error("Sube la imagen de tu firma");
           r = await addSignature(files[0], signFile, signPosition); break;
         }
-        case "redact": r = await redactPdf(files[0]); break;
+        case "redact": {
+          if (!redactRects.length) throw new Error("Marca los textos a censurar en la vista previa primero");
+          r = await redactPdfAtPoints(files[0], redactRects); break;
+        }
         case "crop": {
           const l = cropL, r2 = cropR, t = cropT, b = cropB;
           if (l + r2 >= 100 || t + b >= 100) throw new Error("El área de recorte es inválida (deja al menos algo de página)");
@@ -317,6 +338,113 @@ function HomeContent() {
           <p className="text-[11px] text-neutral-500">
             {isImg ? "Comprime JPG, PNG y WebP reduciendo su peso sin perder calidad visible." : "Reduce el peso de tu PDF manteniendo la calidad del contenido."}
           </p>
+        </div>
+      );
+    }
+    if (mode === "split") {
+      return (
+        <div className="space-y-4">
+          <p className="text-xs text-neutral-500">Divide tu PDF en varios documentos. Elige el modo de división.</p>
+
+          {/* Modo de rango */}
+          <div>
+            <label className="text-sm font-semibold text-neutral-300 block mb-2">Modo de rango</label>
+            <div className="space-y-2">
+              <button
+                onClick={() => setSplitMode("personalizado")}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition ${splitMode === "personalizado" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+              >
+                Personalizado
+              </button>
+              <button
+                onClick={() => setSplitMode("fijo")}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition ${splitMode === "fijo" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+              >
+                Fijo
+              </button>
+            </div>
+          </div>
+
+          {/* Personalizado: rangos */}
+          {splitMode === "personalizado" && (
+            <div className="space-y-3">
+              <label className="text-sm text-neutral-400 block">Rangos de páginas</label>
+              {splitRanges.length === 0 && (
+                <p className="text-xs text-neutral-500">Añade un rango para empezar. Ej: de la página 1 a la 5.</p>
+              )}
+              {/* Lista de rangos añadidos */}
+              {splitRanges.length > 0 && (
+                <div className="space-y-2">
+                  {splitRanges.map((rg, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 text-sm">
+                      <span className="text-neutral-300">Rango {idx + 1}: <span className="font-semibold">de {rg.start} a {rg.end}</span></span>
+                      <button onClick={() => setSplitRanges(splitRanges.filter((_, i) => i !== idx))} className="text-neutral-500 hover:text-red-400 transition text-xs">✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Añadir rango */}
+              <div className="bg-white/5 rounded-xl p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-neutral-500">De la página</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={pdfTotalPages || 1000}
+                    value={splitStart}
+                    onChange={(e) => setSplitStart(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-16 bg-black border border-neutral-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-orange-500"
+                  />
+                  <label className="text-xs text-neutral-500">a</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={pdfTotalPages || 1000}
+                    value={splitEnd}
+                    onChange={(e) => setSplitEnd(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-16 bg-black border border-neutral-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    const start = Math.min(splitStart, splitEnd);
+                    const end = Math.max(splitStart, splitEnd);
+                    if (pdfTotalPages > 0 && end > pdfTotalPages) {
+                      setPagesError(`El PDF solo tiene ${pdfTotalPages} páginas`);
+                      return;
+                    }
+                    setPagesError(null);
+                    setSplitRanges([...splitRanges, { start, end }]);
+                  }}
+                  className="w-full px-3 py-2 rounded-lg border border-orange-500 text-orange-500 hover:bg-orange-500/10 text-sm font-medium transition"
+                >
+                  + Añadir rango
+                </button>
+                {pagesError && <p className="text-xs text-red-400">⚠️ {pagesError}</p>}
+              </div>
+            </div>
+          )}
+
+          {/* Fijo: cada N páginas */}
+          {splitMode === "fijo" && (
+            <div>
+              <label className="text-sm text-neutral-400 block mb-2">Dividir cada cuántas páginas</label>
+              <input
+                type="number"
+                min="1"
+                max={pdfTotalPages || 100}
+                value={splitSize}
+                onChange={(e) => setSplitSize(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+              />
+              {pdfTotalPages > 0 && (
+                <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-300 text-xs mt-2">
+                  Este PDF se dividirá en archivos de {Math.max(1, splitSize)} página{Math.max(1, splitSize) === 1 ? "" : "s"}.
+                  <br />Se generarán {Math.ceil(pdfTotalPages / Math.max(1, splitSize))} PDFs.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       );
     }
@@ -425,11 +553,35 @@ function HomeContent() {
     if (mode === "rotate") {
       return (
         <div>
-          <label className="text-sm text-neutral-400 block mb-2">Ángulo de rotación</label>
-          <div className="flex gap-2">
-            {[90, 180, 270].map((d) => (
-              <button key={d} onClick={() => setRotateDeg(d)} className={`flex flex-1 items-center justify-center py-2.5 rounded-lg border text-sm font-medium transition ${rotateDeg === d ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}>{d}°</button>
-            ))}
+          {/* Encabezado con Restablecer */}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-semibold text-neutral-300">Rotación</span>
+            <button
+              onClick={() => setRotateDeg(0)}
+              className="text-xs text-orange-500 underline hover:text-orange-400 transition"
+            >
+              Restablecer
+            </button>
+          </div>
+          <p className="text-xs text-neutral-500 mb-3">Gira el documento para corregir su orientación. Actual: {rotateDeg}°</p>
+
+          <div className="space-y-2">
+            {/* Girar izquierda */}
+            <button
+              onClick={() => setRotateDeg(rotateDeg - 90)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-orange-500 hover:bg-neutral-800 transition"
+            >
+              <span className="w-9 h-9 rounded-lg bg-orange-500 text-black flex items-center justify-center text-xl font-bold">↺</span>
+              <span className="text-sm font-semibold uppercase tracking-wide">Izquierda</span>
+            </button>
+            {/* Girar derecha */}
+            <button
+              onClick={() => setRotateDeg(rotateDeg + 90)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-orange-500 hover:bg-neutral-800 transition"
+            >
+              <span className="w-9 h-9 rounded-lg bg-orange-500 text-black flex items-center justify-center text-xl font-bold">↻</span>
+              <span className="text-sm font-semibold uppercase tracking-wide">Derecha</span>
+            </button>
           </div>
         </div>
       );
@@ -598,7 +750,18 @@ function HomeContent() {
       );
     }
     if (mode === "redact") {
-      return <p className="text-sm text-neutral-400">Se ocultarán con barras negras los bordes superior e inferior de cada página.</p>;
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Busca el texto a censurar en la vista previa de la izquierda, o detecta automáticamente tarjetas, teléfonos y emails.
+          </p>
+          {redactRects.length > 0 && (
+            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-300 text-xs">
+              ⚠️ {redactRects.length} elemento(s) marcados para censurar. Revisa el documento antes de continuar.
+            </div>
+          )}
+        </div>
+      );
     }
     return null;
   };
@@ -794,6 +957,22 @@ function HomeContent() {
                     <p className="text-sm text-neutral-500 text-center">{files.length} archivo(s) · {formatBytes(files.reduce((s, f) => s + f.size, 0))}</p>
                     {files.length > 1 && <p className="text-[10px] text-neutral-600 text-center mt-1">Arrastra para cambiar el orden</p>}
                   </div>
+                ) : mode === "split" ? (
+                  <PdfPageSelector
+                    file={files[0]}
+                    selected={new Set()}
+                    totalPages={pdfTotalPages}
+                    onTotal={(total) => setPdfTotalPages(total)}
+                    ranges={splitMode === "personalizado"
+                      ? [{ start: splitStart, end: splitEnd }, ...splitRanges]
+                      : splitSize > 0 && pdfTotalPages > 0
+                        ? Array.from({ length: Math.ceil(pdfTotalPages / splitSize) }, (_, i) => ({
+                            start: i * splitSize + 1,
+                            end: Math.min((i + 1) * splitSize, pdfTotalPages),
+                          }))
+                        : []}
+                    onToggle={() => {}}
+                  />
                 ) : mode === "remove" ? (
                   <PdfPageSelector
                     file={files[0]}
@@ -829,7 +1008,9 @@ function HomeContent() {
                       });
                     }}
                   />
-                ) : (mode === "watermark" || mode === "page-num" || mode === "redact" || mode === "crop" || mode === "rotate") ? (
+                ) : mode === "redact" ? (
+                  <PdfRedactEditor file={files[0]} onRects={(rects) => setRedactRects(rects)} />
+                ) : (mode === "watermark" || mode === "page-num" || mode === "crop" || mode === "rotate") ? (
                   <PdfLivePreview
                     file={files[0]}
                     mode={mode}

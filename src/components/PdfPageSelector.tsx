@@ -9,6 +9,7 @@ interface Props {
   totalPages: number;
   onTotal?: (total: number) => void;
   selectAll?: boolean; // true = extraer (visto), false = eliminar (x)
+  ranges?: { start: number; end: number }[]; // para agrupar páginas por rango (modo dividir)
 }
 
 interface PageData {
@@ -18,7 +19,7 @@ interface PageData {
   height: number;
 }
 
-export default function PdfPageSelector({ file, selected, onToggle, totalPages, onTotal, selectAll = false }: Props) {
+export default function PdfPageSelector({ file, selected, onToggle, totalPages, onTotal, selectAll = false, ranges = [] }: Props) {
   const [pages, setPages] = useState<PageData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -68,52 +69,81 @@ export default function PdfPageSelector({ file, selected, onToggle, totalPages, 
     );
   }
 
+  // Función: a qué rango pertenece una página (para el modo dividir)
+  const rangeOf = (num: number): number => {
+    for (let i = 0; i < ranges.length; i++) {
+      if (num >= ranges[i].start && num <= ranges[i].end) return i;
+    }
+    return -1;
+  };
+
+  // Colores para distinguir rangos
+  const rangeColors = ["#f97316", "#22c55e", "#3b82f6", "#a855f7", "#eab308", "#ef4444", "#14b8a6", "#ec4899"];
+
+  // Agrupar por rangos. Solo mostramos las páginas que pertenecen a un rango.
+  const grouped = ranges.length > 0 ? ranges.map((rg) => pages.filter((pg) => pg.num >= rg.start && pg.num <= rg.end)) : null;
+
   return (
     <div className="w-full">
-      {/* Miniaturas de todas las páginas, separadas en cuadrícula */}
-      <div className="flex flex-wrap gap-4 justify-center max-h-[70vh] overflow-y-auto pb-4">
-        {pages.map((pg) => {
-          const isSel = selected.has(pg.num);
-          return (
+      {grouped ? (
+        /* Vista agrupada por rangos (solo lo agrupado) */
+        <div className="space-y-5 max-h-[70vh] overflow-y-auto pb-4">
+          {grouped.map((group, gi) => group.length > 0 && (
+            <div key={gi} className="space-y-2">
+              <p className="text-xs font-semibold" style={{ color: rangeColors[gi % rangeColors.length] }}>
+                Rango {gi + 1} · páginas {group[0].num} a {group[group.length - 1].num}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {group.map((pg) => (
+                  <PageThumb key={pg.num} pg={pg} borderColor={rangeColors[gi % rangeColors.length]} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Vista normal (cuadrícula) */
+        <div className="flex flex-wrap gap-4 justify-center max-h-[70vh] overflow-y-auto pb-4">
+          {pages.map((pg) => (
             <button
               key={pg.num}
               onClick={() => onToggle(pg.num)}
               className={`relative rounded-xl overflow-hidden border-2 transition group ${
-                isSel ? (selectAll ? "border-orange-500 bg-orange-500/10" : "border-red-500 bg-red-500/10") : "border-transparent hover:border-orange-500/60"
+                selected.has(pg.num) ? (selectAll ? "border-orange-500 bg-orange-500/10" : "border-red-500 bg-red-500/10") : "border-transparent hover:border-orange-500/60"
               }`}
               style={{ width: 140 }}
             >
-              <img
-                src={pg.url}
-                alt={`Página ${pg.num}`}
-                className="w-full bg-white"
-                style={{ aspectRatio: `${pg.width} / ${pg.height}` }}
-              />
-              {/* Etiqueta de página */}
-              <span className="absolute top-1.5 left-1.5 w-6 h-6 rounded-full bg-black/70 text-white text-xs font-bold flex items-center justify-center">
-                {pg.num}
-              </span>
-              {/* Overlay según modo */}
-              <span className={`absolute inset-0 flex items-center justify-center transition ${isSel ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`}>
+              <img src={pg.url} alt={`Página ${pg.num}`} className="w-full bg-white" style={{ aspectRatio: `${pg.width} / ${pg.height}` }} />
+              <span className="absolute top-1.5 left-1.5 w-6 h-6 rounded-full bg-black/70 text-white text-xs font-bold flex items-center justify-center">{pg.num}</span>
+              <span className={`absolute inset-0 flex items-center justify-center transition ${selected.has(pg.num) ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`}>
                 {selectAll ? (
-                  <span className={`w-12 h-12 rounded-full flex items-center justify-center ${isSel ? "bg-orange-500" : "bg-orange-500/60"}`}>
+                  <span className={`w-12 h-12 rounded-full flex items-center justify-center ${selected.has(pg.num) ? "bg-orange-500" : "bg-orange-500/60"}`}>
                     <span className="text-2xl font-bold text-white">✓</span>
                   </span>
                 ) : (
-                  <span className={`w-12 h-12 rounded-full flex items-center justify-center ${isSel ? "bg-red-600" : "bg-red-600/60"}`}>
+                  <span className={`w-12 h-12 rounded-full flex items-center justify-center ${selected.has(pg.num) ? "bg-red-600" : "bg-red-600/60"}`}>
                     <span className="text-2xl font-bold text-white">✕</span>
                   </span>
                 )}
               </span>
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
       <p className="text-center text-sm text-neutral-400 mt-4">
         {selected.size === 0
-          ? (selectAll ? "Haz clic en las páginas que quieres extraer" : "Haz clic en las páginas que quieres eliminar")
+          ? (selectAll ? "Haz clic en las páginas que quieres extraer" : ranges.length > 0 ? "" : "Haz clic en las páginas que quieres eliminar")
           : `${selected.size} página(s) seleccionada(s): ${Array.from(selected).sort((a, b) => a - b).join(", ")}`}
       </p>
+    </div>
+  );
+}
+
+function PageThumb({ pg, borderColor }: { pg: PageData; borderColor: string | null }) {
+  return (
+    <div className="relative rounded-xl overflow-hidden" style={{ width: 110, border: borderColor ? `2px solid ${borderColor}` : "2px solid #3f3f46" }}>
+      <img src={pg.url} alt={`Página ${pg.num}`} className="w-full bg-white" style={{ aspectRatio: `${pg.width} / ${pg.height}` }} />
+      <span className="absolute top-1 left-1 w-5 h-5 rounded-full bg-black/70 text-white text-[10px] font-bold flex items-center justify-center">{pg.num}</span>
     </div>
   );
 }
