@@ -6,10 +6,6 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-# Dependencias del sistema para instalar LibreOffice, qpdf y Ghostscript
-RUN apk add --no-cache libreoffice qpdf ghostscript fontconfig \
-    && fc-cache -f
-
 # Copiamos e instalamos dependencias (cachea capa si no cambian)
 COPY package.json package-lock.json ./
 RUN npm ci
