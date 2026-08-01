@@ -9,11 +9,12 @@ import ImageToPdfPreview from "@/components/ImageToPdfPreview";
 import PdfLivePreview from "@/components/PdfLivePreview";
 import PdfThumbnail from "@/components/PdfThumbnail";
 import BallSlider from "@/components/BallSlider";
+import PdfPageSelector from "@/components/PdfPageSelector";
 import { compressImage, formatBytes, formatPercent, CompressedImage } from "@/lib/imageCompressor";
 import { compressPdf, CompressedPdf } from "@/lib/pdfCompressor";
 import {
   mergePdfs, splitPdf, removePages, extractPages, rotatePdf,
-  imagesToPdf, pdfToJpg, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, PdfResult,
+  imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, PdfResult,
 } from "@/lib/pdfOps";
 
 type Mode = "image" | "pdf" | "merge" | "split" | "pdf-jpg" | "rotate" | "extract" | "remove" | "jpg-pdf" | "watermark" | "page-num" | "sign" | "redact" | "crop";
@@ -77,12 +78,19 @@ function HomeContent() {
   const [imgOrientation, setImgOrientation] = useState<"portrait" | "landscape">("portrait");
   const [imgMargin, setImgMargin] = useState("none");
   const [imgUnify, setImgUnify] = useState(true);
+  const [jpgQuality, setJpgQuality] = useState(0.9);
+  const [jpgMode, setJpgMode] = useState<"paginas" | "extraer">("paginas");
+  const [selRemovePages, setSelRemovePages] = useState<Set<number>>(new Set());
+  const [pdfTotalPages, setPdfTotalPages] = useState(0);
+  const [pagesError, setPagesError] = useState<string | null>(null);
+  const [showAllWarning, setShowAllWarning] = useState(false);
+  const [extractAllMode, setExtractAllMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const signInputRef = useRef<HTMLInputElement>(null);
 
-  const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "image" || mode === "pdf";
+  const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg";
   const isImageInput = mode === "image" || mode === "jpg-pdf";
   const acceptedExt = isImageInput ? "image/*" : "application/pdf";
 
@@ -109,6 +117,11 @@ function HomeContent() {
     setResults([]);
     setError(null);
     setPagesInput("");
+    setPagesError(null);
+    setSelRemovePages(new Set());
+    setPdfTotalPages(0);
+    setShowAllWarning(false);
+    setExtractAllMode(false);
   };
 
   const handleFiles = useCallback((list: FileList | null) => {
@@ -180,16 +193,52 @@ function HomeContent() {
           }
           setResults(out); setProcessing(false); return;
         }
-        case "merge": r = await mergePdfs(files); break;
+        case "merge": {
+          if (files.length < 2) throw new Error("Necesitas al menos 2 archivos PDF para unirlos");
+          r = await mergePdfs(files); break;
+        }
         case "split": r = await splitPdf(files[0]); break;
-        case "pdf-jpg": r = await pdfToJpg(files[0]); break;
+        case "pdf-jpg": {
+          const out: Result[] = [];
+          for (const file of files) {
+            if (jpgMode === "extraer") {
+              const r = await extractImagesFromPdf(file, file.name.replace(/\.pdf$/i, ""));
+              r.blobs.forEach((blob, idx) => {
+                out.push({
+                  name: r.names[idx], originalSize: r.originalSize, compressedSize: r.compressedSize,
+                  ratio: r.compressedSize / r.originalSize, blob,
+                });
+              });
+            } else {
+              const scale = jpgQuality >= 0.9 ? 2.5 : jpgQuality >= 0.7 ? 1.5 : 0.8;
+              const r = await pdfToJpg(file, scale, file.name.replace(/\.pdf$/i, ""));
+              r.blobs.forEach((blob, idx) => {
+                out.push({
+                  name: r.names[idx], originalSize: r.originalSize, compressedSize: r.compressedSize,
+                  ratio: r.compressedSize / r.originalSize, blob,
+                });
+              });
+            }
+          }
+          setResults(out); setProcessing(false); return;
+        }
         case "rotate": r = await rotatePdf(files[0], rotateDeg); break;
         case "extract": {
-          const pages = parsePages(); if (!pages.length) throw new Error("Escribe las páginas a extraer (ej: 1,3,5)");
-          r = await extractPages(files[0], pages); break;
+          const pages = selRemovePages.size ? Array.from(selRemovePages) : parsePages();
+          if (!pages.length) throw new Error("Selecciona las páginas a extraer (visto naranja en las miniaturas o escribe ej: 1,3,5)");
+          if (pdfTotalPages > 0 && pages.some((p) => p > pdfTotalPages)) throw new Error(`El PDF solo tiene ${pdfTotalPages} página(s)`);
+          // Si se usó "Extraer todas las páginas", cada página va en un PDF separado
+          if (extractAllMode) {
+            r = await extractEachPage(files[0], pages, files[0].name.replace(/\.pdf$/i, ""));
+          } else {
+            r = await extractPages(files[0], pages);
+          }
+          break;
         }
         case "remove": {
-          const pages = parsePages(); if (!pages.length) throw new Error("Escribe las páginas a eliminar (ej: 1,3,5)");
+          const pages = selRemovePages.size ? Array.from(selRemovePages) : parsePages();
+          if (!pages.length) throw new Error("Selecciona las páginas a eliminar (clic en las miniaturas o escribe ej: 1,3,5)");
+          if (pdfTotalPages > 0 && pages.some((p) => p > pdfTotalPages)) throw new Error(`El PDF solo tiene ${pdfTotalPages} página(s)`);
           r = await removePages(files[0], pages); break;
         }
         case "jpg-pdf": r = await imagesToPdf(files, { pageSize: imgPageSize, orientation: imgOrientation, margin: imgMargin, unify: imgUnify }); break;
@@ -274,8 +323,102 @@ function HomeContent() {
     if (mode === "extract" || mode === "remove") {
       return (
         <div>
-          <label className="text-sm text-neutral-400 block mb-2">{mode === "remove" ? "Páginas a eliminar" : "Páginas a extraer"} (separadas por coma)</label>
-          <input value={pagesInput} onChange={(e) => setPagesInput(e.target.value)} placeholder="ej: 1,3,5" className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500" />
+          {mode === "remove" ? (
+            <div className="space-y-3">
+              <label className="text-sm text-neutral-400 block">Selecciona las páginas a eliminar</label>
+              <p className="text-xs text-neutral-500">El selector visual está en la columna izquierda. Haz clic en las páginas que quieres quitar.</p>
+              <div>
+                <label className="text-xs text-neutral-500 block mb-1">O escríbelas manualmente (ej: 1,3,5)</label>
+                <input
+                  value={pagesInput}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPagesInput(val);
+                    // Validar contra el total de páginas del PDF
+                    const nums = val.split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => !isNaN(n) && n > 0);
+                    if (pdfTotalPages > 0 && nums.some((n) => n > pdfTotalPages)) {
+                      setPagesError(`El PDF solo tiene ${pdfTotalPages} página(s). Los números deben estar entre 1 y ${pdfTotalPages}.`);
+                      return;
+                    }
+                    setPagesError(null);
+                    setSelRemovePages(new Set(nums));
+                  }}
+                  placeholder={`ej: 1,3,5 (máx ${pdfTotalPages || "?"})`}
+                  className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+                />
+                {pagesError && (
+                  <p className="mt-2 text-xs text-red-400">⚠️ {pagesError}</p>
+                )}
+              </div>
+              {selRemovePages.size > 0 && (
+                <button
+                  onClick={() => setSelRemovePages(new Set())}
+                  className="text-xs text-neutral-500 hover:text-red-400 transition"
+                >
+                  ✕ Limpiar selección ({selRemovePages.size} página(s))
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-neutral-500">Selecciona las páginas a extraer con el visor de la izquierda (visto naranja).</p>
+
+              {/* Botón: Extraer todas las páginas */}
+              <button
+                onClick={() => {
+                  if (pdfTotalPages > 0) {
+                    setSelRemovePages(new Set(Array.from({ length: pdfTotalPages }, (_, i) => i + 1)));
+                    setPagesInput(Array.from({ length: pdfTotalPages }, (_, i) => i + 1).join(","));
+                    setPagesError(null);
+                    setShowAllWarning(true);
+                    setExtractAllMode(true);
+                  }
+                }}
+                className="w-full flex flex-col items-start px-3 py-3 rounded-lg border text-left transition bg-orange-500 text-black border-orange-500 hover:bg-orange-400"
+              >
+                <span className="text-sm font-semibold">Extraer todas las páginas</span>
+              </button>
+              {showAllWarning && (
+                <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-300 text-xs">
+                  ⚠️ Las páginas seleccionadas se convertirán en diferentes archivos PDF. {pdfTotalPages || selRemovePages.size} PDF serán creados.
+                </div>
+              )}
+
+              {/* Botón: Seleccionar páginas manualmente */}
+              <div>
+                <label className="text-xs text-neutral-500 block mb-1">Seleccionar páginas (ej: 1,3,5)</label>
+                <input
+                  value={pagesInput}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPagesInput(val);
+                    setShowAllWarning(false);
+                    setExtractAllMode(false);
+                    const nums = val.split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => !isNaN(n) && n > 0);
+                    if (pdfTotalPages > 0 && nums.some((n) => n > pdfTotalPages)) {
+                      setPagesError(`El PDF solo tiene ${pdfTotalPages} página(s). Los números deben estar entre 1 y ${pdfTotalPages}.`);
+                      return;
+                    }
+                    setPagesError(null);
+                    setSelRemovePages(new Set(nums));
+                  }}
+                  placeholder={`ej: 1,3,5 (máx ${pdfTotalPages || "?"})`}
+                  className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+                />
+                {pagesError && (
+                  <p className="mt-2 text-xs text-red-400">⚠️ {pagesError}</p>
+                )}
+              </div>
+              {selRemovePages.size > 0 && (
+                <button
+                  onClick={() => { setSelRemovePages(new Set()); setPagesInput(""); setPagesError(null); setShowAllWarning(false); setExtractAllMode(false); }}
+                  className="text-xs text-neutral-500 hover:text-red-400 transition"
+                >
+                  ✕ Limpiar selección ({selRemovePages.size} página(s))
+                </button>
+              )}
+            </div>
+          )}
         </div>
       );
     }
@@ -395,8 +538,64 @@ function HomeContent() {
         </div>
       );
     }
+    if (mode === "pdf-jpg") {
+      return (
+        <div className="space-y-5">
+          {/* Selección de modo */}
+          <div className="space-y-2">
+            <button
+              onClick={() => setJpgMode("paginas")}
+              className={`w-full flex flex-col items-start px-3 py-3 rounded-lg border text-left transition ${jpgMode === "paginas" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+            >
+              <span className="text-sm font-semibold">Páginas a JPG</span>
+              <span className="text-[10px] opacity-70 mt-0.5">Cada página del PDF se convertirá en una imagen JPG. Se crearán {files.length ? "los JPG de cada página" : "N"} JPG.</span>
+            </button>
+            <button
+              onClick={() => setJpgMode("extraer")}
+              className={`w-full flex flex-col items-start px-3 py-3 rounded-lg border text-left transition ${jpgMode === "extraer" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+            >
+              <span className="text-sm font-semibold">Extraer imágenes</span>
+              <span className="text-[10px] opacity-70 mt-0.5">Todas las imágenes dentro del archivo PDF se extraerán y se convertirán a JPG.</span>
+            </button>
+          </div>
+
+          {/* Opciones de calidad (solo en modo Páginas a JPG) */}
+          {jpgMode === "paginas" && (
+            <div>
+              <label className="text-sm text-neutral-400 block mb-2">Calidad de imagen</label>
+              <div className="space-y-2">
+                {[
+                  { v: 0.9, name: "Alta", desc: "Máxima resolución" },
+                  { v: 0.7, name: "Normal", desc: "Recomendada" },
+                  { v: 0.5, name: "Baja", desc: "Menor resolución, más ligera" },
+                ].map((lvl) => (
+                  <button
+                    key={lvl.v}
+                    onClick={() => setJpgQuality(lvl.v)}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-left transition ${Math.abs(jpgQuality - lvl.v) < 0.05 ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+                  >
+                    <span className="text-sm font-medium">{lvl.name}</span>
+                    <span className="text-[10px] opacity-70">{lvl.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
     if (mode === "merge") {
-      return <p className="text-sm text-neutral-400">Selecciona los archivos y pulsa el botón para unirlos.</p>;
+      return (
+        <div className="space-y-3">
+          {files.length < 2 ? (
+            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-300 text-sm">
+              ⚠️ Por favor, selecciona más archivos PDF haciendo click en 'Seleccionar archivos PDF'. Necesitas al menos 2 para poder unirlos.
+            </div>
+          ) : (
+            <p className="text-sm text-neutral-400">Los {files.length} PDFs se unirán en el orden mostrado. Arrastra para reordenar.</p>
+          )}
+        </div>
+      );
     }
     if (mode === "redact") {
       return <p className="text-sm text-neutral-400">Se ocultarán con barras negras los bordes superior e inferior de cada página.</p>;
@@ -559,9 +758,9 @@ function HomeContent() {
                     <p className="text-sm text-neutral-500 text-center">{files.length} imagen(es) · {formatBytes(files.reduce((s, f) => s + f.size, 0))}</p>
                     {files.length > 1 && <p className="text-[10px] text-neutral-600 text-center mt-1">Arrastra para cambiar el orden</p>}
                   </div>
-                ) : (mode === "image" || mode === "pdf" || mode === "merge") ? (
+                ) : (mode === "image" || mode === "pdf" || mode === "merge" || mode === "pdf-jpg") ? (
                   <div className="w-full">
-                    {/* Miniaturas de todos los archivos a comprimir/unir + botón añadir */}
+                    {/* Miniaturas de todos los archivos a comprimir/unir/convertir + botón añadir */}
                     <div className="flex flex-wrap gap-4 justify-center mb-5">
                       {files.map((f, i) => (
                         <div
@@ -595,6 +794,41 @@ function HomeContent() {
                     <p className="text-sm text-neutral-500 text-center">{files.length} archivo(s) · {formatBytes(files.reduce((s, f) => s + f.size, 0))}</p>
                     {files.length > 1 && <p className="text-[10px] text-neutral-600 text-center mt-1">Arrastra para cambiar el orden</p>}
                   </div>
+                ) : mode === "remove" ? (
+                  <PdfPageSelector
+                    file={files[0]}
+                    selected={selRemovePages}
+                    totalPages={pdfTotalPages}
+                    onTotal={(total) => setPdfTotalPages(total)}
+                    selectAll={false}
+                    onToggle={(num) => {
+                      setSelRemovePages((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(num)) next.delete(num);
+                        else next.add(num);
+                        // Sincronizar campo de texto con la selección visual
+                        setPagesInput(Array.from(next).sort((a, b) => a - b).join(","));
+                        return next;
+                      });
+                    }}
+                  />
+                ) : mode === "extract" ? (
+                  <PdfPageSelector
+                    file={files[0]}
+                    selected={selRemovePages}
+                    totalPages={pdfTotalPages}
+                    onTotal={(total) => setPdfTotalPages(total)}
+                    selectAll={true}
+                    onToggle={(num) => {
+                      setSelRemovePages((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(num)) next.delete(num);
+                        else next.add(num);
+                        setPagesInput(Array.from(next).sort((a, b) => a - b).join(","));
+                        return next;
+                      });
+                    }}
+                  />
                 ) : (mode === "watermark" || mode === "page-num" || mode === "redact" || mode === "crop" || mode === "rotate") ? (
                   <PdfLivePreview
                     file={files[0]}
@@ -635,7 +869,7 @@ function HomeContent() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={run}
-                  disabled={processing}
+                  disabled={processing || (mode === "merge" && files.length < 2)}
                   className="w-full py-3.5 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-black transition-colors hover:shadow-lg hover:shadow-orange-500/25"
                 >
                   {processing ? "⏳ Procesando..." : t.title}
@@ -651,7 +885,7 @@ function HomeContent() {
                       {totalCompressed < totalOriginal && <span className="text-emerald-500 font-bold ml-1">{formatPercent(totalCompressed / totalOriginal)}</span>}
                     </p>
                   </div>
-                  <ul className="space-y-2">
+                  <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
                     {results.map((r, i) => (
                       <ResultPop key={i} index={i}>
                         <li className="bg-neutral-900 rounded-xl p-3 flex items-center justify-between border border-white/5">

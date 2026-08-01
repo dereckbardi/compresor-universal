@@ -75,6 +75,25 @@ export async function extractPages(file: File, pages: number[]): Promise<PdfResu
   return { blobs: [bytesToBlob(bytes, "extraidas.pdf")], names: ["extraidas.pdf"], originalSize: file.size, compressedSize: bytes.length };
 }
 
+/** Extract each of the given pages into SEPARATE PDFs (one PDF per page) */
+export async function extractEachPage(file: File, pages: number[], fileLabel = ""): Promise<PdfResult> {
+  const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+  const blobs: Blob[] = [];
+  const names: string[] = [];
+  const prefix = fileLabel || file.name.replace(/\.pdf$/i, "");
+  let total = 0;
+  for (const p of pages) {
+    const doc = await PDFDocument.create();
+    const [copy] = await doc.copyPages(src, [p - 1]);
+    doc.addPage(copy);
+    const bytes = await doc.save({ useObjectStreams: true });
+    total += bytes.length;
+    blobs.push(bytesToBlob(bytes, `${prefix}-pagina-${p}.pdf`));
+    names.push(`${prefix}-pagina-${p}.pdf`);
+  }
+  return { blobs, names, originalSize: file.size, compressedSize: total };
+}
+
 /** Rotate all pages by degrees (90/180/270) */
 export async function rotatePdf(file: File, deg: number): Promise<PdfResult> {
   const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
@@ -152,7 +171,7 @@ export async function imagesToPdf(files: File[], opts: ImgToPdfOpts = {}): Promi
 }
 
 /** Convert PDF pages to JPG images (renders via canvas) */
-export async function pdfToJpg(file: File, scale = 1.5): Promise<PdfResult> {
+export async function pdfToJpg(file: File, scale = 1.5, fileLabel = ""): Promise<PdfResult> {
   const pdfjs = await import("pdfjs-dist");
   if (!(pdfjs as any).GlobalWorkerOptions?.workerSrc) {
     (pdfjs as any).GlobalWorkerOptions.workerSrc = 
@@ -163,6 +182,7 @@ export async function pdfToJpg(file: File, scale = 1.5): Promise<PdfResult> {
   const blobs: Blob[] = [];
   const names: string[] = [];
   let total = 0;
+  const prefix = fileLabel || file.name.replace(/\.pdf$/i, "");
 
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
@@ -178,7 +198,7 @@ export async function pdfToJpg(file: File, scale = 1.5): Promise<PdfResult> {
     if (blob) {
       total += blob.size;
       blobs.push(blob);
-      names.push(`pagina-${i}.jpg`);
+      names.push(`${prefix}-pagina-${i}.jpg`);
     }
   }
   if (!blobs.length) throw new Error("No se pudieron renderizar las páginas");
@@ -278,4 +298,140 @@ export async function cropPdf(file: File, crop: { x: number; y: number; w: numbe
   }
   const bytes = await src.save({ useObjectStreams: true });
   return { blobs: [bytesToBlob(bytes, "recortado.pdf")], names: ["recortado.pdf"], originalSize: file.size, compressedSize: bytes.length };
+}
+
+/** Extract all embedded images from a PDF and convert them to JPG blobs */
+export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<PdfResult> {
+  const pdfjs = await import("pdfjs-dist");
+  if (!(pdfjs as any).GlobalWorkerOptions?.workerSrc) {
+    (pdfjs as any).GlobalWorkerOptions.workerSrc =
+      new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+  }
+  const data = new Uint8Array(await file.arrayBuffer());
+  const doc = await pdfjs.getDocument({ data }).promise;
+  const blobs: Blob[] = [];
+  const names: string[] = [];
+  let total = 0;
+  let count = 0;
+  const prefix = fileLabel || file.name.replace(/\.pdf$/i, "");
+  const OPS = (pdfjs as any).OPS;
+
+  for (let p = 1; p <= doc.numPages; p++) {
+    const page = await doc.getPage(p);
+    const ops = await page.getOperatorList();
+    for (let o = 0; o < ops.fnArray.length; o++) {
+      const fn = ops.fnArray[o];
+      if (fn !== OPS.paintImageXObject && fn !== OPS.paintInlineImageXObject && fn !== OPS.paintImageMaskXObject) continue;
+      let img;
+      try {
+        if (fn === OPS.paintImageXObject) {
+          const imgName = ops.argsArray[o][0];
+          if (typeof imgName !== "string") continue;
+          img = await page.objs.get(imgName);
+        } else {
+          // Inline o mask: datos directos en args
+          const arg = ops.argsArray[o][0];
+          if (arg && typeof arg === "object" && arg.width) img = arg;
+        }
+      } catch {
+        continue;
+      }
+      if (!img || !img.width || !img.height) continue;
+
+      // Extraer bytes: pdf.js devuelve img.data que puede ser Uint8Array o objeto decodificado {buffer, length}
+      let bytes: Uint8Array | null = null;
+      try {
+        if (img.data instanceof Uint8Array) {
+          bytes = img.data;
+        } else if (img.data && typeof img.data === "object" && img.data.buffer) {
+          const arr = img.data.buffer;
+          if (arr instanceof Uint8Array) bytes = arr;
+          else if (arr instanceof ArrayBuffer) bytes = new Uint8Array(arr);
+        } else if (img.bitmap) {
+          // Si pdf.js ya decodificó a ImageBitmap
+          const canvas2 = document.createElement("canvas");
+          canvas2.width = img.width;
+          canvas2.height = img.height;
+          canvas2.getContext("2d")?.drawImage(img.bitmap, 0, 0);
+          const b2 = await new Promise<Blob | null>((resolve) => canvas2.toBlob((b) => resolve(b), "image/jpeg", 0.92));
+          if (b2) {
+            count++;
+            total += b2.size;
+            blobs.push(b2);
+            names.push(`${prefix}-imagen-${count}.jpg`);
+          }
+          continue;
+        }
+      } catch {
+        bytes = null;
+      }
+      if (!bytes) continue;
+
+      count++;
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) continue;
+      try {
+        const kind = (img as any).kind;
+        const mime = kind === 3 ? "image/jpeg" : "image/png";
+        const blob = new Blob([bytes as any], { type: mime });
+        let bitmap: ImageBitmap | null = null;
+        try {
+          bitmap = await createImageBitmap(blob);
+        } catch {
+          // crearImageBitmap no soportado para este formato -> intentar via Image
+          try {
+            bitmap = await new Promise<ImageBitmap | null>((resolve) => {
+              const im = new Image();
+              const url = URL.createObjectURL(blob);
+              im.onload = () => {
+                const c = document.createElement("canvas");
+                c.width = im.width;
+                c.height = im.height;
+                c.getContext("2d")?.drawImage(im, 0, 0);
+                URL.revokeObjectURL(url);
+                resolve(c as unknown as ImageBitmap);
+              };
+              im.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+              im.src = url;
+            });
+          } catch {
+            bitmap = null;
+          }
+        }
+        if (bitmap) ctx.drawImage(bitmap as any, 0, 0);
+        const outBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92));
+        if (outBlob) {
+          total += outBlob.size;
+          blobs.push(outBlob);
+          names.push(`${prefix}-imagen-${count}.jpg`);
+        }
+      } catch {
+        continue;
+      }
+    }
+  }
+  if (!blobs.length) {
+    // Fallback: renderizar las páginas a JPG (útil para PDFs cuyas imágenes no se detectan por operador)
+    for (let p = 1; p <= doc.numPages; p++) {
+      const page = await doc.getPage(p);
+      const vp = page.getViewport({ scale: 1.5 });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.floor(vp.width);
+      canvas.height = Math.floor(vp.height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) continue;
+      await page.render({ canvasContext: ctx, viewport: vp } as any).promise;
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92));
+      if (blob) {
+        total += blob.size;
+        blobs.push(blob);
+        names.push(`${prefix}-pagina-${p}.jpg`);
+      }
+    }
+  }
+  if (!blobs.length) throw new Error("No se encontraron imágenes extraíbles en este PDF");
+  return { blobs, names, originalSize: file.size, compressedSize: total };
 }
