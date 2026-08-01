@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { TOOLS, CATEGORIES } from "@/lib/tools";
+import Logo from "@/components/Logo";
 
 export default function ToolsPage() {
   return (
@@ -10,8 +11,7 @@ export default function ToolsPage() {
       <header className="border-b border-white/10">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center font-bold text-black text-sm">C</span>
-            <span className="font-semibold tracking-widest text-sm">COMPRIMEME</span>
+            <Logo size={1.3} />
           </Link>
           <Link href="/" className="text-sm text-neutral-400 hover:text-white transition">
             ← Volver

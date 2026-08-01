@@ -15,6 +15,7 @@ import SignatureModal, { SignatureResult } from "@/components/SignatureModal";
 import PdfFullViewer from "@/components/PdfFullViewer";
 import ResultScreen from "@/components/ResultScreen";
 import OfficePreview from "@/components/OfficePreview";
+import Logo from "@/components/Logo";
 import { compressImage, formatBytes, formatPercent, CompressedImage } from "@/lib/imageCompressor";
 import { compressPdf, CompressedPdf } from "@/lib/pdfCompressor";
 import {
@@ -940,8 +941,7 @@ function HomeContent() {
       <header className="border-b border-white/10 sticky top-0 z-50 bg-black/90 backdrop-blur">
         <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 shrink-0">
-            <span className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center font-bold text-black text-sm">C</span>
-            <span className="font-semibold tracking-widest text-sm hidden md:block">COMPRIMEME</span>
+            <Logo size={1.3} />
           </div>
           <nav className="flex items-center gap-1 text-sm flex-1 justify-center">
             {NAV.map((n) => (
