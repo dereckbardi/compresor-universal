@@ -20,8 +20,9 @@ import {
   mergePdfs, splitPdf, splitByRanges, splitBySize, removePages, extractPages, rotatePdf,
   imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, redactPdfAtPoints, PdfResult,
 } from "@/lib/pdfOps";
+import { officeToPdf, unlockPdf, protectPdf, toPdfA } from "@/lib/serverClient";
 
-type Mode = "image" | "pdf" | "merge" | "split" | "pdf-jpg" | "rotate" | "extract" | "remove" | "jpg-pdf" | "watermark" | "page-num" | "sign" | "redact" | "crop";
+type Mode = "image" | "pdf" | "merge" | "split" | "pdf-jpg" | "rotate" | "extract" | "remove" | "jpg-pdf" | "watermark" | "page-num" | "sign" | "redact" | "crop" | "word-pdf" | "ppt-pdf" | "excel-pdf" | "unlock" | "protect" | "pdf-a";
 
 interface Result {
   name: string;
@@ -41,7 +42,7 @@ const NAV: { id: Mode; label: string }[] = [
 
 
 
-const VALID_MODES = new Set<Mode>(["image", "pdf", "merge", "split", "pdf-jpg", "rotate", "extract", "remove", "jpg-pdf", "watermark", "page-num", "sign", "redact", "crop"]);
+const VALID_MODES = new Set<Mode>(["image", "pdf", "merge", "split", "pdf-jpg", "rotate", "extract", "remove", "jpg-pdf", "watermark", "page-num", "sign", "redact", "crop", "word-pdf", "ppt-pdf", "excel-pdf", "unlock", "protect", "pdf-a"]);
 
 export default function Home() {
   return (
@@ -104,12 +105,16 @@ function HomeContent() {
   const [signPage, setSignPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [protectPassword, setProtectPassword] = useState("");
+  const [unlockPassword, setUnlockPassword] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const signInputRef = useRef<HTMLInputElement>(null);
 
   const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg";
   const isImageInput = mode === "image" || mode === "jpg-pdf";
-  const acceptedExt = isImageInput ? "image/*" : "application/pdf";
+  const isOfficeInput = mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf";
+  const isPdfInput = mode === "pdf" || mode === "merge" || mode === "split" || mode === "pdf-jpg" || mode === "rotate" || mode === "extract" || mode === "remove" || mode === "watermark" || mode === "page-num" || mode === "sign" || mode === "redact" || mode === "crop" || mode === "unlock" || mode === "protect" || mode === "pdf-a";
+  const acceptedExt = isImageInput ? "image/*" : isOfficeInput ? ".doc,.docx,.ppt,.pptx,.xls,.xlsx,.odt,.odp,.ods,.rtf,.txt" : "application/pdf,.pdf";
 
   const titles: Record<Mode, { title: string; desc: string }> = {
     image: { title: "Comprime tus imágenes", desc: "Reduce el peso de tus imágenes sin perder calidad, ideal para compartirlas más rápido." },
@@ -126,6 +131,12 @@ function HomeContent() {
     sign: { title: "Firmar PDF", desc: "Añade tu firma a tu PDF sin necesidad de imprimirlo, perfecto para contratos." },
     redact: { title: "Censurar PDF", desc: "Oculta de forma permanente la información sensible de tu PDF con barras negras." },
     crop: { title: "Recortar PDF", desc: "Recorta el contenido de tu PDF a la zona que necesites, eliminando los márgenes." },
+    "word-pdf": { title: "WORD a PDF", desc: "Convierte documentos de Word en PDF manteniendo el formato original." },
+    "ppt-pdf": { title: "POWERPOINT a PDF", desc: "Convierte presentaciones de PowerPoint en PDF listas para compartir." },
+    "excel-pdf": { title: "EXCEL a PDF", desc: "Convierte hojas de cálculo de Excel en PDF con sus tablas intactas." },
+    unlock: { title: "Desbloquear PDF", desc: "Elimina la contraseña de tu PDF para acceder libremente a su contenido." },
+    protect: { title: "Proteger PDF", desc: "Añade una contraseña para que solo las personas autorizadas puedan abrir tu PDF." },
+    "pdf-a": { title: "PDF a PDF/A", desc: "Convierte tu PDF al formato estándar para conservación a largo plazo." },
   };
 
   const switchMode = (m: Mode) => {
@@ -147,10 +158,10 @@ function HomeContent() {
     setResults([]);
     // Filtrar por tipo según la herramienta
     const arr = Array.from(list).filter((f) =>
-      isImageInput ? f.type.startsWith("image/") : f.type === "application/pdf"
+      isImageInput ? f.type.startsWith("image/") : isOfficeInput ? /office|word|presentation|spreadsheet|officedocument|text\/plain|application\/rtf|opendocument/.test(f.type) || /\.(docx?|pptx?|xlsx?|odt|odp|ods|rtf|txt)$/i.test(f.name) : f.type === "application/pdf" || /\.[pP][dD][fF]$/.test(f.name)
     );
     if (arr.length === 0) {
-      setError(isImageInput ? "Solo se permiten imágenes (JPG, PNG, WebP)" : "Solo se permiten archivos PDF");
+      setError(isImageInput ? "Solo se permiten imágenes (JPG, PNG, WebP)" : isOfficeInput ? "Solo se permiten archivos de Word, PowerPoint o Excel" : "Solo se permiten archivos PDF");
       return;
     }
     setFiles((prev) => (isMulti ? [...prev, ...arr] : arr));
@@ -287,6 +298,31 @@ function HomeContent() {
           const l = cropL, r2 = cropR, t = cropT, b = cropB;
           if (l + r2 >= 100 || t + b >= 100) throw new Error("El área de recorte es inválida (deja al menos algo de página)");
           r = await cropPdf(files[0], { x: l / 100, y: b / 100, w: (100 - l - r2) / 100, h: (100 - t - b) / 100 }); break;
+        }
+        case "word-pdf":
+        case "ppt-pdf":
+        case "excel-pdf": {
+          // Conversión vía servidor (LibreOffice)
+          const out: Result[] = [];
+          for (const file of files) {
+            const s = await officeToPdf(file);
+            out.push({ name: s.name, originalSize: s.originalSize, compressedSize: s.compressedSize, ratio: s.compressedSize / s.originalSize, blob: s.blob });
+          }
+          setResults(out); setProcessing(false); return;
+        }
+        case "unlock": {
+          const s = await unlockPdf(files[0], unlockPassword || undefined);
+          setResults([{ name: s.name, originalSize: s.originalSize, compressedSize: s.compressedSize, ratio: s.compressedSize / s.originalSize, blob: s.blob }]); setProcessing(false); return;
+        }
+        case "protect": {
+          if (!protectPassword) throw new Error("Escribe una contraseña para proteger el PDF");
+          if (protectPassword.length < 4) throw new Error("La contraseña debe tener al menos 4 caracteres");
+          const s = await protectPdf(files[0], protectPassword);
+          setResults([{ name: s.name, originalSize: s.originalSize, compressedSize: s.compressedSize, ratio: s.compressedSize / s.originalSize, blob: s.blob }]); setProcessing(false); return;
+        }
+        case "pdf-a": {
+          const s = await toPdfA(files[0]);
+          setResults([{ name: s.name, originalSize: s.originalSize, compressedSize: s.compressedSize, ratio: s.compressedSize / s.originalSize, blob: s.blob }]); setProcessing(false); return;
         }
         default: return;
       }
@@ -802,6 +838,76 @@ function HomeContent() {
         </div>
       );
     }
+    if (mode === "unlock") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Si tu PDF tiene contraseña, escríbela para poder desbloquearlo. Si solo tenía restricciones, se eliminarán automáticamente.
+          </p>
+          <div>
+            <label className="text-sm text-neutral-400 block mb-2">Contraseña (opcional)</label>
+            <input
+              type="password"
+              value={unlockPassword}
+              onChange={(e) => setUnlockPassword(e.target.value)}
+              placeholder="Contraseña del PDF"
+              className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+            />
+          </div>
+        </div>
+      );
+    }
+    if (mode === "protect") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Añade una contraseña para que solo las personas autorizadas puedan abrir tu PDF.
+          </p>
+          <div>
+            <label className="text-sm text-neutral-400 block mb-2">Contraseña</label>
+            <input
+              type="password"
+              value={protectPassword}
+              onChange={(e) => setProtectPassword(e.target.value)}
+              placeholder="Mínimo 4 caracteres"
+              className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+            />
+          </div>
+          {protectPassword && protectPassword.length < 4 && (
+            <p className="text-xs text-red-400">⚠️ La contraseña debe tener al menos 4 caracteres.</p>
+          )}
+        </div>
+      );
+    }
+    if (mode === "pdf-a") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            PDF/A es el formato estándar para archivar documentos a largo plazo. Asegura que tu PDF se vea igual dentro de muchos años.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+            📦 Se generará una versión PDF/A de tu documento.
+          </div>
+        </div>
+      );
+    }
+    if (mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf") {
+      const labels: Record<string, string> = {
+        "word-pdf": "Word (.doc, .docx)",
+        "ppt-pdf": "PowerPoint (.ppt, .pptx)",
+        "excel-pdf": "Excel (.xls, .xlsx)",
+      };
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            La conversión se realiza en el servidor manteniendo el formato original.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+            📄 Formatos: {labels[mode]} y ODF (.odt, .odp, .ods)
+          </div>
+        </div>
+      );
+    }
     return null;
   };
 
@@ -881,6 +987,14 @@ function HomeContent() {
                   ? [{ f: "JPG", c: "text-blue-400 border-blue-500/40" }, { f: "PNG", c: "text-emerald-400 border-emerald-500/40" }, { f: "WebP", c: "text-orange-400 border-orange-500/40" }, { f: "GIF", c: "text-purple-400 border-purple-500/40" }]
                   : mode === "pdf"
                   ? [{ f: "PDF", c: "text-red-400 border-red-500/40" }]
+                  : mode === "word-pdf"
+                  ? [{ f: "DOC", c: "text-blue-400 border-blue-500/40" }, { f: "DOCX", c: "text-blue-400 border-blue-500/40" }, { f: "ODT", c: "text-emerald-400 border-emerald-500/40" }]
+                  : mode === "ppt-pdf"
+                  ? [{ f: "PPT", c: "text-orange-400 border-orange-500/40" }, { f: "PPTX", c: "text-orange-400 border-orange-500/40" }, { f: "ODP", c: "text-emerald-400 border-emerald-500/40" }]
+                  : mode === "excel-pdf"
+                  ? [{ f: "XLS", c: "text-emerald-400 border-emerald-500/40" }, { f: "XLSX", c: "text-emerald-400 border-emerald-500/40" }, { f: "ODS", c: "text-emerald-400 border-emerald-500/40" }]
+                  : mode === "unlock" || mode === "protect" || mode === "pdf-a"
+                  ? [{ f: "PDF", c: "text-red-400 border-red-500/40" }]
                   : []
                 ).map((x) => (
                   <span key={x.f} className={`px-4 py-1.5 rounded-full border ${x.c} text-sm font-semibold bg-black/40`}>{x.f}</span>
@@ -918,13 +1032,13 @@ function HomeContent() {
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 className="w-20 h-20 rounded-2xl bg-orange-500/15 border border-orange-500/40 flex items-center justify-center text-4xl shadow-lg shadow-orange-500/10"
               >
-                {isImageInput ? "🖼️" : "📄"}
+                {isImageInput ? "🖼️" : isOfficeInput ? "📄" : "📄"}
               </motion.div>
             </div>
             <p className="text-2xl font-semibold mb-2">Seleccionar archivo{isMulti ? "s" : ""}</p>
             <p className="text-neutral-500">o arrastra y suelta aquí</p>
             <p className="text-xs text-neutral-600 mt-3">
-              {isImageInput ? "JPG, PNG, WebP, GIF" : "Solo PDF"}
+              {isImageInput ? "JPG, PNG, WebP, GIF" : isOfficeInput ? "Word, PowerPoint, Excel, ODF" : "Solo PDF"}
             </p>
           </motion.div>
           </ToolTransition>
@@ -1083,6 +1197,24 @@ function HomeContent() {
                     onSignRemove={() => { setSignature(null); }}
                     onSignCopy={() => { if (signature) setClipSignature(signature.dataUrl); }}
                   />
+                ) : (mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf") ? (
+                  <div className="w-full flex flex-col items-center justify-center py-10 text-center">
+                    <div className="w-20 h-20 rounded-2xl bg-orange-500/15 border border-orange-500/40 flex items-center justify-center text-4xl mb-4">
+                      {mode === "word-pdf" ? "W" : mode === "ppt-pdf" ? "P" : "X"}
+                    </div>
+                    <p className="text-neutral-300 font-medium">{files[0].name}</p>
+                    <p className="text-xs text-neutral-500 mt-1">Se convertirá a PDF en el servidor manteniendo el formato.</p>
+                  </div>
+                ) : (mode === "unlock" || mode === "protect" || mode === "pdf-a") ? (
+                  <div className="w-full flex flex-col items-center justify-center py-10 text-center">
+                    <div className="w-20 h-20 rounded-2xl bg-orange-500/15 border border-orange-500/40 flex items-center justify-center text-4xl mb-4">
+                      {mode === "unlock" ? "🔓" : mode === "protect" ? "🔒" : "📦"}
+                    </div>
+                    <p className="text-neutral-300 font-medium">{files[0].name}</p>
+                    <p className="text-xs text-neutral-500 mt-1">
+                      {mode === "unlock" ? "Se eliminará la contraseña de este PDF." : mode === "protect" ? "Se añadirá una contraseña a este PDF." : "Se convertirá al estándar PDF/A."}
+                    </p>
+                  </div>
                 ) : isImageInput ? (
                   <img src={URL.createObjectURL(files[0])} alt={files[0].name} className="max-w-full max-h-[500px] rounded-xl object-contain" />
                 ) : (

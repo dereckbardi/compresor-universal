@@ -1,0 +1,3 @@
+{
+  "/api/convert/office-to-pdf/route": "app/api/convert/office-to-pdf/route.js"
+}
