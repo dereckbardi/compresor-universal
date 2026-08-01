@@ -31,6 +31,9 @@ export default function Logo({ size = 2.25 }: { size?: number }) {
  font-size: 2.25rem;
  letter-spacing: 0.01em;
  color: var(--ink, #f97316);
+ -webkit-font-smoothing: antialiased;
+ -moz-osx-font-smoothing: grayscale;
+ text-rendering: optimizeLegibility;
  }
  .logo-icon {
  display: inline-flex;
@@ -58,7 +61,7 @@ export default function Logo({ size = 2.25 }: { size?: number }) {
  .logo-icon {
  animation:
  logo-compress 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both,
- logo-breathe 3s ease-in-out 1s infinite;
+ logo-breathe 1.8s ease-in-out 1s infinite;
  }
 
  @keyframes logo-compress {
@@ -77,10 +80,10 @@ export default function Logo({ size = 2.25 }: { size?: number }) {
  @keyframes logo-breathe {
  0%,
  100% {
- transform: scale(1);
+ transform: scale(1.15);
  }
  50% {
- transform: scale(0.88);
+ transform: scale(0.78);
  }
  }
 
