@@ -48,8 +48,14 @@ export async function ocrPdf(file: File): Promise<OcrResult> {
     );
     if (!pngBlob) throw new Error("No se pudo generar la imagen de la página");
 
-    // Reconocimiento de texto
-    const { data: ocr } = await Tesseract.recognize(pngBlob, "spa+eng");
+    // Reconocimiento de texto (si falla, se continúa sin capa de texto)
+    let ocrText = "";
+    try {
+      const { data: ocr } = await Tesseract.recognize(pngBlob, "spa+eng");
+      ocrText = ocr.text || "";
+    } catch {
+      ocrText = "";
+    }
 
     // Página del PDF de salida (media escala): imagen a página completa + texto invisible
     const w = viewport.width / 2;
@@ -59,8 +65,8 @@ export async function ocrPdf(file: File): Promise<OcrResult> {
     outPage.drawImage(img, { x: 0, y: 0, width: w, height: h });
 
     // Capa de texto invisible (opacity 0) para que el PDF sea buscable/seleccionable
-    if (ocr.text && ocr.text.trim()) {
-      outPage.drawText(ocr.text.trim().slice(0, 4000), {
+    if (ocrText && ocrText.trim()) {
+      outPage.drawText(ocrText.trim().slice(0, 4000), {
         x: 10,
         y: h - 10,
         size: 6,

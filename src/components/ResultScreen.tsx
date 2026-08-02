@@ -49,6 +49,9 @@ const ACTION_TEXT: Record<string, { msg: string; btn: string }> = {
   "pdf-word": { msg: "Tu PDF se ha convertido a Word", btn: "Descargar documento Word" },
   "pdf-ppt": { msg: "Tu PDF se ha convertido a PowerPoint", btn: "Descargar presentación" },
   "pdf-excel": { msg: "Tu PDF se ha convertido a Excel", btn: "Descargar hoja de cálculo" },
+  repair: { msg: "Tu PDF ha sido reparado", btn: "Descargar PDF reparado" },
+  ocr: { msg: "El texto ha sido reconocido con OCR", btn: "Descargar PDF con OCR" },
+  "html-pdf": { msg: "Tu HTML se ha convertido a PDF", btn: "Descargar PDF" },
 };
 
 const CONTINUE: Record<string, { id: string; icon: string; label: string }[]> = {
@@ -76,6 +79,9 @@ const CONTINUE: Record<string, { id: string; icon: string; label: string }[]> = 
     { id: "pdf-word", icon: "W", label: "PDF a WORD" },
     { id: "pdf-ppt", icon: "P", label: "PDF a PPT" },
     { id: "pdf-excel", icon: "X", label: "PDF a EXCEL" },
+    { id: "repair", icon: "🔧", label: "Reparar PDF" },
+    { id: "ocr", icon: "🔍", label: "OCR PDF" },
+    { id: "html-pdf", icon: "🌐", label: "HTML a PDF" },
   ],
 };
 
