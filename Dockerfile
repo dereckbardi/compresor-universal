@@ -15,8 +15,8 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# ---------- FASE 2: RUNTIME ----------
-FROM node:22-alpine AS runner
+# ---------- FASE 2: RUNTIME (Debian para motores completos) ----------
+FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -25,17 +25,17 @@ ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
 
 # Motores de conversión en runtime
-# - libreoffice/qpdf/ghostscript: Office->PDF, proteger, PDF/A
+# - libreoffice (Debian trae importador de PDF): Office->PDF y PDF->Office con estructura
+# - qpdf/ghostscript: proteger/desbloquear, PDF/A
 # - poppler-utils (pdftoppm): PDF->PPT (rasteriza páginas)
-# - python3 + pip: PyMuPDF (PDF->texto), python-docx (PDF->Word), pdfplumber+openpyxl (PDF->Excel), python-pptx
-# Alpine bloquea pip del sistema (PEP 668) -> usar un venv en /opt/venv
-# Librerías ligeras (sin opencv) para builds rápidos
-RUN apk add --no-cache libreoffice qpdf ghostscript fontconfig ttf-freefont poppler-utils \
-    python3 py3-pip py3-pillow py3-numpy \
-    && fc-cache -f \
+# - python3 + pip + pdf2docx (PDF->Word con estructura/imágenes/texto editable), python-pptx, openpyxl
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libreoffice-writer libreoffice-calc libreoffice-impress \
+    qpdf ghostscript poppler-utils python3 python3-pip python3-venv \
+    && rm -rf /var/lib/apt/lists/* \
     && python3 -m venv /opt/venv \
-    && /opt/venv/bin/pip install --no-cache-dir pymupdf python-docx python-pptx pdfplumber openpyxl pillow \
-    && fc-cache -f
+    && /opt/venv/bin/pip install --no-cache-dir --break-system-packages pdf2docx python-pptx openpyxl pdfplumber pillow \
+    && fc-cache -f 2>/dev/null || true
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copiamos el script de conversión PDF->Office
