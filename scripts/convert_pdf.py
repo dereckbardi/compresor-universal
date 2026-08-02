@@ -1,44 +1,56 @@
 #!/usr/bin/env python3
 """Conversión PDF -> Office con calidad.
-- docx: cada página del PDF renderizada como imagen -> Word (se ve idéntico, conserva imágenes y estructura)
+- docx: texto editable real (PyMuPDF) + imágenes embebidas, manteniendo estructura por bloques
 - pptx: cada página del PDF como imagen en una diapositiva (se ve idéntico)
 - xlsx: extracción de texto con PyMuPDF -> openpyxl
 Uso: convert_pdf.py <input.pdf> <target> <output>
 """
-import sys, os, tempfile, subprocess, re
+import sys, os, tempfile, subprocess, re, io
 
 def pdf_to_docx(inp, out):
-    """Convierte cada página del PDF a imagen y la inserta en un Word (fidelidad total)."""
+    """Convierte el PDF a Word con TEXTO EDITABLE real + imágenes embebidas.
+    - Extrae bloques de texto ordenados por posición (readable) -> párrafos editables.
+    - Extrae las imágenes del PDF y las inserta en el documento.
+    """
+    import fitz  # PyMuPDF
     from docx import Document
-    from docx.shared import Inches, Pt
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
-    from PIL import Image
+    from docx.shared import Inches, Pt, Emu
+    from PIL import Image as PILImage
 
-    wd = tempfile.mkdtemp()
-    # Rasterizar cada página a PNG (300 dpi para buena calidad)
-    subprocess.run(["pdftoppm", "-png", "-r", "150", inp, os.path.join(wd, "page")], check=True)
-    pages = sorted([f for f in os.listdir(wd) if f.endswith(".png")])
-    if not pages:
-        raise RuntimeError("no se pudo rasterizar el PDF")
-
+    pdf = fitz.open(inp)
     d = Document()
-    # Márgenes pequeños para que la imagen llene la página
-    for section in d.sections:
-        section.top_margin = Inches(0.3)
-        section.bottom_margin = Inches(0.3)
-        section.left_margin = Inches(0.3)
-        section.right_margin = Inches(0.3)
+    style = d.styles["Normal"]
+    style.font.size = Pt(11)
 
-    for p in pages:
-        img_path = os.path.join(wd, p)
-        # Ancho usable de página (letter/carta ~8.5in - márgenes)
-        usable_w = 8.5 - 0.6
-        para = d.add_paragraph()
-        para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        run = para.add_run()
-        run.add_picture(img_path, width=Inches(usable_w))
-        # Salto de página entre páginas (excepto la última)
-        if p != pages[-1]:
+    for page in pdf:
+        # --- Texto editable: bloques ordenados por posición (de arriba a abajo) ---
+        blocks = page.get_text("blocks")  # [x0,y0,x1,y1,text,block_no,type]
+        # type 0 = texto, type 1 = imagen
+        blocks_sorted = sorted([b for b in blocks if b[4].strip()], key=lambda b: (round(b[1]), round(b[0])))
+        for b in blocks_sorted:
+            if b[6] == 0:  # bloque de texto
+                text = b[4].strip()
+                if text:
+                    for line in text.split("\n"):
+                        line = line.strip()
+                        if line:
+                            d.add_paragraph(line)
+            elif b[6] == 1:  # bloque de imagen
+                try:
+                    img_bytes = page.extract_image(b[5])["image"]
+                    stream = io.BytesIO(img_bytes)
+                    im = PILImage.open(stream)
+                    # ancho razonable (máx 5.5in) manteniendo proporción
+                    max_w = 5.5
+                    w_in = min(max_w, im.width / 96.0)
+                    h_in = im.height / im.width * w_in
+                    p = d.add_paragraph()
+                    p.alignment = 1  # centro
+                    p.add_run().add_picture(io.BytesIO(img_bytes), width=Inches(w_in))
+                except Exception:
+                    pass
+        # Salto de página entre páginas
+        if page.number < len(pdf) - 1:
             d.add_page_break()
     d.save(out)
 
