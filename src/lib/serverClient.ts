@@ -50,6 +50,19 @@ export async function officeToPdf(file: File): Promise<ServerResult> {
   };
 }
 
+/** Convierte un PDF a Office (Word/PPT/Excel) vía LibreOffice. */
+export async function pdfToOffice(file: File, target: "docx" | "pptx" | "xlsx"): Promise<ServerResult> {
+  const originalSize = file.size;
+  const blob = await postForm("/api/convert/pdf-to-office", file, { target });
+  const base = file.name.replace(/\.pdf$/i, "") || "documento";
+  return {
+    name: `${base}.${target}`,
+    originalSize,
+    compressedSize: blob.size,
+    blob,
+  };
+}
+
 /** Elimina la contraseña de un PDF vía qpdf. */
 export async function unlockPdf(file: File, password?: string): Promise<ServerResult> {
   const originalSize = file.size;

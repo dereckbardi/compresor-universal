@@ -27,9 +27,9 @@ export const TOOLS: Tool[] = [
   { id: "html-pdf", name: "HTML a PDF", desc: "Convierte una página web en un PDF descargable.", icon: "🌐", category: "a-pdf", available: false },
   // CONVERTIR DESDE PDF
   { id: "pdf-jpg", name: "PDF a JPG", desc: "Convierte cada página de tu PDF en una imagen JPG independiente.", icon: "🖼️", category: "desde-pdf", available: true },
-  { id: "pdf-word", name: "PDF a WORD", desc: "Convierte tu PDF en un documento de Word editable.", icon: "W", category: "desde-pdf", available: false },
-  { id: "pdf-ppt", name: "PDF a POWERPOINT", desc: "Convierte tu PDF en una presentación de PowerPoint editable.", icon: "P", category: "desde-pdf", available: false },
-  { id: "pdf-excel", name: "PDF a EXCEL", desc: "Convierte tu PDF en una hoja de cálculo de Excel editable.", icon: "X", category: "desde-pdf", available: false },
+  { id: "pdf-word", name: "PDF a WORD", desc: "Convierte tu PDF en un documento de Word editable.", icon: "W", category: "desde-pdf", available: true },
+  { id: "pdf-ppt", name: "PDF a POWERPOINT", desc: "Convierte tu PDF en una presentación de PowerPoint editable.", icon: "P", category: "desde-pdf", available: true },
+  { id: "pdf-excel", name: "PDF a EXCEL", desc: "Convierte tu PDF en una hoja de cálculo de Excel editable.", icon: "X", category: "desde-pdf", available: true },
   { id: "pdf-a", name: "PDF a PDF/A", desc: "Convierte tu PDF al formato de archivo estándar para conservación a largo plazo.", icon: "📦", category: "desde-pdf", available: true },
   // EDITAR
   { id: "page-num", name: "Números de página", desc: "Añade números de página a tu PDF en la posición que elijas.", icon: "🔢", category: "editar", available: true },

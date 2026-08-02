@@ -22,9 +22,9 @@ import {
   mergePdfs, splitPdf, splitByRanges, splitBySize, removePages, extractPages, rotatePdf,
   imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, redactPdfAtPoints, PdfResult,
 } from "@/lib/pdfOps";
-import { officeToPdf, unlockPdf, protectPdf, toPdfA } from "@/lib/serverClient";
+import { officeToPdf, unlockPdf, protectPdf, toPdfA, pdfToOffice } from "@/lib/serverClient";
 
-type Mode = "image" | "pdf" | "merge" | "split" | "pdf-jpg" | "rotate" | "extract" | "remove" | "jpg-pdf" | "watermark" | "page-num" | "sign" | "redact" | "crop" | "word-pdf" | "ppt-pdf" | "excel-pdf" | "unlock" | "protect" | "pdf-a";
+type Mode = "image" | "pdf" | "merge" | "split" | "pdf-jpg" | "rotate" | "extract" | "remove" | "jpg-pdf" | "watermark" | "page-num" | "sign" | "redact" | "crop" | "word-pdf" | "ppt-pdf" | "excel-pdf" | "unlock" | "protect" | "pdf-a" | "pdf-word" | "pdf-ppt" | "pdf-excel";
 
 interface Result {
   name: string;
@@ -44,7 +44,7 @@ const NAV: { id: Mode; label: string }[] = [
 
 
 
-const VALID_MODES = new Set<Mode>(["image", "pdf", "merge", "split", "pdf-jpg", "rotate", "extract", "remove", "jpg-pdf", "watermark", "page-num", "sign", "redact", "crop", "word-pdf", "ppt-pdf", "excel-pdf", "unlock", "protect", "pdf-a"]);
+const VALID_MODES = new Set<Mode>(["image", "pdf", "merge", "split", "pdf-jpg", "rotate", "extract", "remove", "jpg-pdf", "watermark", "page-num", "sign", "redact", "crop", "word-pdf", "ppt-pdf", "excel-pdf", "unlock", "protect", "pdf-a", "pdf-word", "pdf-ppt", "pdf-excel"]);
 
 export default function Home() {
   return (
@@ -141,6 +141,9 @@ function HomeContent() {
     unlock: { title: "Desbloquear PDF", desc: "Elimina la contraseña de tu PDF para acceder libremente a su contenido." },
     protect: { title: "Proteger PDF", desc: "Añade una contraseña para que solo las personas autorizadas puedan abrir tu PDF." },
     "pdf-a": { title: "PDF a PDF/A", desc: "Convierte tu PDF al formato estándar para conservación a largo plazo." },
+    "pdf-word": { title: "PDF a WORD", desc: "Convierte tu PDF en un documento de Word editable manteniendo el texto." },
+    "pdf-ppt": { title: "PDF a POWERPOINT", desc: "Convierte tu PDF en una presentación de PowerPoint editable." },
+    "pdf-excel": { title: "PDF a EXCEL", desc: "Convierte tu PDF en una hoja de cálculo de Excel editable." },
   };
 
   const switchMode = (m: Mode) => {
@@ -310,6 +313,17 @@ function HomeContent() {
           const out: Result[] = [];
           for (const file of files) {
             const s = await officeToPdf(file);
+            out.push({ name: s.name, originalSize: s.originalSize, compressedSize: s.compressedSize, ratio: s.compressedSize / s.originalSize, blob: s.blob });
+          }
+          setResults(out); setProcessing(false); return;
+        }
+        case "pdf-word":
+        case "pdf-ppt":
+        case "pdf-excel": {
+          const target = mode === "pdf-word" ? "docx" : mode === "pdf-ppt" ? "pptx" : "xlsx";
+          const out: Result[] = [];
+          for (const file of files) {
+            const s = await pdfToOffice(file, target as any);
             out.push({ name: s.name, originalSize: s.originalSize, compressedSize: s.compressedSize, ratio: s.compressedSize / s.originalSize, blob: s.blob });
           }
           setResults(out); setProcessing(false); return;
@@ -932,6 +946,26 @@ function HomeContent() {
         </div>
       );
     }
+    if (mode === "pdf-word" || mode === "pdf-ppt" || mode === "pdf-excel") {
+      const labels: Record<string, string> = {
+        "pdf-word": "Word (.docx)",
+        "pdf-ppt": "PowerPoint (.pptx)",
+        "pdf-excel": "Excel (.xlsx)",
+      };
+      const notes: Record<string, string> = {
+        "pdf-word": "El texto se volverá editable. El formato puede variar según la complejidad del PDF.",
+        "pdf-ppt": "Cada página del PDF se convierte en una diapositiva.",
+        "pdf-excel": "Los datos se convierten a celdas. Los PDFs muy complejos pueden perder estructura.",
+      };
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">{notes[mode]}</p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+            📄 Se generará un archivo {labels[mode]} editable.
+          </div>
+        </div>
+      );
+    }
     return null;
   };
 
@@ -1018,6 +1052,12 @@ function HomeContent() {
                   ? [{ f: "XLS", c: "text-emerald-400 border-emerald-500/40" }, { f: "XLSX", c: "text-emerald-400 border-emerald-500/40" }, { f: "ODS", c: "text-emerald-400 border-emerald-500/40" }]
                   : mode === "unlock" || mode === "protect" || mode === "pdf-a"
                   ? [{ f: "PDF", c: "text-red-400 border-red-500/40" }]
+                  : mode === "pdf-word"
+                  ? [{ f: "PDF", c: "text-red-400 border-red-500/40" }, { f: "DOCX", c: "text-blue-400 border-blue-500/40" }]
+                  : mode === "pdf-ppt"
+                  ? [{ f: "PDF", c: "text-red-400 border-red-500/40" }, { f: "PPTX", c: "text-orange-400 border-orange-500/40" }]
+                  : mode === "pdf-excel"
+                  ? [{ f: "PDF", c: "text-red-400 border-red-500/40" }, { f: "XLSX", c: "text-emerald-400 border-emerald-500/40" }]
                   : []
                 ).map((x) => (
                   <span key={x.f} className={`px-4 py-1.5 rounded-full border ${x.c} text-sm font-semibold bg-black/40`}>{x.f}</span>
@@ -1222,7 +1262,7 @@ function HomeContent() {
                   />
                 ) : (mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf") ? (
                   <OfficePreview file={files[0]} />
-                ) : (mode === "unlock" || mode === "protect" || mode === "pdf-a") ? (
+                ) : (mode === "unlock" || mode === "protect" || mode === "pdf-a" || mode === "pdf-word" || mode === "pdf-ppt" || mode === "pdf-excel") ? (
                   <PdfPreview file={files[0]} />
                 ) : isImageInput ? (
                   <img src={URL.createObjectURL(files[0])} alt={files[0].name} className="max-w-full max-h-[500px] rounded-xl object-contain" />

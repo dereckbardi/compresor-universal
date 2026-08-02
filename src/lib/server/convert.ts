@@ -63,6 +63,31 @@ export async function officeToPdf(inputPath: string, filename: string): Promise<
 }
 
 /**
+ * Convierte un PDF a un formato de Office (Word/PPT/Excel).
+ * - target: "docx" | "pptx" | "xlsx"
+ * Usa el script Python (pdf2docx / pdftoppm+python-pptx / pdfplumber+openpyxl)
+ * porque LibreOffice no tiene importador de PDF.
+ * Devuelve { buffer, name } con el archivo resultante.
+ */
+export async function pdfToOffice(
+  inputPath: string,
+  filename: string,
+  target: "docx" | "pptx" | "xlsx"
+): Promise<{ buffer: Buffer; name: string }> {
+  const dir = path.dirname(inputPath);
+  const base = path.basename(filename, path.extname(filename));
+  const outFile = `${base}.${target}`;
+  const outPath = path.join(dir, outFile);
+
+  await run(
+    `python3 /app/scripts/convert_pdf.py "${inputPath}" ${target} "${outPath}"`,
+    dir
+  );
+
+  return { buffer: await fs.readFile(outPath), name: outFile };
+}
+
+/**
  * Elimina la contraseña de un PDF con qpdf.
  * Si el PDF tiene contraseña de propietario pero no de usuario, qpdf la elimina directo.
  * Si requiere contraseña de usuario, pásala en `password`.

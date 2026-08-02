@@ -46,6 +46,9 @@ const ACTION_TEXT: Record<string, { msg: string; btn: string }> = {
   unlock: { msg: "Tu PDF ha sido desbloqueado", btn: "Descargar PDF desbloqueado" },
   protect: { msg: "Tu PDF ha sido protegido con contraseña", btn: "Descargar PDF protegido" },
   "pdf-a": { msg: "Tu PDF se ha convertido a PDF/A", btn: "Descargar PDF/A" },
+  "pdf-word": { msg: "Tu PDF se ha convertido a Word", btn: "Descargar documento Word" },
+  "pdf-ppt": { msg: "Tu PDF se ha convertido a PowerPoint", btn: "Descargar presentación" },
+  "pdf-excel": { msg: "Tu PDF se ha convertido a Excel", btn: "Descargar hoja de cálculo" },
 };
 
 const CONTINUE: Record<string, { id: string; icon: string; label: string }[]> = {
@@ -70,6 +73,9 @@ const CONTINUE: Record<string, { id: string; icon: string; label: string }[]> = 
     { id: "unlock", icon: "🔓", label: "Desbloquear PDF" },
     { id: "protect", icon: "🔒", label: "Proteger PDF" },
     { id: "pdf-a", icon: "📦", label: "PDF a PDF/A" },
+    { id: "pdf-word", icon: "W", label: "PDF a WORD" },
+    { id: "pdf-ppt", icon: "P", label: "PDF a PPT" },
+    { id: "pdf-excel", icon: "X", label: "PDF a EXCEL" },
   ],
 };
 
