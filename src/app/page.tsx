@@ -20,11 +20,12 @@ import { compressImage, formatBytes, formatPercent, CompressedImage } from "@/li
 import { compressPdf, CompressedPdf } from "@/lib/pdfCompressor";
 import {
   mergePdfs, splitPdf, splitByRanges, splitBySize, removePages, extractPages, rotatePdf,
-  imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, redactPdfAtPoints, PdfResult,
+  imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, redactPdfAtPoints, repairPdf, PdfResult,
 } from "@/lib/pdfOps";
-import { officeToPdf, unlockPdf, protectPdf, toPdfA, pdfToOffice } from "@/lib/serverClient";
+import { ocrPdf } from "@/lib/ocr";
+import { officeToPdf, unlockPdf, protectPdf, toPdfA, pdfToOffice, htmlToPdf } from "@/lib/serverClient";
 
-type Mode = "image" | "pdf" | "merge" | "split" | "pdf-jpg" | "rotate" | "extract" | "remove" | "jpg-pdf" | "watermark" | "page-num" | "sign" | "redact" | "crop" | "word-pdf" | "ppt-pdf" | "excel-pdf" | "unlock" | "protect" | "pdf-a" | "pdf-word" | "pdf-ppt" | "pdf-excel";
+type Mode = "image" | "pdf" | "merge" | "split" | "pdf-jpg" | "rotate" | "extract" | "remove" | "jpg-pdf" | "watermark" | "page-num" | "sign" | "redact" | "crop" | "word-pdf" | "ppt-pdf" | "excel-pdf" | "unlock" | "protect" | "pdf-a" | "pdf-word" | "pdf-ppt" | "pdf-excel" | "repair" | "ocr" | "html-pdf";
 
 interface Result {
   name: string;
@@ -44,7 +45,7 @@ const NAV: { id: Mode; label: string }[] = [
 
 
 
-const VALID_MODES = new Set<Mode>(["image", "pdf", "merge", "split", "pdf-jpg", "rotate", "extract", "remove", "jpg-pdf", "watermark", "page-num", "sign", "redact", "crop", "word-pdf", "ppt-pdf", "excel-pdf", "unlock", "protect", "pdf-a", "pdf-word", "pdf-ppt", "pdf-excel"]);
+const VALID_MODES = new Set<Mode>(["image", "pdf", "merge", "split", "pdf-jpg", "rotate", "extract", "remove", "jpg-pdf", "watermark", "page-num", "sign", "redact", "crop", "word-pdf", "ppt-pdf", "excel-pdf", "unlock", "protect", "pdf-a", "pdf-word", "pdf-ppt", "pdf-excel", "repair", "ocr", "html-pdf"]);
 
 export default function Home() {
   return (
@@ -111,14 +112,16 @@ function HomeContent() {
   const [unlockPassword, setUnlockPassword] = useState("");
   const [showProtectPw, setShowProtectPw] = useState(false);
   const [showUnlockPw, setShowUnlockPw] = useState(false);
+  const [htmlInput, setHtmlInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const signInputRef = useRef<HTMLInputElement>(null);
 
   const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg";
   const isImageInput = mode === "image" || mode === "jpg-pdf";
   const isOfficeInput = mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf";
-  const isPdfInput = mode === "pdf" || mode === "merge" || mode === "split" || mode === "pdf-jpg" || mode === "rotate" || mode === "extract" || mode === "remove" || mode === "watermark" || mode === "page-num" || mode === "sign" || mode === "redact" || mode === "crop" || mode === "unlock" || mode === "protect" || mode === "pdf-a";
-  const acceptedExt = isImageInput ? "image/*" : isOfficeInput ? ".doc,.docx,.ppt,.pptx,.xls,.xlsx,.odt,.odp,.ods,.rtf,.txt" : "application/pdf,.pdf";
+  const isHtmlInput = mode === "html-pdf";
+  const isPdfInput = mode === "pdf" || mode === "merge" || mode === "split" || mode === "pdf-jpg" || mode === "rotate" || mode === "extract" || mode === "remove" || mode === "watermark" || mode === "page-num" || mode === "sign" || mode === "redact" || mode === "crop" || mode === "unlock" || mode === "protect" || mode === "pdf-a" || mode === "repair" || mode === "ocr";
+  const acceptedExt = isImageInput ? "image/*" : isOfficeInput ? ".doc,.docx,.ppt,.pptx,.xls,.xlsx,.odt,.odp,.ods,.rtf,.txt" : isHtmlInput ? ".html,.htm" : "application/pdf,.pdf";
 
   const titles: Record<Mode, { title: string; desc: string }> = {
     image: { title: "Comprime tus imágenes", desc: "Reduce el peso de tus imágenes sin perder calidad, ideal para compartirlas más rápido." },
@@ -144,6 +147,9 @@ function HomeContent() {
     "pdf-word": { title: "PDF a WORD", desc: "Convierte tu PDF en un documento de Word editable manteniendo el texto." },
     "pdf-ppt": { title: "PDF a POWERPOINT", desc: "Convierte tu PDF en una presentación de PowerPoint editable." },
     "pdf-excel": { title: "PDF a EXCEL", desc: "Convierte tu PDF en una hoja de cálculo de Excel editable." },
+    repair: { title: "Reparar PDF", desc: "Arregla PDFs dañados o que no se abren correctamente, reconstruyendo su estructura." },
+    ocr: { title: "OCR PDF", desc: "Convierte escaneos en texto editable y buscable dentro del PDF usando reconocimiento óptico." },
+    "html-pdf": { title: "HTML a PDF", desc: "Pega tu código HTML y conviértelo en un PDF descargable." },
   };
 
   const switchMode = (m: Mode) => {
@@ -340,6 +346,18 @@ function HomeContent() {
         }
         case "pdf-a": {
           const s = await toPdfA(files[0]);
+          setResults([{ name: s.name, originalSize: s.originalSize, compressedSize: s.compressedSize, ratio: s.compressedSize / s.originalSize, blob: s.blob }]); setProcessing(false); return;
+        }
+        case "repair": {
+          r = await repairPdf(files[0]); break;
+        }
+        case "ocr": {
+          const o = await ocrPdf(files[0]);
+          setResults(o.blobs.map((blob, i) => ({ name: o.names[i], originalSize: o.originalSize, compressedSize: o.compressedSize, ratio: o.compressedSize / o.originalSize, blob }))); setProcessing(false); return;
+        }
+        case "html-pdf": {
+          if (!htmlInput.trim()) throw new Error("Pega el HTML en el recuadro de la derecha para convertirlo a PDF");
+          const s = await htmlToPdf(htmlInput);
           setResults([{ name: s.name, originalSize: s.originalSize, compressedSize: s.compressedSize, ratio: s.compressedSize / s.originalSize, blob: s.blob }]); setProcessing(false); return;
         }
         default: return;
@@ -966,6 +984,44 @@ function HomeContent() {
         </div>
       );
     }
+    if (mode === "repair") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Reconstruye la estructura del PDF para arreglar archivos dañados, corruptos o que no se abren bien.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+            🔧 Se generará una versión reparada del documento. Si está muy dañado, se te avisará.
+          </div>
+        </div>
+      );
+    }
+    if (mode === "ocr") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Reconoce el texto de tus escaneos (español e inglés) y genera un PDF buscable y seleccionable.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+            🔍 El procesamiento se hace en tu navegador (puede tardar en PDFs grandes).
+          </div>
+        </div>
+      );
+    }
+    if (mode === "html-pdf") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">Pega tu código HTML aquí y se convertirá a PDF en el servidor.</p>
+          <textarea
+            value={htmlInput}
+            onChange={(e) => setHtmlInput(e.target.value)}
+            placeholder="<h1>Hola</h1><p>Este es mi documento.</p>"
+            rows={10}
+            className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-3 text-xs font-mono focus:outline-none focus:border-orange-500 resize-y"
+          />
+        </div>
+      );
+    }
     return null;
   };
 
@@ -1079,7 +1135,16 @@ function HomeContent() {
             </div>
           </HeroFade>
 
-          {/* Drop zone */}
+          {/* Drop zone / HTML input */}
+          {mode === "html-pdf" ? (
+            <motion.div className="border-2 border-dashed border-orange-500/50 rounded-3xl p-10 text-center">
+              <p className="text-lg font-semibold mb-3">HTML listo para convertir</p>
+              <p className="text-neutral-500 text-sm mb-5">Pega tu código HTML en el panel de la derecha y pulsa convertir.</p>
+              <button onClick={run} disabled={processing || !htmlInput.trim()} className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 font-semibold text-black transition">
+                {processing ? "⏳ Convirtiendo..." : "Convertir a PDF"}
+              </button>
+            </motion.div>
+          ) : (
           <ToolTransition mode={`zone-${mode}`}>
           <motion.div
             whileHover={{ scale: 1.01 }}
@@ -1105,6 +1170,7 @@ function HomeContent() {
             </p>
           </motion.div>
           </ToolTransition>
+          )}
         </div>
       ) : (
         /* Vista de trabajo: preview izquierda + opciones derecha */

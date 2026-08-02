@@ -99,6 +99,27 @@ export async function toPdfA(file: File): Promise<ServerResult> {
   };
 }
 
+/** Convierte HTML a PDF vía servidor (LibreOffice). */
+export async function htmlToPdf(html: string): Promise<ServerResult> {
+  const res = await fetch("/api/convert/html-to-pdf", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ html }),
+  });
+  if (!res.ok) {
+    let msg = "Error al convertir el HTML en el servidor.";
+    try { const j = await res.json(); if (j?.error) msg = j.error; } catch { /* noop */ }
+    throw new Error(msg);
+  }
+  const blob = await res.blob();
+  return {
+    name: "pagina.pdf",
+    originalSize: new Blob([html]).size,
+    compressedSize: blob.size,
+    blob,
+  };
+}
+
 /** Convierte un PdfResult (de pdfOps) en ServerResult (misma forma de Result). */
 export function toResult(r: PdfResult): ServerResult[] {
   return r.blobs.map((blob, i) => ({

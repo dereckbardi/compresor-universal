@@ -17,14 +17,14 @@ export const TOOLS: Tool[] = [
   { id: "scan", name: "Escaneo a PDF", desc: "Convierte fotos o escaneos de tus documentos en un PDF legible.", icon: "📷", category: "ordenar", available: false },
   // OPTIMIZAR
   { id: "compress", name: "Comprimir PDF", desc: "Reduce el peso de tu PDF para que pese menos y sea más fácil de compartir, sin perder calidad.", icon: "🗜️", category: "optimizar", available: true },
-  { id: "repair", name: "Reparar PDF", desc: "Arregla PDFs dañados o que no se abren correctamente.", icon: "🔧", category: "optimizar", available: false },
-  { id: "ocr", name: "OCR PDF", desc: "Convierte escaneos en texto editable y buscable dentro del PDF.", icon: "🔍", category: "optimizar", available: false },
+  { id: "repair", name: "Reparar PDF", desc: "Arregla PDFs dañados o que no se abren correctamente.", icon: "🔧", category: "optimizar", available: true },
+  { id: "ocr", name: "OCR PDF", desc: "Convierte escaneos en texto editable y buscable dentro del PDF.", icon: "🔍", category: "optimizar", available: true },
   // CONVERTIR A PDF
   { id: "jpg-pdf", name: "JPG a PDF", desc: "Convierte tus imágenes en un PDF, perfecto para documentos escaneados o fotos.", icon: "🖼️", category: "a-pdf", available: true },
   { id: "word-pdf", name: "WORD a PDF", desc: "Convierte documentos de Word en PDF manteniendo el formato original.", icon: "W", category: "a-pdf", available: true },
   { id: "ppt-pdf", name: "POWERPOINT a PDF", desc: "Convierte presentaciones de PowerPoint en PDF listas para compartir.", icon: "P", category: "a-pdf", available: true },
   { id: "excel-pdf", name: "EXCEL a PDF", desc: "Convierte hojas de cálculo de Excel en PDF con sus tablas intactas.", icon: "X", category: "a-pdf", available: true },
-  { id: "html-pdf", name: "HTML a PDF", desc: "Convierte una página web en un PDF descargable.", icon: "🌐", category: "a-pdf", available: false },
+  { id: "html-pdf", name: "HTML a PDF", desc: "Convierte una página web en un PDF descargable.", icon: "🌐", category: "a-pdf", available: true },
   // CONVERTIR DESDE PDF
   { id: "pdf-jpg", name: "PDF a JPG", desc: "Convierte cada página de tu PDF en una imagen JPG independiente.", icon: "🖼️", category: "desde-pdf", available: true },
   { id: "pdf-word", name: "PDF a WORD", desc: "Convierte tu PDF en un documento de Word editable.", icon: "W", category: "desde-pdf", available: true },
@@ -36,7 +36,6 @@ export const TOOLS: Tool[] = [
   { id: "watermark", name: "Marca de agua", desc: "Añade un texto semitransparente a todas las páginas de tu PDF.", icon: "💧", category: "editar", available: true },
   { id: "redact", name: "Censurar PDF", desc: "Oculta de forma permanente la información sensible de tu PDF.", icon: "🕶️", category: "editar", available: true },
   { id: "crop", name: "Recortar PDF", desc: "Recorta el contenido de las páginas de tu PDF a la zona que necesites.", icon: "✂️", category: "editar", available: true },
-  { id: "edit", name: "Editar PDF", desc: "Modifica el texto e imágenes directamente dentro de tu PDF.", icon: "✏️", category: "editar", available: false },
   // SEGURIDAD
   { id: "sign", name: "Firmar PDF", desc: "Añade tu firma a tu PDF sin necesidad de imprimirlo.", icon: "🖊️", category: "seguridad", available: true },
   { id: "unlock", name: "Desbloquear PDF", desc: "Elimina la contraseña de tu PDF para acceder libremente a su contenido.", icon: "🔓", category: "seguridad", available: true },

@@ -63,6 +63,19 @@ export async function officeToPdf(inputPath: string, filename: string): Promise<
 }
 
 /**
+ * Convierte HTML a PDF usando LibreOffice (soffice importa HTML y exporta a PDF).
+ * Devuelve el buffer del PDF resultante.
+ */
+export async function htmlToPdf(inputPath: string, filename: string): Promise<Buffer> {
+  const dir = path.dirname(inputPath);
+  await run(`libreoffice --headless --convert-to pdf --outdir "${dir}" "${inputPath}"`, dir);
+
+  const base = path.basename(filename, path.extname(filename));
+  const pdfPath = path.join(dir, `${base}.pdf`);
+  return fs.readFile(pdfPath);
+}
+
+/**
  * Convierte un PDF a un formato de Office (Word/PPT/Excel).
  * - target: "docx" | "pptx" | "xlsx"
  * Usa el script Python (pdf2docx / pdftoppm+python-pptx / pdfplumber+openpyxl)

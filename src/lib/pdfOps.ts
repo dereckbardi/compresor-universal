@@ -13,6 +13,29 @@ function bytesToBlob(bytes: Uint8Array, name: string): Blob {
   return new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
 }
 
+/** Reparar PDF: reconstruye la estructura con pdf-lib para arreglar archivos dañados. */
+export async function repairPdf(file: File): Promise<PdfResult> {
+  const data = await file.arrayBuffer();
+  let src: PDFDocument;
+  try {
+    src = await PDFDocument.load(data, { ignoreEncryption: true });
+  } catch (e: any) {
+    throw new Error("No se pudo reparar: el PDF está demasiado dañado (" + (e?.message || "error") + ")");
+  }
+  const repaired = await PDFDocument.create();
+  const pages = await repaired.copyPages(src, src.getPageIndices());
+  pages.forEach((p) => repaired.addPage(p));
+  const bytes = await repaired.save({ useObjectStreams: true });
+  const base = file.name.replace(/\.pdf$/i, "") || "documento";
+  const name = `${base}-reparado.pdf`;
+  return {
+    blobs: [bytesToBlob(bytes, name)],
+    names: [name],
+    originalSize: file.size,
+    compressedSize: bytes.length,
+  };
+}
+
 /** Merge multiple PDFs into one */
 export async function mergePdfs(files: File[]): Promise<PdfResult> {
   const merged = await PDFDocument.create();
