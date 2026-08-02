@@ -233,8 +233,7 @@ async function rasterizePdf(
     canvas.height = Math.floor(vp.height);
     const ctx = canvas.getContext("2d");
     if (!ctx) continue;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- firma de pdf.js v6 requiere 'canvas' en RenderParameters
-    await page.render({ canvasContext: ctx, viewport: vp } as any).promise;
+    await page.render({ canvas, canvasContext: ctx, viewport: vp }).promise;
     const jpgBytes = await new Promise<Uint8Array | null>((resolve) => {
       canvas.toBlob(async (b) => {
         if (!b) return resolve(null);
