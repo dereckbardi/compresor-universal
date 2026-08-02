@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Conversión PDF -> Office con calidad.
-- docx: PyMuPDF extrae texto -> python-docx (rápido, sin opencv)
+- docx: cada página del PDF renderizada como imagen -> Word (se ve idéntico, conserva imágenes y estructura)
 - pptx: cada página del PDF como imagen en una diapositiva (se ve idéntico)
 - xlsx: extracción de texto con PyMuPDF -> openpyxl
 Uso: convert_pdf.py <input.pdf> <target> <output>
@@ -8,20 +8,38 @@ Uso: convert_pdf.py <input.pdf> <target> <output>
 import sys, os, tempfile, subprocess, re
 
 def pdf_to_docx(inp, out):
-    import fitz  # PyMuPDF
+    """Convierte cada página del PDF a imagen y la inserta en un Word (fidelidad total)."""
     from docx import Document
-    from docx.shared import Pt
+    from docx.shared import Inches, Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from PIL import Image
 
-    doc = fitz.open(inp)
+    wd = tempfile.mkdtemp()
+    # Rasterizar cada página a PNG (300 dpi para buena calidad)
+    subprocess.run(["pdftoppm", "-png", "-r", "150", inp, os.path.join(wd, "page")], check=True)
+    pages = sorted([f for f in os.listdir(wd) if f.endswith(".png")])
+    if not pages:
+        raise RuntimeError("no se pudo rasterizar el PDF")
+
     d = Document()
-    style = d.styles["Normal"]
-    style.font.size = Pt(11)
-    for page in doc:
-        text = page.get_text("text")
-        for para in text.split("\n"):
-            line = para.strip()
-            if line:
-                d.add_paragraph(line)
+    # Márgenes pequeños para que la imagen llene la página
+    for section in d.sections:
+        section.top_margin = Inches(0.3)
+        section.bottom_margin = Inches(0.3)
+        section.left_margin = Inches(0.3)
+        section.right_margin = Inches(0.3)
+
+    for p in pages:
+        img_path = os.path.join(wd, p)
+        # Ancho usable de página (letter/carta ~8.5in - márgenes)
+        usable_w = 8.5 - 0.6
+        para = d.add_paragraph()
+        para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = para.add_run()
+        run.add_picture(img_path, width=Inches(usable_w))
+        # Salto de página entre páginas (excepto la última)
+        if p != pages[-1]:
+            d.add_page_break()
     d.save(out)
 
 def pdf_to_pptx(inp, out):
