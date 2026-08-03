@@ -66,11 +66,11 @@ export default function Logo({ size = 2.25 }: { size?: number }) {
 
  @keyframes logo-compress {
  0% {
- transform: scale(2.4);
+ transform: scale(1.1);
  opacity: 0;
  }
  60% {
- transform: scale(0.85);
+ transform: scale(0.96);
  opacity: 1;
  }
  100% {

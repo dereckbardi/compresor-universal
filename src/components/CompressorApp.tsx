@@ -17,6 +17,7 @@ import PdfFullViewer from "@/components/PdfFullViewer";
 import ResultScreen from "@/components/ResultScreen";
 import OfficePreview from "@/components/OfficePreview";
 import Logo from "@/components/Logo";
+import LoadingScreen from "@/components/LoadingScreen";
 import { compressImage, formatBytes, formatPercent, CompressedImage } from "@/lib/imageCompressor";
 import { compressPdf, CompressedPdf } from "@/lib/pdfCompressor";
 import {
@@ -1015,7 +1016,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
 
   return (
     <main className="min-h-screen bg-black text-white antialiased selection:bg-orange-500/30 overflow-x-clip">
-      <Suspense fallback={null}>
+      <Suspense fallback={<LoadingScreen />}>
         <ToolParamSync onFound={setMode} />
       </Suspense>
       {/* Header - full width. En móvil: fila 1 = logo + botón, fila 2 = nav (scroll horizontal).
