@@ -1018,14 +1018,15 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
       <Suspense fallback={null}>
         <ToolParamSync onFound={setMode} />
       </Suspense>
-      {/* Header - full width */}
+      {/* Header - full width. En móvil: fila 1 = logo + botón, fila 2 = nav (scroll horizontal).
+          En desktop: logo | nav centrado | botón, todo en una sola fila. */}
       <header className="border-b border-white/10 sticky top-0 z-50 bg-black/90 backdrop-blur">
-        <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-2.5 sm:py-0 sm:h-16 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <div className="flex items-center gap-2 shrink-0">
             <Logo size={1.3} />
           </div>
-          <nav className="flex items-center text-sm flex-1 min-w-0 overflow-x-auto no-scrollbar">
-            <div className="flex items-center gap-1 w-max mx-auto">
+          <nav className="order-last sm:order-none flex items-center text-sm w-full sm:w-auto sm:flex-1 sm:min-w-0 overflow-x-auto no-scrollbar border-t border-white/10 pt-2 sm:border-t-0 sm:pt-0">
+            <div className="flex items-center gap-1 w-max sm:mx-auto">
               {NAV.map((n) => (
                 <button
                   key={n.id}
