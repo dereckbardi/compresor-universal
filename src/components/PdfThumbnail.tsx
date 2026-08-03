@@ -39,8 +39,8 @@ export default function PdfThumbnail({ file }: { file: File }) {
   return (
     <div className="w-full h-full flex items-center justify-center overflow-hidden bg-white">
       {error ? (
-        <div className="flex flex-col items-center gap-1 text-neutral-400">
-          <FileText size={36} className="text-neutral-400" />
+        <div className="flex flex-col items-center gap-1 text-neutral-600 dark:text-neutral-400">
+          <FileText size={36} className="text-neutral-600 dark:text-neutral-400" />
           <span className="text-[9px] uppercase tracking-wide">PDF</span>
         </div>
       ) : (

@@ -61,9 +61,9 @@ export default function BallSlider({ value, onChange, min = 10, max = 100, step 
               ? "bg-orange-500/50 hover:bg-orange-500/70"
               : "bg-neutral-700 hover:bg-neutral-600"
             : active
-            ? "bg-white shadow-lg scale-110"
+            ? "bg-neutral-800 dark:bg-white shadow-lg scale-110"
             : passed
-            ? "bg-white/50 hover:bg-white/70"
+            ? "bg-neutral-400 dark:bg-white/50 hover:bg-neutral-500 dark:hover:bg-white/70"
             : "bg-neutral-700 hover:bg-neutral-600";
         return (
           <span

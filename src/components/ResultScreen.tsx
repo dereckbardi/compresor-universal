@@ -123,11 +123,11 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
         <h2 className="text-3xl font-bold">{a.msg}</h2>
         <p className="text-sm text-neutral-500 mt-1">{results.length} archivo(s) generado(s)</p>
         {(mode === "image" || mode === "pdf") && totalOriginal > 0 && (
-          <p className="text-sm text-neutral-400 mt-2">
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
             <span className="line-through text-neutral-500">{formatBytes(totalOriginal)}</span>
             <span className="mx-2 text-neutral-600"><ArrowRight size={14} className="inline-block align-[-2px]" /></span>
-            <span className="text-emerald-400 font-semibold">{formatBytes(totalCompressed)}</span>
-            <span className="text-emerald-400 font-semibold ml-2">({saved}% menos)</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{formatBytes(totalCompressed)}</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold ml-2">({saved}% menos)</span>
           </p>
         )}
       </motion.div>
@@ -136,7 +136,7 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
       {previewUrl && (
         <div className="flex justify-center mb-8">
           {isImage ? (
-            <img src={previewUrl} alt={results[0].name} className="max-h-72 rounded-xl shadow-xl border border-white/10" />
+            <img src={previewUrl} alt={results[0].name} className="max-h-72 rounded-xl shadow-xl border border-neutral-200 dark:border-white/10" />
           ) : (
             <div className="w-full max-w-md">
               <PdfPreview file={results[0].blob} />
@@ -147,8 +147,8 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
 
       {/* Fila de acciones */}
       <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-        <button onClick={onBack} className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 text-white text-lg hover:border-orange-500 flex items-center justify-center transition" title="Volver"><ArrowLeft size={22} weight="bold" /></button>
-        <button onClick={onDelete} className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-red-400 hover:border-red-500 flex items-center justify-center transition" title="Eliminar"><Trash size={22} /></button>
+        <button onClick={onBack} className="w-12 h-12 rounded-full bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white text-lg hover:border-orange-500 flex items-center justify-center transition" title="Volver"><ArrowLeft size={22} weight="bold" /></button>
+        <button onClick={onDelete} className="w-12 h-12 rounded-full bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500 flex items-center justify-center transition" title="Eliminar"><Trash size={22} /></button>
         <button onClick={onDownloadAll} className="px-6 sm:px-10 py-4 rounded-xl bg-orange-500 hover:bg-orange-400 text-black text-base sm:text-xl font-bold transition hover:shadow-lg hover:shadow-orange-500/25 text-center">
           {a.btn}
         </button>
@@ -157,7 +157,7 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
             navigator.clipboard?.writeText(previewUrl || "");
             alert("Enlace de descarga copiado");
           }}
-          className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-orange-400 hover:border-orange-500 flex items-center justify-center transition"
+          className="w-12 h-12 rounded-full bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:text-orange-600 dark:hover:text-orange-400 hover:border-orange-500 flex items-center justify-center transition"
           title="Compartir enlace"
         ><LinkSimple size={22} /></button>
       </div>
@@ -166,26 +166,26 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
       {results.length > 1 && (
         <div className="max-h-48 overflow-y-auto space-y-2 mb-8">
           {results.map((r, i) => (
-            <div key={i} className="flex items-center justify-between bg-neutral-900 rounded-lg px-4 py-2.5 border border-white/5">
-              <span className="text-sm text-neutral-300 truncate pr-2">{r.name}</span>
-              <button onClick={() => onDownloadOne(r)} className="text-orange-400 hover:text-orange-300 text-xs font-semibold shrink-0"><DownloadSimple size={14} weight="bold" className="inline-block align-[-2px] mr-1" /> Descargar</button>
+            <div key={i} className="flex items-center justify-between bg-neutral-100 dark:bg-neutral-900 rounded-lg px-4 py-2.5 border border-neutral-200/70 dark:border-white/5">
+              <span className="text-sm text-neutral-700 dark:text-neutral-300 truncate pr-2">{r.name}</span>
+              <button onClick={() => onDownloadOne(r)} className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:text-orange-300 text-xs font-semibold shrink-0"><DownloadSimple size={14} weight="bold" className="inline-block align-[-2px] mr-1" /> Descargar</button>
             </div>
           ))}
         </div>
       )}
 
       {/* Continuar a... */}
-      <div className="bg-neutral-900 rounded-2xl border border-white/10 p-5">
-        <p className="text-base font-semibold text-neutral-200 mb-4">Continuar a...</p>
+      <div className="bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-white/10 p-5">
+        <p className="text-base font-semibold text-neutral-800 dark:text-neutral-200 mb-4">Continuar a...</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {shown.map((t) => (
-            <button key={t.id} onClick={() => onContinue(t.id)} className="flex items-center gap-2.5 px-3 py-3 rounded-xl border border-neutral-700 text-neutral-200 hover:border-orange-500 hover:text-white text-sm font-medium transition">
+            <button key={t.id} onClick={() => onContinue(t.id)} className="flex items-center gap-2.5 px-3 py-3 rounded-xl border border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 hover:border-orange-500 hover:text-neutral-900 dark:hover:text-white text-sm font-medium transition">
               <ContinueIcon name={t.icon} /> {t.label}
             </button>
           ))}
         </div>
         {continues.length > 6 && (
-          <button onClick={() => setShowAll(!showAll)} className="mt-3 text-sm text-orange-400 hover:text-orange-300 font-medium transition">
+          <button onClick={() => setShowAll(!showAll)} className="mt-3 text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:text-orange-300 font-medium transition">
             {showAll ? "Ver menos" : "Ver más"}
           </button>
         )}

@@ -6,6 +6,7 @@ import { ArrowLeft, MagnifyingGlass, type Icon } from "@phosphor-icons/react";
 import { TOOLS, CATEGORIES, TOOL_ICONS, type Tool } from "@/lib/tools";
 import { TOOL_CONTENT, type Mode } from "@/lib/toolContent";
 import Logo from "@/components/Logo";
+import ThemeToggle from "@/components/ThemeToggle";
 
 function ToolIcon({ icon, size = 22 }: { icon: string; size?: number }) {
   const TIcon: Icon | undefined = TOOL_ICONS[icon];
@@ -47,24 +48,27 @@ export default function ToolsPage() {
   const hasResults = filteredTools.length > 0;
 
   return (
-    <main className="min-h-screen bg-black text-white antialiased selection:bg-orange-500/30 overflow-x-clip">
+    <main className="min-h-screen bg-white dark:bg-black text-neutral-900 dark:text-white antialiased selection:bg-orange-500/30 overflow-x-clip">
       {/* Header */}
-      <header className="border-b border-white/10">
+      <header className="border-b border-neutral-200 dark:border-white/10">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Logo size={1.3} />
           </Link>
-          <Link href="/" className="flex items-center gap-1.5 text-sm text-neutral-400 hover:text-white transition">
-            <ArrowLeft size={14} weight="bold" />
-            Volver
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-1.5 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition">
+              <ArrowLeft size={14} weight="bold" />
+              Volver
+            </Link>
+            <ThemeToggle size="sm" />
+          </div>
         </div>
       </header>
 
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold tracking-tight mb-3">Todas las herramientas</h1>
-          <p className="text-neutral-400 max-w-2xl mx-auto">
+          <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
             Gestiona tus PDF e imágenes con estas herramientas. 100% gratis y sin registro.
           </p>
         </div>
@@ -80,7 +84,7 @@ export default function ToolsPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar una herramienta…"
-              className="w-full bg-neutral-900 border border-white/10 rounded-full pl-11 pr-4 py-3 text-sm placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition"
+              className="w-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 rounded-full pl-11 pr-4 py-3 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition"
             />
           </div>
         </div>
@@ -92,7 +96,7 @@ export default function ToolsPage() {
             className={`px-4 py-2 rounded-full text-sm font-medium transition ${
               activeCategory === null
                 ? "bg-orange-500 text-black"
-                : "bg-neutral-900 text-neutral-300 hover:bg-neutral-800 border border-white/10"
+                : "bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-white/10"
             }`}
           >
             Todos
@@ -104,7 +108,7 @@ export default function ToolsPage() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition ${
                 activeCategory === cat.id
                   ? "bg-orange-500 text-black"
-                  : "bg-neutral-900 text-neutral-300 hover:bg-neutral-800 border border-white/10"
+                  : "bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-white/10"
               }`}
             >
               {cat.name}
@@ -129,12 +133,12 @@ export default function ToolsPage() {
         {/* Catálogo completo, agrupado por categoría (oculta categorías sin resultados) */}
         {!hasResults ? (
           <div className="text-center py-16">
-            <p className="text-neutral-400">
+            <p className="text-neutral-600 dark:text-neutral-400">
               No encontramos ninguna herramienta con &quot;{query}&quot;.
             </p>
             <button
               onClick={() => { setQuery(""); setActiveCategory(null); }}
-              className="mt-4 text-orange-400 hover:text-orange-300 text-sm underline"
+              className="mt-4 text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:text-orange-300 text-sm underline"
             >
               Ver todas las herramientas
             </button>
@@ -161,7 +165,7 @@ export default function ToolsPage() {
         )}
       </div>
 
-      <footer className="border-t border-white/10 mt-12">
+      <footer className="border-t border-neutral-200 dark:border-white/10 mt-12">
         <div className="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-neutral-600">
           <p>COMPRIMEME — 100% gratis y sin registro.</p>
         </div>
@@ -176,26 +180,26 @@ function ToolCard({ tool, featured = false }: { tool: Tool; featured?: boolean }
       className={`h-full rounded-2xl p-5 border transition ${
         tool.available
           ? featured
-            ? "bg-gradient-to-br from-orange-500/10 to-neutral-900 border-orange-500/30 hover:border-orange-500/60"
-            : "bg-neutral-900/60 border-white/5 hover:border-white/20"
-          : "bg-neutral-900/30 border-white/5 opacity-40 cursor-not-allowed"
+            ? "bg-gradient-to-br from-orange-500/10 to-white dark:to-neutral-900 border-orange-500/30 hover:border-orange-500/60"
+            : "bg-neutral-100/80 dark:bg-neutral-900/60 border-neutral-200/70 dark:border-white/5 hover:border-neutral-300 dark:border-white/20"
+          : "bg-neutral-100/70 dark:bg-neutral-900/30 border-neutral-200/70 dark:border-white/5 opacity-40 cursor-not-allowed"
       }`}
     >
       <div className="flex items-start gap-3 mb-3">
         <span
           className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${
-            tool.available ? "bg-orange-500/15 text-orange-400" : "bg-neutral-800 text-neutral-600"
+            tool.available ? "bg-orange-500/15 text-orange-600 dark:text-orange-400" : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600"
           }`}
         >
           <ToolIcon icon={tool.icon} />
         </span>
         {!tool.available && (
-          <span className="ml-auto text-[10px] uppercase tracking-wide text-neutral-600 border border-neutral-700 rounded-full px-2 py-0.5 shrink-0">
+          <span className="ml-auto text-[10px] uppercase tracking-wide text-neutral-600 border border-neutral-300 dark:border-neutral-700 rounded-full px-2 py-0.5 shrink-0">
             Pronto
           </span>
         )}
       </div>
-      <p className={`text-sm font-semibold mb-1 ${tool.available ? "text-white" : "text-neutral-500"}`}>
+      <p className={`text-sm font-semibold mb-1 ${tool.available ? "text-neutral-900 dark:text-white" : "text-neutral-500"}`}>
         {tool.name}
       </p>
       <p className="text-xs text-neutral-500 leading-relaxed">

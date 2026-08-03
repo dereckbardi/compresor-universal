@@ -37,11 +37,11 @@ export default function PdfPreview({ file, page = 1 }: { file: File | Blob; page
   }, [file, page]);
 
   if (error) {
-    return <div className="w-full h-96 bg-neutral-900/60 rounded-xl border border-white/10 flex items-center justify-center text-neutral-500 text-sm">No se pudo mostrar el PDF</div>;
+    return <div className="w-full h-96 bg-neutral-100/80 dark:bg-neutral-900/60 rounded-xl border border-neutral-200 dark:border-white/10 flex items-center justify-center text-neutral-500 text-sm">No se pudo mostrar el PDF</div>;
   }
 
   return (
-    <div className="pdf-scroll flex justify-center w-full max-h-[70vh] overflow-y-auto rounded-xl border border-white/10 bg-neutral-800/40 p-3">
+    <div className="pdf-scroll flex justify-center w-full max-h-[70vh] overflow-y-auto rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-neutral-800/40 p-3">
       <canvas ref={canvasRef} className="max-w-full h-auto rounded-lg bg-white shadow-lg" style={{ maxHeight: "65vh" }} />
     </div>
   );

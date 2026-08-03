@@ -132,38 +132,38 @@ export default function SignatureModal({ onConfirm, onCancel }: Props) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
       {/* Fondo desenfocado */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative w-full max-w-lg bg-neutral-900 border border-white/10 rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Firmar</h3>
-          <button onClick={onCancel} className="text-neutral-500 hover:text-white text-xl"><X size={18} /></button>
+          <button onClick={onCancel} className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white text-xl"><X size={18} /></button>
         </div>
 
         {/* Nombre e iniciales */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-neutral-400 block mb-1">Nombre completo</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Juan Pérez" className="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
+            <label className="text-xs text-neutral-600 dark:text-neutral-400 block mb-1">Nombre completo</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Juan Pérez" className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
           </div>
           <div>
-            <label className="text-xs text-neutral-400 block mb-1">Iniciales</label>
-            <input value={initials} onChange={(e) => setInitials(e.target.value)} placeholder="JP" className="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
+            <label className="text-xs text-neutral-600 dark:text-neutral-400 block mb-1">Iniciales</label>
+            <input value={initials} onChange={(e) => setInitials(e.target.value)} placeholder="JP" className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
           </div>
         </div>
 
         {/* Pestañas */}
         <div className="grid grid-cols-3 gap-2">
           {[{ id: "texto", l: "Firma" }, { id: "dibujo", l: "Dibujar" }, { id: "cargar", l: "Cargar" }].map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id as any)} className={`py-2 rounded-lg border text-sm font-medium transition ${tab === t.id ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}>{t.l}</button>
+            <button key={t.id} onClick={() => setTab(t.id as any)} className={`py-2 rounded-lg border text-sm font-medium transition ${tab === t.id ? "bg-orange-500 text-black border-orange-500" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}>{t.l}</button>
           ))}
         </div>
 
         {/* Tipo de letra (solo texto) */}
         {tab === "texto" && (
           <div>
-            <label className="text-xs text-neutral-400 block mb-2">Tipo de letra</label>
+            <label className="text-xs text-neutral-600 dark:text-neutral-400 block mb-2">Tipo de letra</label>
             <div className="grid grid-cols-2 gap-2">
               {SIGN_FONTS.map((f, i) => (
-                <button key={f.name} onClick={() => setFontIdx(i)} className={`py-2 rounded-lg border transition ${fontIdx === i ? "border-orange-500 bg-orange-500/10" : "border-neutral-700 hover:border-neutral-500"}`}>
+                <button key={f.name} onClick={() => setFontIdx(i)} className={`py-2 rounded-lg border transition ${fontIdx === i ? "border-orange-500 bg-orange-500/10" : "border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500"}`}>
                   <span className="text-lg" style={{ fontFamily: f.family, color }}>{name || "Firma"}</span>
                   <span className="block text-[10px] text-neutral-500">{f.name}</span>
                 </button>
@@ -174,10 +174,10 @@ export default function SignatureModal({ onConfirm, onCancel }: Props) {
 
         {/* Color */}
         <div>
-          <label className="text-xs text-neutral-400 block mb-2">Color</label>
+          <label className="text-xs text-neutral-600 dark:text-neutral-400 block mb-2">Color</label>
           <div className="flex gap-2">
             {SIGN_COLORS.map((c) => (
-              <button key={c.name} onClick={() => setColor(c.hex)} className={`flex-1 py-2 rounded-lg border text-xs font-medium transition ${color === c.hex ? "border-orange-500" : "border-neutral-700"}`}>
+              <button key={c.name} onClick={() => setColor(c.hex)} className={`flex-1 py-2 rounded-lg border text-xs font-medium transition ${color === c.hex ? "border-orange-500" : "border-neutral-300 dark:border-neutral-700"}`}>
                 <span className="inline-block w-4 h-4 rounded-full align-middle mr-1" style={{ background: c.hex }} />
                 {c.name}
               </button>
@@ -188,7 +188,7 @@ export default function SignatureModal({ onConfirm, onCancel }: Props) {
         {/* Área de dibujo */}
         {tab === "dibujo" && (
           <div>
-            <label className="text-xs text-neutral-400 block mb-2">Dibuja tu firma</label>
+            <label className="text-xs text-neutral-600 dark:text-neutral-400 block mb-2">Dibuja tu firma</label>
             <canvas
               ref={drawRef}
               width={500}
@@ -199,15 +199,15 @@ export default function SignatureModal({ onConfirm, onCancel }: Props) {
               onPointerUp={endDraw}
               onPointerLeave={endDraw}
             />
-            <button onClick={clearDraw} className="mt-2 text-xs text-neutral-500 hover:text-red-400 transition"><Trash size={14} className="inline-block align-[-2px] mr-1" /> Limpiar</button>
+            <button onClick={clearDraw} className="mt-2 text-xs text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition"><Trash size={14} className="inline-block align-[-2px] mr-1" /> Limpiar</button>
           </div>
         )}
 
         {/* Cargar firma */}
         {tab === "cargar" && (
           <div>
-            <label className="text-xs text-neutral-400 block mb-2">Sube tu firma (PNG con fondo transparente)</label>
-            <button onClick={() => fileRef.current?.click()} className="w-full py-3 rounded-lg border border-dashed border-neutral-600 text-sm text-neutral-300 hover:border-orange-500 transition"><Paperclip size={14} className="inline-block align-[-2px] mr-1" /> Cargar imagen de firma</button>
+            <label className="text-xs text-neutral-600 dark:text-neutral-400 block mb-2">Sube tu firma (PNG con fondo transparente)</label>
+            <button onClick={() => fileRef.current?.click()} className="w-full py-3 rounded-lg border border-dashed border-neutral-300 dark:border-neutral-600 text-sm text-neutral-700 dark:text-neutral-300 hover:border-orange-500 transition"><Paperclip size={14} className="inline-block align-[-2px] mr-1" /> Cargar imagen de firma</button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) { const r = new FileReader(); r.onload = () => setLoadedImg(r.result as string); r.readAsDataURL(f); }
@@ -219,14 +219,14 @@ export default function SignatureModal({ onConfirm, onCancel }: Props) {
 
         {/* Vista previa de la firma */}
         <div>
-          <label className="text-xs text-neutral-400 block mb-1">Vista previa</label>
-          <div className="border border-neutral-700 rounded-lg p-3 bg-white/5 flex items-center justify-center min-h-20">
+          <label className="text-xs text-neutral-600 dark:text-neutral-400 block mb-1">Vista previa</label>
+          <div className="border border-neutral-300 dark:border-neutral-700 rounded-lg p-3 bg-neutral-100 dark:bg-white/5 flex items-center justify-center min-h-20">
             <canvas ref={previewRef2} width={500} height={120} className="max-h-24" />
           </div>
         </div>
 
         <div className="flex gap-3">
-          <button onClick={onCancel} className="flex-1 py-3 rounded-lg border border-neutral-700 text-neutral-300 hover:border-neutral-500 font-medium transition">Cancelar</button>
+          <button onClick={onCancel} className="flex-1 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500 font-medium transition">Cancelar</button>
           <button
             onClick={() => {
               if (tab === "texto" && !name.trim() && !initials.trim()) return;

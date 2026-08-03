@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import { ThemeProvider, THEME_STORAGE_KEY } from "@/components/ThemeProvider";
 
 // Fuente del logo: Outfit (800)
 const outfit = Outfit({
@@ -49,14 +50,26 @@ export default function RootLayout({
   return (
     <html
       lang="es"
+      suppressHydrationWarning
       className={`${outfit.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
+      <head>
+        {/* Aplica el tema antes del primer paint para evitar parpadeo (FOUC):
+            lee 'comprimeme-theme' de localStorage o, si no existe, prefers-color-scheme. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}");var d=t?t==="dark":window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(d)document.documentElement.classList.add("dark")}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body
         className="min-h-full flex flex-col"
         style={{ fontFamily: "var(--font-space-grotesk), system-ui, sans-serif" }}
       >
-        <ServiceWorkerRegister />
-        {children}
+        <ThemeProvider>
+          <ServiceWorkerRegister />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

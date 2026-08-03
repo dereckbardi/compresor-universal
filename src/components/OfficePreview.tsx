@@ -39,7 +39,7 @@ export default function OfficePreview({ file }: Props) {
 
   if (error) {
     return (
-      <div className="w-full h-96 bg-neutral-900/60 rounded-xl border border-white/10 flex items-center justify-center text-neutral-500 text-sm">
+      <div className="w-full h-96 bg-neutral-100/80 dark:bg-neutral-900/60 rounded-xl border border-neutral-200 dark:border-white/10 flex items-center justify-center text-neutral-500 text-sm">
         No se pudo previsualizar este archivo
       </div>
     );
@@ -47,7 +47,7 @@ export default function OfficePreview({ file }: Props) {
 
   if (!pdfBlob) {
     return (
-      <div className="w-full h-96 bg-neutral-900/60 rounded-xl border border-white/10 flex flex-col items-center justify-center text-neutral-400 gap-3">
+      <div className="w-full h-96 bg-neutral-100/80 dark:bg-neutral-900/60 rounded-xl border border-neutral-200 dark:border-white/10 flex flex-col items-center justify-center text-neutral-600 dark:text-neutral-400 gap-3">
         <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
         <p className="text-sm">Generando vista previa...</p>
         <p className="text-xs text-neutral-600">Convirtiendo a PDF en el servidor</p>

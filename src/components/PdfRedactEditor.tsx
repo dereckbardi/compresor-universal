@@ -154,7 +154,7 @@ export default function PdfRedactEditor({ file, onRects }: Props) {
   return (
     <div className="w-full flex flex-col lg:flex-row gap-4">
       {/* Barra lateral de miniaturas */}
-      <div className="pdf-scroll w-20 shrink-0 max-h-[75vh] overflow-y-auto space-y-2 rounded-xl border border-white/10 bg-neutral-900/60 p-2">
+      <div className="pdf-scroll w-20 shrink-0 max-h-[75vh] overflow-y-auto space-y-2 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100/80 dark:bg-neutral-900/60 p-2">
         {pages.map((pg, i) => (
           <button
             key={i}
@@ -174,15 +174,15 @@ export default function PdfRedactEditor({ file, onRects }: Props) {
       {/* Visor central: TODAS las páginas en scroll vertical continuo */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-sm text-neutral-400">{numPages} página(s) · desplázate para ver todo</p>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">{numPages} página(s) · desplázate para ver todo</p>
           <div className="flex items-center gap-1">
-            <button onClick={() => setScale((s) => Math.max(0.8, +(s - 0.2).toFixed(2)))} className="w-8 h-8 rounded-lg border border-neutral-700 text-neutral-300 hover:border-orange-500 text-lg">−</button>
-            <span className="w-16 text-center text-xs text-neutral-400">{Math.round(scale * 62.5)}%</span>
-            <button onClick={() => setScale((s) => Math.min(3, +(s + 0.2).toFixed(2)))} className="w-8 h-8 rounded-lg border border-neutral-700 text-neutral-300 hover:border-orange-500 text-lg">+</button>
+            <button onClick={() => setScale((s) => Math.max(0.8, +(s - 0.2).toFixed(2)))} className="w-8 h-8 rounded-lg border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-orange-500 text-lg">−</button>
+            <span className="w-16 text-center text-xs text-neutral-600 dark:text-neutral-400">{Math.round(scale * 62.5)}%</span>
+            <button onClick={() => setScale((s) => Math.min(3, +(s + 0.2).toFixed(2)))} className="w-8 h-8 rounded-lg border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-orange-500 text-lg">+</button>
           </div>
         </div>
 
-        <div className="pdf-scroll max-h-[75vh] overflow-y-auto overflow-x-hidden rounded-xl border border-white/10 bg-neutral-900/60 p-4 space-y-4">
+        <div className="pdf-scroll max-h-[75vh] overflow-y-auto overflow-x-hidden rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100/80 dark:bg-neutral-900/60 p-4 space-y-4">
           {pages.map((pg, pi) => (
             <div
               key={pi}
@@ -267,12 +267,12 @@ export default function PdfRedactEditor({ file, onRects }: Props) {
       {/* Panel de censura */}
       <div className="w-full lg:w-56 lg:shrink-0 space-y-3">
         <div>
-          <label className="text-sm text-neutral-400 block mb-2">Buscar texto</label>
+          <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Buscar texto</label>
           <input
             value={query}
             onChange={(e) => findText(e.target.value)}
             placeholder="Escribe la palabra..."
-            className="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+            className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-500"
           />
           <button
             onClick={applyMatches}
@@ -294,7 +294,7 @@ export default function PdfRedactEditor({ file, onRects }: Props) {
               <button
                 key={c.type}
                 onClick={() => detectCategory(c.type)}
-                className="w-full px-3 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:border-orange-500 hover:text-white text-xs font-medium transition"
+                className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-orange-500 hover:text-neutral-900 dark:hover:text-white text-xs font-medium transition"
               >
                 {c.label}
               </button>

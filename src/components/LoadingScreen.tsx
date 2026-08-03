@@ -8,7 +8,7 @@ export default function LoadingScreen() {
       role="status"
       aria-live="polite"
       aria-label="Cargando Comprímeme"
-      className="loading-screen fixed inset-0 z-[999] flex flex-col items-center justify-center gap-10 bg-black text-white select-none"
+      className="loading-screen fixed inset-0 z-[999] flex flex-col items-center justify-center gap-10 bg-white dark:bg-black text-neutral-900 dark:text-white select-none"
     >
       <div className="relative flex items-center justify-center">
         <div

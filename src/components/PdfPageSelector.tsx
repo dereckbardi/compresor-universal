@@ -131,7 +131,7 @@ export default function PdfPageSelector({ file, selected, onToggle, totalPages, 
           ))}
         </div>
       )}
-      <p className="text-center text-sm text-neutral-400 mt-4">
+      <p className="text-center text-sm text-neutral-600 dark:text-neutral-400 mt-4">
         {selected.size === 0
           ? (selectAll ? "Haz clic en las páginas que quieres extraer" : ranges.length > 0 ? "" : "Haz clic en las páginas que quieres eliminar")
           : `${selected.size} página(s) seleccionada(s): ${Array.from(selected).sort((a, b) => a - b).join(", ")}`}

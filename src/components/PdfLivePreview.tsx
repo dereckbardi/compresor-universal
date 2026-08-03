@@ -141,7 +141,7 @@ export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCI
   return (
     <div className="flex flex-col items-center gap-2">
       <div
-        className={`relative rounded-lg overflow-hidden border border-white/10 shadow-xl bg-white ${isRotate ? "m-10" : ""}`}
+        className={`relative rounded-lg overflow-hidden border border-neutral-200 dark:border-white/10 shadow-xl bg-white ${isRotate ? "m-10" : ""}`}
         style={boxStyle}
       >
         <canvas ref={canvasRef} className="w-full h-full object-contain" style={{ width: "100%", height: "100%" }} />

@@ -25,6 +25,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { ToolTransition, HeroFade, ResultPop } from "@/components/animations";
+import ThemeToggle from "@/components/ThemeToggle";
 import PdfPreview from "@/components/PdfPreview";
 import ImageToPdfPreview from "@/components/ImageToPdfPreview";
 import PdfLivePreview from "@/components/PdfLivePreview";
@@ -396,7 +397,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
         <div className="space-y-4">
           {/* Niveles de compresión */}
           <div>
-            <label className="text-sm text-neutral-400 block mb-2">Nivel de compresión</label>
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Nivel de compresión</label>
             <div className="space-y-2">
               {[
                 { v: 0.4, name: "Extrema", desc: "Menos calidad, mayor reducción" },
@@ -406,7 +407,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 <button
                   key={lvl.v}
                   onClick={() => setQuality(lvl.v)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-left transition ${Math.abs(quality - lvl.v) < 0.05 ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-left transition ${Math.abs(quality - lvl.v) < 0.05 ? "bg-orange-500 text-black border-orange-500" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}
                 >
                   <span className="text-sm font-medium">{lvl.name}</span>
                   <span className="text-[10px] opacity-70 text-right max-w-[120px]">{lvl.desc}</span>
@@ -416,7 +417,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           </div>
           {/* Ajuste fino con bolitas (componente arrastrable) */}
           <div>
-            <div className="flex justify-between items-center mb-2"><span className="text-sm text-neutral-400">Ajuste fino (calidad)</span><span className="text-sm font-semibold text-orange-500">{Math.round(quality * 100)}%</span></div>
+            <div className="flex justify-between items-center mb-2"><span className="text-sm text-neutral-600 dark:text-neutral-400">Ajuste fino (calidad)</span><span className="text-sm font-semibold text-orange-500">{Math.round(quality * 100)}%</span></div>
             <BallSlider value={Math.round(quality * 100)} onChange={(v) => setQuality(v / 100)} min={10} max={100} step={10} />
             <div className="flex justify-between text-[10px] text-neutral-600 mt-1"><span>Menos calidad<br/>(más compresión)</span><span>Más calidad<br/>(menos compresión)</span></div>
           </div>
@@ -433,17 +434,17 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
 
           {/* Modo de rango */}
           <div>
-            <label className="text-sm font-semibold text-neutral-300 block mb-2">Modo de rango</label>
+            <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 block mb-2">Modo de rango</label>
             <div className="space-y-2">
               <button
                 onClick={() => setSplitMode("personalizado")}
-                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition ${splitMode === "personalizado" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition ${splitMode === "personalizado" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}
               >
                 Personalizado
               </button>
               <button
                 onClick={() => setSplitMode("fijo")}
-                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition ${splitMode === "fijo" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition ${splitMode === "fijo" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}
               >
                 Fijo
               </button>
@@ -453,7 +454,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           {/* Personalizado: rangos */}
           {splitMode === "personalizado" && (
             <div className="space-y-3">
-              <label className="text-sm text-neutral-400 block">Rangos de páginas</label>
+              <label className="text-sm text-neutral-600 dark:text-neutral-400 block">Rangos de páginas</label>
               {splitRanges.length === 0 && (
                 <p className="text-xs text-neutral-500">Añade un rango para empezar. Ej: de la página 1 a la 5.</p>
               )}
@@ -461,15 +462,15 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
               {splitRanges.length > 0 && (
                 <div className="space-y-2">
                   {splitRanges.map((rg, idx) => (
-                    <div key={idx} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 text-sm">
-                      <span className="text-neutral-300">Rango {idx + 1}: <span className="font-semibold">de {rg.start} a {rg.end}</span></span>
-                      <button onClick={() => setSplitRanges(splitRanges.filter((_, i) => i !== idx))} className="text-neutral-500 hover:text-red-400 transition text-xs"><X size={12} weight="bold" /></button>
+                    <div key={idx} className="flex items-center justify-between bg-neutral-100 dark:bg-white/5 rounded-lg px-3 py-2 text-sm">
+                      <span className="text-neutral-700 dark:text-neutral-300">Rango {idx + 1}: <span className="font-semibold">de {rg.start} a {rg.end}</span></span>
+                      <button onClick={() => setSplitRanges(splitRanges.filter((_, i) => i !== idx))} className="text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition text-xs"><X size={12} weight="bold" /></button>
                     </div>
                   ))}
                 </div>
               )}
               {/* Añadir rango */}
-              <div className="bg-white/5 rounded-xl p-3 space-y-2">
+              <div className="bg-neutral-100 dark:bg-white/5 rounded-xl p-3 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <label className="text-xs text-neutral-500">De la página</label>
                   <input
@@ -478,7 +479,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                     max={pdfTotalPages || 1000}
                     value={splitStart}
                     onChange={(e) => setSplitStart(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-16 bg-black border border-neutral-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-orange-500"
+                    className="w-16 bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-orange-500"
                   />
                   <label className="text-xs text-neutral-500">a</label>
                   <input
@@ -487,7 +488,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                     max={pdfTotalPages || 1000}
                     value={splitEnd}
                     onChange={(e) => setSplitEnd(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-16 bg-black border border-neutral-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-orange-500"
+                    className="w-16 bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-orange-500"
                   />
                 </div>
                 <button
@@ -505,7 +506,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 >
                   + Añadir rango
                 </button>
-                {pagesError && <p className="text-xs text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" />{pagesError}</p>}
+                {pagesError && <p className="text-xs text-red-600 dark:text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" />{pagesError}</p>}
               </div>
             </div>
           )}
@@ -513,17 +514,17 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           {/* Fijo: cada N páginas */}
           {splitMode === "fijo" && (
             <div>
-              <label className="text-sm text-neutral-400 block mb-2">Dividir cada cuántas páginas</label>
+              <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Dividir cada cuántas páginas</label>
               <input
                 type="number"
                 min="1"
                 max={pdfTotalPages || 100}
                 value={splitSize}
                 onChange={(e) => setSplitSize(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+                className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
               />
               {pdfTotalPages > 0 && (
-                <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-300 text-xs mt-2">
+                <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-700 dark:text-amber-300 text-xs mt-2">
                   Este PDF se dividirá en archivos de {Math.max(1, splitSize)} página{Math.max(1, splitSize) === 1 ? "" : "s"}.
                   <br />Se generarán {Math.ceil(pdfTotalPages / Math.max(1, splitSize))} PDFs.
                 </div>
@@ -538,7 +539,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
         <div>
           {mode === "remove" ? (
             <div className="space-y-3">
-              <label className="text-sm text-neutral-400 block">Selecciona las páginas a eliminar</label>
+              <label className="text-sm text-neutral-600 dark:text-neutral-400 block">Selecciona las páginas a eliminar</label>
               <p className="text-xs text-neutral-500">El selector visual está en la columna izquierda. Haz clic en las páginas que quieres quitar.</p>
               <div>
                 <label className="text-xs text-neutral-500 block mb-1">O escríbelas manualmente (ej: 1,3,5)</label>
@@ -557,16 +558,16 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                     setSelRemovePages(new Set(nums));
                   }}
                   placeholder={`ej: 1,3,5 (máx ${pdfTotalPages || "?"})`}
-                  className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
                 />
                 {pagesError && (
-                  <p className="mt-2 text-xs text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" />{pagesError}</p>
+                  <p className="mt-2 text-xs text-red-600 dark:text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" />{pagesError}</p>
                 )}
               </div>
               {selRemovePages.size > 0 && (
                 <button
                   onClick={() => setSelRemovePages(new Set())}
-                  className="text-xs text-neutral-500 hover:text-red-400 transition"
+                  className="text-xs text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition"
                 >
                   <X size={12} weight="bold" className="inline-block align-[-1px] mr-1" /> Limpiar selección ({selRemovePages.size} página(s))
                 </button>
@@ -592,7 +593,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 <span className="text-sm font-semibold">Extraer todas las páginas</span>
               </button>
               {showAllWarning && (
-                <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-300 text-xs">
+                <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-700 dark:text-amber-300 text-xs">
                   <WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Las páginas seleccionadas se convertirán en diferentes archivos PDF. {pdfTotalPages || selRemovePages.size} PDF serán creados.
                 </div>
               )}
@@ -616,16 +617,16 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                     setSelRemovePages(new Set(nums));
                   }}
                   placeholder={`ej: 1,3,5 (máx ${pdfTotalPages || "?"})`}
-                  className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
                 />
                 {pagesError && (
-                  <p className="mt-2 text-xs text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" />{pagesError}</p>
+                  <p className="mt-2 text-xs text-red-600 dark:text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" />{pagesError}</p>
                 )}
               </div>
               {selRemovePages.size > 0 && (
                 <button
                   onClick={() => { setSelRemovePages(new Set()); setPagesInput(""); setPagesError(null); setShowAllWarning(false); setExtractAllMode(false); }}
-                  className="text-xs text-neutral-500 hover:text-red-400 transition"
+                  className="text-xs text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition"
                 >
                   <X size={12} weight="bold" className="inline-block align-[-1px] mr-1" /> Limpiar selección ({selRemovePages.size} página(s))
                 </button>
@@ -640,10 +641,10 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
         <div>
           {/* Encabezado con Restablecer */}
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-neutral-300">Rotación</span>
+            <span className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Rotación</span>
             <button
               onClick={() => setRotateDeg(0)}
-              className="text-xs text-orange-500 underline hover:text-orange-400 transition"
+              className="text-xs text-orange-500 underline hover:text-orange-600 dark:hover:text-orange-400 transition"
             >
               Restablecer
             </button>
@@ -654,7 +655,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             {/* Girar izquierda */}
             <button
               onClick={() => setRotateDeg(rotateDeg - 90)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-orange-500 hover:bg-neutral-800 transition"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 hover:border-orange-500 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
             >
               <span className="w-9 h-9 rounded-lg bg-orange-500 text-black flex items-center justify-center text-xl font-bold"><ArrowCounterClockwise size={20} weight="bold" /></span>
               <span className="text-sm font-semibold uppercase tracking-wide">Izquierda</span>
@@ -662,7 +663,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             {/* Girar derecha */}
             <button
               onClick={() => setRotateDeg(rotateDeg + 90)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-orange-500 hover:bg-neutral-800 transition"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 hover:border-orange-500 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
             >
               <span className="w-9 h-9 rounded-lg bg-orange-500 text-black flex items-center justify-center text-xl font-bold"><ArrowClockwise size={20} weight="bold" /></span>
               <span className="text-sm font-semibold uppercase tracking-wide">Derecha</span>
@@ -681,11 +682,11 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
       return (
         <div className="space-y-4">
           <div>
-            <label className="text-sm text-neutral-400 block mb-2">Texto de la marca de agua</label>
-            <input value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} placeholder="ej: CONFIDENCIAL, tu nombre, tu web" className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500" />
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Texto de la marca de agua</label>
+            <input value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} placeholder="ej: CONFIDENCIAL, tu nombre, tu web" className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500" />
           </div>
           <div>
-            <label className="text-sm text-neutral-400 block mb-2">Color de la letra</label>
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Color de la letra</label>
             <div className="flex gap-2">
               {colors.map((c) => {
                 const active = watermarkColor[0] === c.rgb[0] && watermarkColor[1] === c.rgb[1] && watermarkColor[2] === c.rgb[2];
@@ -693,7 +694,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                   <button
                     key={c.name}
                     onClick={() => setWatermarkColor(c.rgb)}
-                    className={`flex-1 py-2 rounded-lg border text-xs font-medium transition ${active ? "border-orange-500 bg-orange-500/10 text-orange-400" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+                    className={`flex-1 py-2 rounded-lg border text-xs font-medium transition ${active ? "border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}
                   >
                     {c.name}
                   </button>
@@ -702,7 +703,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             </div>
           </div>
           <div>
-            <div className="flex justify-between mb-2"><span className="text-sm text-neutral-400">Transparencia</span><span className="text-sm font-semibold text-orange-500">{Math.round(watermarkOpacity * 100)}%</span></div>
+            <div className="flex justify-between mb-2"><span className="text-sm text-neutral-600 dark:text-neutral-400">Transparencia</span><span className="text-sm font-semibold text-orange-500">{Math.round(watermarkOpacity * 100)}%</span></div>
             <BallSlider value={watermarkOpacity * 100} onChange={(v) => setWatermarkOpacity(v / 100)} min={5} max={80} step={5} />
           </div>
         </div>
@@ -711,10 +712,10 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
     if (mode === "page-num") {
       return (
         <div>
-          <label className="text-sm text-neutral-400 block mb-2">Posición del número</label>
+          <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Posición del número</label>
           <div className="flex gap-2">
             {(["bottom", "top"] as const).map((p) => (
-              <button key={p} onClick={() => setNumPosition(p)} className={`flex flex-1 items-center justify-center py-2.5 rounded-lg border text-sm font-medium capitalize transition ${numPosition === p ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}>{p === "bottom" ? "Abajo" : "Arriba"}</button>
+              <button key={p} onClick={() => setNumPosition(p)} className={`flex flex-1 items-center justify-center py-2.5 rounded-lg border text-sm font-medium capitalize transition ${numPosition === p ? "bg-orange-500 text-black border-orange-500" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}>{p === "bottom" ? "Abajo" : "Arriba"}</button>
             ))}
           </div>
         </div>
@@ -724,9 +725,9 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
       return (
         <div className="space-y-4">
           <div>
-            <label className="text-sm text-neutral-400 block mb-2">Tu firma</label>
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Tu firma</label>
             {signature ? (
-              <div className="border border-white/10 rounded-lg p-2 bg-white/5 relative">
+              <div className="border border-neutral-200 dark:border-white/10 rounded-lg p-2 bg-neutral-100 dark:bg-white/5 relative">
                 <img src={signature.dataUrl} alt="Firma" className="w-full h-20 object-contain" />
                 <button onClick={() => { setSignature(null); setSignPage(0); }} className="absolute top-1 right-1 w-6 h-6 rounded-md bg-red-600 text-white text-xs hover:bg-red-500" title="Eliminar firma"><X size={12} weight="bold" /></button>
               </div>
@@ -737,8 +738,8 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
               {signature ? "Cambiar firma" : "Crear firma"}
             </button>
             <div className="flex gap-2 mt-2">
-              <button onClick={() => setClipSignature(signature?.dataUrl ?? null)} disabled={!signature} className="flex-1 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:border-orange-500 text-xs font-medium disabled:opacity-40 transition"><CopySimple size={14} className="inline-block align-[-2px] mr-1" /> Copiar</button>
-              <button onClick={() => { if (clipSignature) { setSignature({ ...(signature ?? { dataUrl: clipSignature, blob: new Blob(), width: 500, height: 180 }), dataUrl: clipSignature }); } }} disabled={!clipSignature} className="flex-1 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:border-orange-500 text-xs font-medium disabled:opacity-40 transition"><ClipboardText size={14} className="inline-block align-[-2px] mr-1" /> Pegar</button>
+              <button onClick={() => setClipSignature(signature?.dataUrl ?? null)} disabled={!signature} className="flex-1 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-orange-500 text-xs font-medium disabled:opacity-40 transition"><CopySimple size={14} className="inline-block align-[-2px] mr-1" /> Copiar</button>
+              <button onClick={() => { if (clipSignature) { setSignature({ ...(signature ?? { dataUrl: clipSignature, blob: new Blob(), width: 500, height: 180 }), dataUrl: clipSignature }); } }} disabled={!clipSignature} className="flex-1 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-orange-500 text-xs font-medium disabled:opacity-40 transition"><ClipboardText size={14} className="inline-block align-[-2px] mr-1" /> Pegar</button>
             </div>
             <p className="text-xs text-neutral-600 mt-2"><Lightbulb size={13} weight="fill" className="inline-block align-[-2px] mr-1" /> Arrastra la firma sobre el PDF para colocarla, usa la esquina para ajustar su tamaño, y elige la página con las miniaturas.</p>
           </div>
@@ -748,7 +749,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
     if (mode === "crop") {
       return (
         <div className="space-y-4">
-          <p className="text-sm text-neutral-400">Márgenes a recortar (%):</p>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">Márgenes a recortar (%):</p>
           <div className="space-y-3">
             {[
               { k: "l" as const, label: "Izquierda", val: cropL, set: setCropL },
@@ -757,7 +758,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
               { k: "b" as const, label: "Abajo", val: cropB, set: setCropB },
             ].map((s) => (
               <div key={s.k}>
-                <div className="flex justify-between mb-1"><span className="text-xs text-neutral-400">{s.label}</span><span className="text-xs font-semibold text-orange-500">{s.val}%</span></div>
+                <div className="flex justify-between mb-1"><span className="text-xs text-neutral-600 dark:text-neutral-400">{s.label}</span><span className="text-xs font-semibold text-orange-500">{s.val}%</span></div>
                 <BallSlider value={s.val} onChange={(v) => s.set(v)} min={0} max={40} step={5} />
               </div>
             ))}
@@ -769,8 +770,8 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
       return (
         <div className="space-y-5">
           <div>
-            <label className="text-sm text-neutral-400 block mb-2">Tamaño de página</label>
-            <select value={imgPageSize} onChange={(e) => setImgPageSize(e.target.value)} className="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-500">
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Tamaño de página</label>
+            <select value={imgPageSize} onChange={(e) => setImgPageSize(e.target.value)} className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-500">
               <option value="A4">A4 (297×210 mm)</option>
               <option value="A5">A5 (210×148 mm)</option>
               <option value="Letter">Carta (279×216 mm)</option>
@@ -778,25 +779,25 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             </select>
           </div>
           <div>
-            <label className="text-sm text-neutral-400 block mb-2">Orientación</label>
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Orientación</label>
             <div className="flex gap-2">
-              <button onClick={() => setImgOrientation("portrait")} className={`flex flex-1 items-center justify-center py-2.5 rounded-lg border text-sm font-medium transition ${imgOrientation === "portrait" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}>Vertical</button>
-              <button onClick={() => setImgOrientation("landscape")} className={`flex flex-1 items-center justify-center py-2.5 rounded-lg border text-sm font-medium transition ${imgOrientation === "landscape" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}>Horizontal</button>
+              <button onClick={() => setImgOrientation("portrait")} className={`flex flex-1 items-center justify-center py-2.5 rounded-lg border text-sm font-medium transition ${imgOrientation === "portrait" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}>Vertical</button>
+              <button onClick={() => setImgOrientation("landscape")} className={`flex flex-1 items-center justify-center py-2.5 rounded-lg border text-sm font-medium transition ${imgOrientation === "landscape" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}>Horizontal</button>
             </div>
           </div>
           <div>
-            <label className="text-sm text-neutral-400 block mb-2">Margen</label>
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Margen</label>
             <div className="flex gap-2">
               {[
                 { v: "none", l: "Sin margen" },
                 { v: "small", l: "Pequeño" },
                 { v: "large", l: "Grande" },
               ].map((m) => (
-                <button key={m.v} onClick={() => setImgMargin(m.v)} className={`flex flex-1 items-center justify-center px-2 py-2.5 rounded-lg border text-sm font-medium transition ${imgMargin === m.v ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}>{m.l}</button>
+                <button key={m.v} onClick={() => setImgMargin(m.v)} className={`flex flex-1 items-center justify-center px-2 py-2.5 rounded-lg border text-sm font-medium transition ${imgMargin === m.v ? "bg-orange-500 text-black border-orange-500" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}>{m.l}</button>
               ))}
             </div>
           </div>
-          <label className="flex items-center gap-3 text-sm text-neutral-300 cursor-pointer select-none">
+          <label className="flex items-center gap-3 text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer select-none">
             <input type="checkbox" checked={imgUnify} onChange={(e) => setImgUnify(e.target.checked)} className="w-4 h-4 accent-orange-500" />
             Unir todas las imágenes en un único PDF
           </label>
@@ -811,14 +812,14 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           <div className="space-y-2">
             <button
               onClick={() => setJpgMode("paginas")}
-              className={`w-full flex flex-col items-start px-3 py-3 rounded-lg border text-left transition ${jpgMode === "paginas" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+              className={`w-full flex flex-col items-start px-3 py-3 rounded-lg border text-left transition ${jpgMode === "paginas" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}
             >
               <span className="text-sm font-semibold">Páginas a JPG</span>
               <span className="text-[10px] opacity-70 mt-0.5">Cada página del PDF se convertirá en una imagen JPG. Se crearán {files.length ? "los JPG de cada página" : "N"} JPG.</span>
             </button>
             <button
               onClick={() => setJpgMode("extraer")}
-              className={`w-full flex flex-col items-start px-3 py-3 rounded-lg border text-left transition ${jpgMode === "extraer" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+              className={`w-full flex flex-col items-start px-3 py-3 rounded-lg border text-left transition ${jpgMode === "extraer" ? "bg-orange-500 text-black border-orange-500" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}
             >
               <span className="text-sm font-semibold">Extraer imágenes</span>
               <span className="text-[10px] opacity-70 mt-0.5">Todas las imágenes dentro del archivo PDF se extraerán y se convertirán a JPG.</span>
@@ -828,7 +829,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           {/* Opciones de calidad (solo en modo Páginas a JPG) */}
           {jpgMode === "paginas" && (
             <div>
-              <label className="text-sm text-neutral-400 block mb-2">Calidad de imagen</label>
+              <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Calidad de imagen</label>
               <div className="space-y-2">
                 {[
                   { v: 0.9, name: "Alta", desc: "Máxima resolución" },
@@ -838,7 +839,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                   <button
                     key={lvl.v}
                     onClick={() => setJpgQuality(lvl.v)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-left transition ${Math.abs(jpgQuality - lvl.v) < 0.05 ? "bg-orange-500 text-black border-orange-500" : "border-neutral-700 text-neutral-300 hover:border-neutral-500"}`}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-left transition ${Math.abs(jpgQuality - lvl.v) < 0.05 ? "bg-orange-500 text-black border-orange-500" : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-500"}`}
                   >
                     <span className="text-sm font-medium">{lvl.name}</span>
                     <span className="text-[10px] opacity-70">{lvl.desc}</span>
@@ -854,11 +855,11 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
       return (
         <div className="space-y-3">
           {files.length < 2 ? (
-            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-300 text-sm">
+            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-700 dark:text-amber-300 text-sm">
               <WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Por favor, selecciona más archivos PDF haciendo click en 'Seleccionar archivos PDF'. Necesitas al menos 2 para poder unirlos.
             </div>
           ) : (
-            <p className="text-sm text-neutral-400">Los {files.length} PDFs se unirán en el orden mostrado. Arrastra para reordenar.</p>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">Los {files.length} PDFs se unirán en el orden mostrado. Arrastra para reordenar.</p>
           )}
         </div>
       );
@@ -870,7 +871,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             Busca el texto a censurar en la vista previa de la izquierda, o detecta automáticamente tarjetas, teléfonos y emails.
           </p>
           {redactRects.length > 0 && (
-            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-300 text-xs">
+            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-700 dark:text-amber-300 text-xs">
               <WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> {redactRects.length} elemento(s) marcados para censurar. Revisa el documento antes de continuar.
             </div>
           )}
@@ -883,23 +884,23 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           <p className="text-xs text-neutral-500">
             Si tu PDF tiene contraseña, escríbela para poder desbloquearlo. Si solo tenía restricciones, se eliminarán automáticamente.
           </p>
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
             <LockSimpleOpen size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Esta herramienta procesa tu archivo y contraseña en nuestro servidor (no en tu navegador), porque se necesita software especializado. Se eliminan automáticamente al terminar.
           </div>
           <div>
-            <label className="text-sm text-neutral-400 block mb-2">Contraseña (opcional)</label>
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Contraseña (opcional)</label>
             <div className="relative">
               <input
                 type={showUnlockPw ? "text" : "password"}
                 value={unlockPassword}
                 onChange={(e) => setUnlockPassword(e.target.value)}
                 placeholder="Contraseña del PDF"
-                className="w-full bg-black border border-neutral-700 rounded-lg pl-4 pr-12 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+                className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg pl-4 pr-12 py-2.5 text-sm focus:outline-none focus:border-orange-500"
               />
               <button
                 type="button"
                 onClick={() => setShowUnlockPw(!showUnlockPw)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-orange-400 transition"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-orange-600 dark:hover:text-orange-400 transition"
                 title={showUnlockPw ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showUnlockPw ? <EyeSlash size={20} /> : <Eye size={20} />}
@@ -915,23 +916,23 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           <p className="text-xs text-neutral-500">
             Añade una contraseña para que solo las personas autorizadas puedan abrir tu PDF.
           </p>
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
             <LockSimple size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Esta herramienta procesa tu archivo y contraseña en nuestro servidor (no en tu navegador), porque se necesita software especializado. Se eliminan automáticamente al terminar.
           </div>
           <div>
-            <label className="text-sm text-neutral-400 block mb-2">Contraseña</label>
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Contraseña</label>
             <div className="relative">
               <input
                 type={showProtectPw ? "text" : "password"}
                 value={protectPassword}
                 onChange={(e) => setProtectPassword(e.target.value)}
                 placeholder="Mínimo 4 caracteres"
-                className="w-full bg-black border border-neutral-700 rounded-lg pl-4 pr-12 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+                className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg pl-4 pr-12 py-2.5 text-sm focus:outline-none focus:border-orange-500"
               />
               <button
                 type="button"
                 onClick={() => setShowProtectPw(!showProtectPw)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-orange-400 transition"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-orange-600 dark:hover:text-orange-400 transition"
                 title={showProtectPw ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
                 {showProtectPw ? <EyeSlash size={20} /> : <Eye size={20} />}
@@ -939,7 +940,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             </div>
           </div>
           {protectPassword && protectPassword.length < 4 && (
-            <p className="text-xs text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> La contraseña debe tener al menos 4 caracteres.</p>
+            <p className="text-xs text-red-600 dark:text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> La contraseña debe tener al menos 4 caracteres.</p>
           )}
         </div>
       );
@@ -950,7 +951,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           <p className="text-xs text-neutral-500">
             PDF/A es el formato estándar para archivar documentos a largo plazo. Asegura que tu PDF se vea igual dentro de muchos años.
           </p>
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
             <Package size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Se generará una versión PDF/A de tu documento. Este proceso se hace en nuestro servidor (no en tu navegador) y el archivo se elimina automáticamente al terminar.
           </div>
         </div>
@@ -967,7 +968,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           <p className="text-xs text-neutral-500">
             La conversión se realiza en el servidor manteniendo el formato original.
           </p>
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
             <FileText size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Formatos: {labels[mode]} y ODF (.odt, .odp, .ods)
           </div>
         </div>
@@ -987,7 +988,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
       return (
         <div className="space-y-3">
           <p className="text-xs text-neutral-500">{notes[mode]}</p>
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
             <FileText size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Se generará un archivo {labels[mode]} editable.
           </div>
         </div>
@@ -999,7 +1000,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           <p className="text-xs text-neutral-500">
             Reconstruye la estructura del PDF para arreglar archivos dañados, corruptos o que no se abren bien.
           </p>
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
             <Wrench size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Se generará una versión reparada del documento. Si está muy dañado, se te avisará.
           </div>
         </div>
@@ -1011,7 +1012,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           <p className="text-xs text-neutral-500">
             Reconoce el texto de tus escaneos (español e inglés) y genera un PDF buscable y seleccionable.
           </p>
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
             <MagnifyingGlass size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> El procesamiento se hace en tu navegador (puede tardar en PDFs grandes).
           </div>
         </div>
@@ -1026,7 +1027,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             onChange={(e) => setHtmlInput(e.target.value)}
             placeholder="<h1>Hola</h1><p>Este es mi documento.</p>"
             rows={10}
-            className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-3 text-xs font-mono focus:outline-none focus:border-orange-500 resize-y"
+            className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-4 py-3 text-xs font-mono focus:outline-none focus:border-orange-500 resize-y"
           />
         </div>
       );
@@ -1035,33 +1036,36 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white antialiased selection:bg-orange-500/30 overflow-x-clip">
+    <main className="min-h-screen bg-white dark:bg-black text-neutral-900 dark:text-white antialiased selection:bg-orange-500/30 overflow-x-clip">
       <Suspense fallback={<LoadingScreen />}>
         <ToolParamSync onFound={setMode} />
       </Suspense>
       {/* Header - full width. En móvil: fila 1 = logo + botón, fila 2 = nav (scroll horizontal).
           En desktop: logo | nav centrado | botón, todo en una sola fila. */}
-      <header className="border-b border-white/10 sticky top-0 z-50 bg-black/90 backdrop-blur">
+      <header className="border-b border-neutral-200 dark:border-white/10 sticky top-0 z-50 bg-white/90 dark:bg-black/90 backdrop-blur">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-2.5 sm:py-0 sm:h-16 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <div className="flex items-center gap-2 shrink-0">
             <Logo size={1.3} />
           </div>
-          <nav className="order-last sm:order-none flex items-center text-sm w-full sm:w-auto sm:flex-1 sm:min-w-0 overflow-x-auto no-scrollbar border-t border-white/10 pt-2 sm:border-t-0 sm:pt-0">
+          <nav className="order-last sm:order-none flex items-center text-sm w-full sm:w-auto sm:flex-1 sm:min-w-0 overflow-x-auto no-scrollbar border-t border-neutral-200 dark:border-white/10 pt-2 sm:border-t-0 sm:pt-0">
             <div className="flex items-center gap-1 w-max sm:mx-auto">
               {NAV.map((n) => (
                 <button
                   key={n.id}
                   onClick={() => switchMode(n.id)}
-                  className={`px-2.5 sm:px-3 py-2 rounded-lg whitespace-nowrap transition ${mode === n.id ? "text-orange-500" : "text-neutral-400 hover:text-white"}`}
+                  className={`px-2.5 sm:px-3 py-2 rounded-lg whitespace-nowrap transition ${mode === n.id ? "text-orange-500" : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"}`}
                 >
                   {n.label}
                 </button>
               ))}
             </div>
           </nav>
-          <Link href="/tools" className="btn-shine shrink-0 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-black font-semibold text-sm transition whitespace-nowrap">
-            Todas las herramientas
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link href="/tools" className="btn-shine shrink-0 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-black font-semibold text-sm transition whitespace-nowrap">
+              Todas las herramientas
+            </Link>
+            <ThemeToggle size="md" />
+          </div>
         </div>
       </header>
 
@@ -1099,7 +1103,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.05 }}
-                className="text-neutral-400 max-w-xl mx-auto text-lg"
+                className="text-neutral-600 dark:text-neutral-400 max-w-xl mx-auto text-lg"
               >
                 {t.desc}
               </motion.p>
@@ -1112,26 +1116,26 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 className="flex flex-wrap justify-center gap-3 mt-6"
               >
                 {(mode === "image"
-                  ? [{ f: "JPG", c: "text-blue-400 border-blue-500/40" }, { f: "PNG", c: "text-emerald-400 border-emerald-500/40" }, { f: "WebP", c: "text-orange-400 border-orange-500/40" }, { f: "GIF", c: "text-purple-400 border-purple-500/40" }]
+                  ? [{ f: "JPG", c: "text-blue-600 dark:text-blue-400 border-blue-500/40" }, { f: "PNG", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }, { f: "WebP", c: "text-orange-600 dark:text-orange-400 border-orange-500/40" }, { f: "GIF", c: "text-purple-600 dark:text-purple-400 border-purple-500/40" }]
                   : mode === "pdf"
-                  ? [{ f: "PDF", c: "text-red-400 border-red-500/40" }]
+                  ? [{ f: "PDF", c: "text-red-600 dark:text-red-400 border-red-500/40" }]
                   : mode === "word-pdf"
-                  ? [{ f: "DOC", c: "text-blue-400 border-blue-500/40" }, { f: "DOCX", c: "text-blue-400 border-blue-500/40" }, { f: "ODT", c: "text-emerald-400 border-emerald-500/40" }]
+                  ? [{ f: "DOC", c: "text-blue-600 dark:text-blue-400 border-blue-500/40" }, { f: "DOCX", c: "text-blue-600 dark:text-blue-400 border-blue-500/40" }, { f: "ODT", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }]
                   : mode === "ppt-pdf"
-                  ? [{ f: "PPT", c: "text-orange-400 border-orange-500/40" }, { f: "PPTX", c: "text-orange-400 border-orange-500/40" }, { f: "ODP", c: "text-emerald-400 border-emerald-500/40" }]
+                  ? [{ f: "PPT", c: "text-orange-600 dark:text-orange-400 border-orange-500/40" }, { f: "PPTX", c: "text-orange-600 dark:text-orange-400 border-orange-500/40" }, { f: "ODP", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }]
                   : mode === "excel-pdf"
-                  ? [{ f: "XLS", c: "text-emerald-400 border-emerald-500/40" }, { f: "XLSX", c: "text-emerald-400 border-emerald-500/40" }, { f: "ODS", c: "text-emerald-400 border-emerald-500/40" }]
+                  ? [{ f: "XLS", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }, { f: "XLSX", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }, { f: "ODS", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }]
                   : mode === "unlock" || mode === "protect" || mode === "pdf-a"
-                  ? [{ f: "PDF", c: "text-red-400 border-red-500/40" }]
+                  ? [{ f: "PDF", c: "text-red-600 dark:text-red-400 border-red-500/40" }]
                   : mode === "pdf-word"
-                  ? [{ f: "PDF", c: "text-red-400 border-red-500/40" }, { f: "DOCX", c: "text-blue-400 border-blue-500/40" }]
+                  ? [{ f: "PDF", c: "text-red-600 dark:text-red-400 border-red-500/40" }, { f: "DOCX", c: "text-blue-600 dark:text-blue-400 border-blue-500/40" }]
                   : mode === "pdf-ppt"
-                  ? [{ f: "PDF", c: "text-red-400 border-red-500/40" }, { f: "PPTX", c: "text-orange-400 border-orange-500/40" }]
+                  ? [{ f: "PDF", c: "text-red-600 dark:text-red-400 border-red-500/40" }, { f: "PPTX", c: "text-orange-600 dark:text-orange-400 border-orange-500/40" }]
                   : mode === "pdf-excel"
-                  ? [{ f: "PDF", c: "text-red-400 border-red-500/40" }, { f: "XLSX", c: "text-emerald-400 border-emerald-500/40" }]
+                  ? [{ f: "PDF", c: "text-red-600 dark:text-red-400 border-red-500/40" }, { f: "XLSX", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }]
                   : []
                 ).map((x) => (
-                  <span key={x.f} className={`px-4 py-1.5 rounded-full border ${x.c} text-sm font-semibold bg-black/40`}>{x.f}</span>
+                  <span key={x.f} className={`px-4 py-1.5 rounded-full border ${x.c} text-sm font-semibold bg-white/70 dark:bg-black/40`}>{x.f}</span>
                 ))}
               </motion.div>
 
@@ -1140,15 +1144,15 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4, delay: 0.25 }}
-                className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-6 text-sm text-neutral-400"
+                className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-6 text-sm text-neutral-600 dark:text-neutral-400"
               >
-                <span className="flex items-center gap-1.5"><span className="text-emerald-400 flex"><Check size={14} weight="bold" /></span> Gratis</span>
-                <span className="flex items-center gap-1.5"><span className="text-emerald-400 flex"><Check size={14} weight="bold" /></span> Sin registro</span>
-                <span className="flex items-center gap-1.5"><span className="text-emerald-400 flex"><Check size={14} weight="bold" /></span> Ilimitado</span>
+                <span className="flex items-center gap-1.5"><span className="text-emerald-600 dark:text-emerald-400 flex"><Check size={14} weight="bold" /></span> Gratis</span>
+                <span className="flex items-center gap-1.5"><span className="text-emerald-600 dark:text-emerald-400 flex"><Check size={14} weight="bold" /></span> Sin registro</span>
+                <span className="flex items-center gap-1.5"><span className="text-emerald-600 dark:text-emerald-400 flex"><Check size={14} weight="bold" /></span> Ilimitado</span>
                 {isServerMode ? (
-                  <span className="flex items-center gap-1.5"><span className="text-emerald-400 flex"><Check size={14} weight="bold" /></span> Archivo eliminado tras procesar</span>
+                  <span className="flex items-center gap-1.5"><span className="text-emerald-600 dark:text-emerald-400 flex"><Check size={14} weight="bold" /></span> Archivo eliminado tras procesar</span>
                 ) : (
-                  <span className="flex items-center gap-1.5"><span className="text-emerald-400 flex"><Check size={14} weight="bold" /></span> En tu navegador</span>
+                  <span className="flex items-center gap-1.5"><span className="text-emerald-600 dark:text-emerald-400 flex"><Check size={14} weight="bold" /></span> En tu navegador</span>
                 )}
               </motion.div>
             </div>
@@ -1177,7 +1181,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
             onClick={() => inputRef.current?.click()}
-            className={`relative border-2 border-dashed rounded-3xl p-16 text-center cursor-pointer transition-all duration-200 ${dragOver ? "border-orange-500 bg-orange-500/5 scale-[1.01]" : "border-neutral-700 hover:border-neutral-500 bg-neutral-900/40 hover:bg-neutral-900/60"}`}
+            className={`relative border-2 border-dashed rounded-3xl p-16 text-center cursor-pointer transition-all duration-200 ${dragOver ? "border-orange-500 bg-orange-500/5 scale-[1.01]" : "border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 bg-white/60 dark:bg-neutral-900/40 hover:bg-white dark:hover:bg-neutral-900/60"}`}
           >
             <div className="mb-5 flex justify-center">
               <motion.div
@@ -1204,9 +1208,9 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             <div className="flex-1 lg:w-[75%]">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">{t.title}</h2>
-                <button onClick={() => { setFiles([]); setResults([]); }} className="text-xs text-neutral-500 hover:text-red-400 transition"><X size={12} weight="bold" className="inline-block align-[-1px] mr-1" /> Cambiar archivo</button>
+                <button onClick={() => { setFiles([]); setResults([]); }} className="text-xs text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition"><X size={12} weight="bold" className="inline-block align-[-1px] mr-1" /> Cambiar archivo</button>
               </div>
-              <div className="bg-neutral-900/50 rounded-2xl border border-white/5 p-6 flex flex-col items-center">
+              <div className="bg-neutral-100/80 dark:bg-neutral-900/50 rounded-2xl border border-neutral-200/70 dark:border-white/5 p-6 flex flex-col items-center">
                 {mode === "jpg-pdf" ? (
                   <div className="w-full">
                     {/* Vista previa en vivo de TODAS las imágenes con opciones */}
@@ -1370,14 +1374,14 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
 
             {/* Columna derecha: opciones (25%) */}
             <div className="w-full lg:w-[25%] lg:min-w-[260px]">
-              <div className="bg-neutral-900 rounded-2xl border border-white/5 p-5 sticky top-24 space-y-6">
+              <div className="bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-neutral-200/70 dark:border-white/5 p-5 sticky top-24 space-y-6">
                 <div>
                   <h3 className="text-sm font-semibold text-orange-500 uppercase tracking-wider mb-4">{t.title}</h3>
                   {renderOptions()}
                 </div>
 
                 {error && (
-                  <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-red-400 text-xs">{error}</div>
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-red-600 dark:text-red-400 text-xs">{error}</div>
                 )}
 
                 <motion.button
@@ -1402,7 +1406,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-white/10">
+      <footer className="border-t border-neutral-200 dark:border-white/10">
         <div className="max-w-5xl mx-auto px-6 py-6 text-center text-xs text-neutral-600">
           <p>COMPRIMEME — 100% gratis y sin registro.</p>
         </div>
