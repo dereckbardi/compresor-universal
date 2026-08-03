@@ -2,9 +2,16 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { TOOLS, CATEGORIES, type Tool } from "@/lib/tools";
+import { ArrowLeft, MagnifyingGlass, type Icon } from "@phosphor-icons/react";
+import { TOOLS, CATEGORIES, TOOL_ICONS, type Tool } from "@/lib/tools";
 import { TOOL_CONTENT, type Mode } from "@/lib/toolContent";
 import Logo from "@/components/Logo";
+
+function ToolIcon({ icon, size = 22 }: { icon: string; size?: number }) {
+  const TIcon: Icon | undefined = TOOL_ICONS[icon];
+  if (!TIcon) return null;
+  return <TIcon size={size} weight="bold" />;
+}
 
 function toolHref(id: string, available: boolean): string {
   if (!available) return "#";
@@ -47,8 +54,9 @@ export default function ToolsPage() {
           <Link href="/" className="flex items-center gap-2">
             <Logo size={1.3} />
           </Link>
-          <Link href="/" className="text-sm text-neutral-400 hover:text-white transition">
-            ← Volver
+          <Link href="/" className="flex items-center gap-1.5 text-sm text-neutral-400 hover:text-white transition">
+            <ArrowLeft size={14} weight="bold" />
+            Volver
           </Link>
         </div>
       </header>
@@ -64,7 +72,9 @@ export default function ToolsPage() {
         {/* Buscador */}
         <div className="max-w-md mx-auto mb-6">
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500">🔍</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500">
+              <MagnifyingGlass size={18} />
+            </span>
             <input
               type="text"
               value={query}
@@ -177,7 +187,7 @@ function ToolCard({ tool, featured = false }: { tool: Tool; featured?: boolean }
             tool.available ? "bg-orange-500/15 text-orange-400" : "bg-neutral-800 text-neutral-600"
           }`}
         >
-          {tool.icon}
+          <ToolIcon icon={tool.icon} />
         </span>
         {!tool.available && (
           <span className="ml-auto text-[10px] uppercase tracking-wide text-neutral-600 border border-neutral-700 rounded-full px-2 py-0.5 shrink-0">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CreditCard, EnvelopeSimple, Lightbulb, Phone } from "@phosphor-icons/react";
 
 interface RedactSelection {
   page: number; // 0-indexed
@@ -286,9 +287,9 @@ export default function PdfRedactEditor({ file, onRects }: Props) {
           <label className="text-xs text-neutral-500 block mb-2">O detectar:</label>
           <div className="space-y-2">
             {[
-              { type: "tarjeta", label: "💳 Tarjeta crédito" },
-              { type: "telefono", label: "📞 Teléfono" },
-              { type: "email", label: "✉️ Email" },
+              { type: "tarjeta", label: <><CreditCard size={14} className="inline-block align-[-2px] mr-1.5" /> Tarjeta crédito</> },
+              { type: "telefono", label: <><Phone size={14} className="inline-block align-[-2px] mr-1.5" /> Teléfono</> },
+              { type: "email", label: <><EnvelopeSimple size={14} className="inline-block align-[-2px] mr-1.5" /> Email</> },
             ].map((c) => (
               <button
                 key={c.type}
@@ -304,7 +305,7 @@ export default function PdfRedactEditor({ file, onRects }: Props) {
         <p className="text-xs text-neutral-500">
           {redacts.length > 0 ? `${redacts.length} marcado(s). Clic en uno para quitarlo.` : "Sin elementos marcados."}
         </p>
-        <p className="text-[11px] text-neutral-600">💡 Arrastra el cursor sobre cualquier zona del PDF (incluidas imágenes) para censurarla manualmente.</p>
+        <p className="text-[11px] text-neutral-600"><Lightbulb size={12} weight="fill" className="inline-block align-[-2px] mr-1" /> Arrastra el cursor sobre cualquier zona del PDF (incluidas imágenes) para censurarla manualmente.</p>
       </div>
     </div>
   );

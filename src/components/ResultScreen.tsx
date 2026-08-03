@@ -2,8 +2,16 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { ArrowLeft, ArrowRight, DownloadSimple, LinkSimple, Trash, type Icon } from "@phosphor-icons/react";
 import { formatBytes } from "@/lib/imageCompressor";
+import { TOOL_ICONS } from "@/lib/tools";
 import PdfPreview from "@/components/PdfPreview";
+
+function ContinueIcon({ name }: { name: string }) {
+  const TIcon: Icon | undefined = TOOL_ICONS[name];
+  if (!TIcon) return null;
+  return <TIcon size={20} className="shrink-0" />;
+}
 
 interface ResultItem {
   name: string;
@@ -56,45 +64,45 @@ const ACTION_TEXT: Record<string, { msg: string; btn: string }> = {
 
 const CONTINUE: Record<string, { id: string; icon: string; label: string }[]> = {
   default: [
-    { id: "image", icon: "🖼️", label: "Comprimir imagen" },
-    { id: "pdf", icon: "🗜️", label: "Comprimir PDF" },
-    { id: "merge", icon: "🧩", label: "Unir PDF" },
-    { id: "split", icon: "✂️", label: "Dividir PDF" },
-    { id: "pdf-jpg", icon: "🖼️", label: "PDF a JPG" },
-    { id: "jpg-pdf", icon: "📄", label: "JPG a PDF" },
-    { id: "rotate", icon: "🔄", label: "Rotar PDF" },
-    { id: "watermark", icon: "💧", label: "Marca de agua" },
-    { id: "extract", icon: "📤", label: "Extraer páginas" },
-    { id: "remove", icon: "🗑️", label: "Eliminar páginas" },
-    { id: "redact", icon: "🕶️", label: "Censurar PDF" },
-    { id: "sign", icon: "🖊️", label: "Firmar PDF" },
-    { id: "page-num", icon: "🔢", label: "Números de página" },
-    { id: "crop", icon: "✂️", label: "Recortar PDF" },
-    { id: "word-pdf", icon: "W", label: "WORD a PDF" },
-    { id: "ppt-pdf", icon: "P", label: "PPT a PDF" },
-    { id: "excel-pdf", icon: "X", label: "EXCEL a PDF" },
-    { id: "unlock", icon: "🔓", label: "Desbloquear PDF" },
-    { id: "protect", icon: "🔒", label: "Proteger PDF" },
-    { id: "pdf-a", icon: "📦", label: "PDF a PDF/A" },
-    { id: "pdf-word", icon: "W", label: "PDF a WORD" },
-    { id: "pdf-ppt", icon: "P", label: "PDF a PPT" },
-    { id: "pdf-excel", icon: "X", label: "PDF a EXCEL" },
-    { id: "repair", icon: "🔧", label: "Reparar PDF" },
-    { id: "ocr", icon: "🔍", label: "OCR PDF" },
-    { id: "html-pdf", icon: "🌐", label: "HTML a PDF" },
+    { id: "image", icon: "Image", label: "Comprimir imagen" },
+    { id: "pdf", icon: "ArrowsIn", label: "Comprimir PDF" },
+    { id: "merge", icon: "PuzzlePiece", label: "Unir PDF" },
+    { id: "split", icon: "Scissors", label: "Dividir PDF" },
+    { id: "pdf-jpg", icon: "Image", label: "PDF a JPG" },
+    { id: "jpg-pdf", icon: "FileImage", label: "JPG a PDF" },
+    { id: "rotate", icon: "ArrowsClockwise", label: "Rotar PDF" },
+    { id: "watermark", icon: "Drop", label: "Marca de agua" },
+    { id: "extract", icon: "UploadSimple", label: "Extraer páginas" },
+    { id: "remove", icon: "Trash", label: "Eliminar páginas" },
+    { id: "redact", icon: "EyeSlash", label: "Censurar PDF" },
+    { id: "sign", icon: "PenNib", label: "Firmar PDF" },
+    { id: "page-num", icon: "Hash", label: "Números de página" },
+    { id: "crop", icon: "Crop", label: "Recortar PDF" },
+    { id: "word-pdf", icon: "FileDoc", label: "WORD a PDF" },
+    { id: "ppt-pdf", icon: "FilePpt", label: "PPT a PDF" },
+    { id: "excel-pdf", icon: "FileXls", label: "EXCEL a PDF" },
+    { id: "unlock", icon: "LockSimpleOpen", label: "Desbloquear PDF" },
+    { id: "protect", icon: "LockSimple", label: "Proteger PDF" },
+    { id: "pdf-a", icon: "Package", label: "PDF a PDF/A" },
+    { id: "pdf-word", icon: "FileDoc", label: "PDF a WORD" },
+    { id: "pdf-ppt", icon: "FilePpt", label: "PDF a PPT" },
+    { id: "pdf-excel", icon: "FileXls", label: "PDF a EXCEL" },
+    { id: "repair", icon: "Wrench", label: "Reparar PDF" },
+    { id: "ocr", icon: "MagnifyingGlass", label: "OCR PDF" },
+    { id: "html-pdf", icon: "Globe", label: "HTML a PDF" },
   ],
 };
 
 // Por defecto usamos la lista completa
 const CONTINUE_FOR: Record<string, { id: string; icon: string; label: string }[]> = {
   image: [
-    { id: "jpg-pdf", icon: "📄", label: "JPG a PDF" },
-    { id: "pdf", icon: "🗜️", label: "Comprimir PDF" },
-    { id: "merge", icon: "🧩", label: "Unir PDF" },
-    { id: "split", icon: "✂️", label: "Dividir PDF" },
-    { id: "watermark", icon: "💧", label: "Marca de agua" },
-    { id: "redact", icon: "🕶️", label: "Censurar PDF" },
-    { id: "sign", icon: "🖊️", label: "Firmar PDF" },
+    { id: "jpg-pdf", icon: "FileImage", label: "JPG a PDF" },
+    { id: "pdf", icon: "ArrowsIn", label: "Comprimir PDF" },
+    { id: "merge", icon: "PuzzlePiece", label: "Unir PDF" },
+    { id: "split", icon: "Scissors", label: "Dividir PDF" },
+    { id: "watermark", icon: "Drop", label: "Marca de agua" },
+    { id: "redact", icon: "EyeSlash", label: "Censurar PDF" },
+    { id: "sign", icon: "PenNib", label: "Firmar PDF" },
   ],
 };
 
@@ -117,7 +125,7 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
         {(mode === "image" || mode === "pdf") && totalOriginal > 0 && (
           <p className="text-sm text-neutral-400 mt-2">
             <span className="line-through text-neutral-500">{formatBytes(totalOriginal)}</span>
-            <span className="mx-2 text-neutral-600">→</span>
+            <span className="mx-2 text-neutral-600"><ArrowRight size={14} className="inline-block align-[-2px]" /></span>
             <span className="text-emerald-400 font-semibold">{formatBytes(totalCompressed)}</span>
             <span className="text-emerald-400 font-semibold ml-2">({saved}% menos)</span>
           </p>
@@ -139,8 +147,8 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
 
       {/* Fila de acciones */}
       <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-        <button onClick={onBack} className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 text-white text-lg hover:border-orange-500 flex items-center justify-center transition" title="Volver">←</button>
-        <button onClick={onDelete} className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-red-400 hover:border-red-500 flex items-center justify-center transition" title="Eliminar">🗑️</button>
+        <button onClick={onBack} className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 text-white text-lg hover:border-orange-500 flex items-center justify-center transition" title="Volver"><ArrowLeft size={22} weight="bold" /></button>
+        <button onClick={onDelete} className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-red-400 hover:border-red-500 flex items-center justify-center transition" title="Eliminar"><Trash size={22} /></button>
         <button onClick={onDownloadAll} className="px-6 sm:px-10 py-4 rounded-xl bg-orange-500 hover:bg-orange-400 text-black text-base sm:text-xl font-bold transition hover:shadow-lg hover:shadow-orange-500/25 text-center">
           {a.btn}
         </button>
@@ -151,7 +159,7 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
           }}
           className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-orange-400 hover:border-orange-500 flex items-center justify-center transition"
           title="Compartir enlace"
-        >🔗</button>
+        ><LinkSimple size={22} /></button>
       </div>
 
       {/* Lista de archivos si hay varios */}
@@ -160,7 +168,7 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
           {results.map((r, i) => (
             <div key={i} className="flex items-center justify-between bg-neutral-900 rounded-lg px-4 py-2.5 border border-white/5">
               <span className="text-sm text-neutral-300 truncate pr-2">{r.name}</span>
-              <button onClick={() => onDownloadOne(r)} className="text-orange-400 hover:text-orange-300 text-xs font-semibold shrink-0">⬇️ Descargar</button>
+              <button onClick={() => onDownloadOne(r)} className="text-orange-400 hover:text-orange-300 text-xs font-semibold shrink-0"><DownloadSimple size={14} weight="bold" className="inline-block align-[-2px] mr-1" /> Descargar</button>
             </div>
           ))}
         </div>
@@ -172,7 +180,7 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {shown.map((t) => (
             <button key={t.id} onClick={() => onContinue(t.id)} className="flex items-center gap-2.5 px-3 py-3 rounded-xl border border-neutral-700 text-neutral-200 hover:border-orange-500 hover:text-white text-sm font-medium transition">
-              <span className="text-xl">{t.icon}</span> {t.label}
+              <ContinueIcon name={t.icon} /> {t.label}
             </button>
           ))}
         </div>

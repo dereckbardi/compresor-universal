@@ -4,6 +4,26 @@ import { Suspense, useCallback, useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import {
+  ArrowClockwise,
+  ArrowCounterClockwise,
+  Check,
+  ClipboardText,
+  CopySimple,
+  Eye,
+  EyeSlash,
+  FileText,
+  Image,
+  Lightbulb,
+  LockSimple,
+  LockSimpleOpen,
+  MagnifyingGlass,
+  Package,
+  Spinner,
+  WarningCircle,
+  Wrench,
+  X,
+} from "@phosphor-icons/react";
 import { ToolTransition, HeroFade, ResultPop } from "@/components/animations";
 import PdfPreview from "@/components/PdfPreview";
 import ImageToPdfPreview from "@/components/ImageToPdfPreview";
@@ -443,7 +463,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                   {splitRanges.map((rg, idx) => (
                     <div key={idx} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 text-sm">
                       <span className="text-neutral-300">Rango {idx + 1}: <span className="font-semibold">de {rg.start} a {rg.end}</span></span>
-                      <button onClick={() => setSplitRanges(splitRanges.filter((_, i) => i !== idx))} className="text-neutral-500 hover:text-red-400 transition text-xs">✕</button>
+                      <button onClick={() => setSplitRanges(splitRanges.filter((_, i) => i !== idx))} className="text-neutral-500 hover:text-red-400 transition text-xs"><X size={12} weight="bold" /></button>
                     </div>
                   ))}
                 </div>
@@ -485,7 +505,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 >
                   + Añadir rango
                 </button>
-                {pagesError && <p className="text-xs text-red-400">⚠️ {pagesError}</p>}
+                {pagesError && <p className="text-xs text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" />{pagesError}</p>}
               </div>
             </div>
           )}
@@ -540,7 +560,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                   className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
                 />
                 {pagesError && (
-                  <p className="mt-2 text-xs text-red-400">⚠️ {pagesError}</p>
+                  <p className="mt-2 text-xs text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" />{pagesError}</p>
                 )}
               </div>
               {selRemovePages.size > 0 && (
@@ -548,7 +568,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                   onClick={() => setSelRemovePages(new Set())}
                   className="text-xs text-neutral-500 hover:text-red-400 transition"
                 >
-                  ✕ Limpiar selección ({selRemovePages.size} página(s))
+                  <X size={12} weight="bold" className="inline-block align-[-1px] mr-1" /> Limpiar selección ({selRemovePages.size} página(s))
                 </button>
               )}
             </div>
@@ -573,7 +593,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
               </button>
               {showAllWarning && (
                 <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-300 text-xs">
-                  ⚠️ Las páginas seleccionadas se convertirán en diferentes archivos PDF. {pdfTotalPages || selRemovePages.size} PDF serán creados.
+                  <WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Las páginas seleccionadas se convertirán en diferentes archivos PDF. {pdfTotalPages || selRemovePages.size} PDF serán creados.
                 </div>
               )}
 
@@ -599,7 +619,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                   className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
                 />
                 {pagesError && (
-                  <p className="mt-2 text-xs text-red-400">⚠️ {pagesError}</p>
+                  <p className="mt-2 text-xs text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" />{pagesError}</p>
                 )}
               </div>
               {selRemovePages.size > 0 && (
@@ -607,7 +627,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                   onClick={() => { setSelRemovePages(new Set()); setPagesInput(""); setPagesError(null); setShowAllWarning(false); setExtractAllMode(false); }}
                   className="text-xs text-neutral-500 hover:text-red-400 transition"
                 >
-                  ✕ Limpiar selección ({selRemovePages.size} página(s))
+                  <X size={12} weight="bold" className="inline-block align-[-1px] mr-1" /> Limpiar selección ({selRemovePages.size} página(s))
                 </button>
               )}
             </div>
@@ -636,7 +656,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
               onClick={() => setRotateDeg(rotateDeg - 90)}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-orange-500 hover:bg-neutral-800 transition"
             >
-              <span className="w-9 h-9 rounded-lg bg-orange-500 text-black flex items-center justify-center text-xl font-bold">↺</span>
+              <span className="w-9 h-9 rounded-lg bg-orange-500 text-black flex items-center justify-center text-xl font-bold"><ArrowCounterClockwise size={20} weight="bold" /></span>
               <span className="text-sm font-semibold uppercase tracking-wide">Izquierda</span>
             </button>
             {/* Girar derecha */}
@@ -644,7 +664,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
               onClick={() => setRotateDeg(rotateDeg + 90)}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-neutral-700 bg-neutral-900 text-neutral-200 hover:border-orange-500 hover:bg-neutral-800 transition"
             >
-              <span className="w-9 h-9 rounded-lg bg-orange-500 text-black flex items-center justify-center text-xl font-bold">↻</span>
+              <span className="w-9 h-9 rounded-lg bg-orange-500 text-black flex items-center justify-center text-xl font-bold"><ArrowClockwise size={20} weight="bold" /></span>
               <span className="text-sm font-semibold uppercase tracking-wide">Derecha</span>
             </button>
           </div>
@@ -708,7 +728,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             {signature ? (
               <div className="border border-white/10 rounded-lg p-2 bg-white/5 relative">
                 <img src={signature.dataUrl} alt="Firma" className="w-full h-20 object-contain" />
-                <button onClick={() => { setSignature(null); setSignPage(0); }} className="absolute top-1 right-1 w-6 h-6 rounded-md bg-red-600 text-white text-xs hover:bg-red-500" title="Eliminar firma">✕</button>
+                <button onClick={() => { setSignature(null); setSignPage(0); }} className="absolute top-1 right-1 w-6 h-6 rounded-md bg-red-600 text-white text-xs hover:bg-red-500" title="Eliminar firma"><X size={12} weight="bold" /></button>
               </div>
             ) : (
               <p className="text-xs text-neutral-500">Aún no has creado una firma.</p>
@@ -717,10 +737,10 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
               {signature ? "Cambiar firma" : "Crear firma"}
             </button>
             <div className="flex gap-2 mt-2">
-              <button onClick={() => setClipSignature(signature?.dataUrl ?? null)} disabled={!signature} className="flex-1 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:border-orange-500 text-xs font-medium disabled:opacity-40 transition">⧉ Copiar</button>
-              <button onClick={() => { if (clipSignature) { setSignature({ ...(signature ?? { dataUrl: clipSignature, blob: new Blob(), width: 500, height: 180 }), dataUrl: clipSignature }); } }} disabled={!clipSignature} className="flex-1 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:border-orange-500 text-xs font-medium disabled:opacity-40 transition">📋 Pegar</button>
+              <button onClick={() => setClipSignature(signature?.dataUrl ?? null)} disabled={!signature} className="flex-1 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:border-orange-500 text-xs font-medium disabled:opacity-40 transition"><CopySimple size={14} className="inline-block align-[-2px] mr-1" /> Copiar</button>
+              <button onClick={() => { if (clipSignature) { setSignature({ ...(signature ?? { dataUrl: clipSignature, blob: new Blob(), width: 500, height: 180 }), dataUrl: clipSignature }); } }} disabled={!clipSignature} className="flex-1 py-2 rounded-lg border border-neutral-700 text-neutral-300 hover:border-orange-500 text-xs font-medium disabled:opacity-40 transition"><ClipboardText size={14} className="inline-block align-[-2px] mr-1" /> Pegar</button>
             </div>
-            <p className="text-xs text-neutral-600 mt-2">💡 Arrastra la firma sobre el PDF para colocarla, usa la esquina para ajustar su tamaño, y elige la página con las miniaturas.</p>
+            <p className="text-xs text-neutral-600 mt-2"><Lightbulb size={13} weight="fill" className="inline-block align-[-2px] mr-1" /> Arrastra la firma sobre el PDF para colocarla, usa la esquina para ajustar su tamaño, y elige la página con las miniaturas.</p>
           </div>
         </div>
       );
@@ -835,7 +855,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
         <div className="space-y-3">
           {files.length < 2 ? (
             <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-300 text-sm">
-              ⚠️ Por favor, selecciona más archivos PDF haciendo click en 'Seleccionar archivos PDF'. Necesitas al menos 2 para poder unirlos.
+              <WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Por favor, selecciona más archivos PDF haciendo click en 'Seleccionar archivos PDF'. Necesitas al menos 2 para poder unirlos.
             </div>
           ) : (
             <p className="text-sm text-neutral-400">Los {files.length} PDFs se unirán en el orden mostrado. Arrastra para reordenar.</p>
@@ -851,7 +871,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           </p>
           {redactRects.length > 0 && (
             <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 text-amber-300 text-xs">
-              ⚠️ {redactRects.length} elemento(s) marcados para censurar. Revisa el documento antes de continuar.
+              <WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> {redactRects.length} elemento(s) marcados para censurar. Revisa el documento antes de continuar.
             </div>
           )}
         </div>
@@ -864,7 +884,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             Si tu PDF tiene contraseña, escríbela para poder desbloquearlo. Si solo tenía restricciones, se eliminarán automáticamente.
           </p>
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
-            🔓 Esta herramienta procesa tu archivo y contraseña en nuestro servidor (no en tu navegador), porque se necesita software especializado. Se eliminan automáticamente al terminar.
+            <LockSimpleOpen size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Esta herramienta procesa tu archivo y contraseña en nuestro servidor (no en tu navegador), porque se necesita software especializado. Se eliminan automáticamente al terminar.
           </div>
           <div>
             <label className="text-sm text-neutral-400 block mb-2">Contraseña (opcional)</label>
@@ -882,7 +902,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-orange-400 transition"
                 title={showUnlockPw ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
-                {showUnlockPw ? "🙈" : "👁️"}
+                {showUnlockPw ? <EyeSlash size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
@@ -896,7 +916,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             Añade una contraseña para que solo las personas autorizadas puedan abrir tu PDF.
           </p>
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
-            🔒 Esta herramienta procesa tu archivo y contraseña en nuestro servidor (no en tu navegador), porque se necesita software especializado. Se eliminan automáticamente al terminar.
+            <LockSimple size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Esta herramienta procesa tu archivo y contraseña en nuestro servidor (no en tu navegador), porque se necesita software especializado. Se eliminan automáticamente al terminar.
           </div>
           <div>
             <label className="text-sm text-neutral-400 block mb-2">Contraseña</label>
@@ -914,12 +934,12 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-orange-400 transition"
                 title={showProtectPw ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
-                {showProtectPw ? "🙈" : "👁️"}
+                {showProtectPw ? <EyeSlash size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
           {protectPassword && protectPassword.length < 4 && (
-            <p className="text-xs text-red-400">⚠️ La contraseña debe tener al menos 4 caracteres.</p>
+            <p className="text-xs text-red-400"><WarningCircle size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> La contraseña debe tener al menos 4 caracteres.</p>
           )}
         </div>
       );
@@ -931,7 +951,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             PDF/A es el formato estándar para archivar documentos a largo plazo. Asegura que tu PDF se vea igual dentro de muchos años.
           </p>
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
-            📦 Se generará una versión PDF/A de tu documento. Este proceso se hace en nuestro servidor (no en tu navegador) y el archivo se elimina automáticamente al terminar.
+            <Package size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Se generará una versión PDF/A de tu documento. Este proceso se hace en nuestro servidor (no en tu navegador) y el archivo se elimina automáticamente al terminar.
           </div>
         </div>
       );
@@ -948,7 +968,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             La conversión se realiza en el servidor manteniendo el formato original.
           </p>
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
-            📄 Formatos: {labels[mode]} y ODF (.odt, .odp, .ods)
+            <FileText size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Formatos: {labels[mode]} y ODF (.odt, .odp, .ods)
           </div>
         </div>
       );
@@ -968,7 +988,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
         <div className="space-y-3">
           <p className="text-xs text-neutral-500">{notes[mode]}</p>
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
-            📄 Se generará un archivo {labels[mode]} editable.
+            <FileText size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Se generará un archivo {labels[mode]} editable.
           </div>
         </div>
       );
@@ -980,7 +1000,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             Reconstruye la estructura del PDF para arreglar archivos dañados, corruptos o que no se abren bien.
           </p>
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
-            🔧 Se generará una versión reparada del documento. Si está muy dañado, se te avisará.
+            <Wrench size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Se generará una versión reparada del documento. Si está muy dañado, se te avisará.
           </div>
         </div>
       );
@@ -992,7 +1012,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             Reconoce el texto de tus escaneos (español e inglés) y genera un PDF buscable y seleccionable.
           </p>
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-300 text-xs">
-            🔍 El procesamiento se hace en tu navegador (puede tardar en PDFs grandes).
+            <MagnifyingGlass size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> El procesamiento se hace en tu navegador (puede tardar en PDFs grandes).
           </div>
         </div>
       );
@@ -1122,13 +1142,13 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 transition={{ duration: 0.4, delay: 0.25 }}
                 className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-6 text-sm text-neutral-400"
               >
-                <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> Gratis</span>
-                <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> Sin registro</span>
-                <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> Ilimitado</span>
+                <span className="flex items-center gap-1.5"><span className="text-emerald-400 flex"><Check size={14} weight="bold" /></span> Gratis</span>
+                <span className="flex items-center gap-1.5"><span className="text-emerald-400 flex"><Check size={14} weight="bold" /></span> Sin registro</span>
+                <span className="flex items-center gap-1.5"><span className="text-emerald-400 flex"><Check size={14} weight="bold" /></span> Ilimitado</span>
                 {isServerMode ? (
-                  <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> Archivo eliminado tras procesar</span>
+                  <span className="flex items-center gap-1.5"><span className="text-emerald-400 flex"><Check size={14} weight="bold" /></span> Archivo eliminado tras procesar</span>
                 ) : (
-                  <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> En tu navegador</span>
+                  <span className="flex items-center gap-1.5"><span className="text-emerald-400 flex"><Check size={14} weight="bold" /></span> En tu navegador</span>
                 )}
               </motion.div>
             </div>
@@ -1140,7 +1160,12 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
               <p className="text-lg font-semibold mb-3">HTML listo para convertir</p>
               <p className="text-neutral-500 text-sm mb-5">Pega tu código HTML en el panel de la derecha y pulsa convertir.</p>
               <button onClick={run} disabled={processing || !htmlInput.trim()} className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 font-semibold text-black transition">
-                {processing ? "⏳ Convirtiendo..." : "Convertir a PDF"}
+                {processing ? (
+                  <>
+                    <Spinner size={18} weight="bold" className="inline-block animate-spin align-[-3px] mr-2" />
+                    Convirtiendo...
+                  </>
+                ) : "Convertir a PDF"}
               </button>
             </motion.div>
           ) : (
@@ -1159,7 +1184,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 className="w-20 h-20 rounded-2xl bg-orange-500/15 border border-orange-500/40 flex items-center justify-center text-4xl shadow-lg shadow-orange-500/10"
               >
-                {isImageInput ? "🖼️" : isOfficeInput ? "📄" : "📄"}
+                {isImageInput ? <Image size={40} /> : <FileText size={40} />}
               </motion.div>
             </div>
             <p className="text-2xl font-semibold mb-2">Seleccionar archivo{isMulti ? "s" : ""}</p>
@@ -1179,7 +1204,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             <div className="flex-1 lg:w-[75%]">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">{t.title}</h2>
-                <button onClick={() => { setFiles([]); setResults([]); }} className="text-xs text-neutral-500 hover:text-red-400 transition">✕ Cambiar archivo</button>
+                <button onClick={() => { setFiles([]); setResults([]); }} className="text-xs text-neutral-500 hover:text-red-400 transition"><X size={12} weight="bold" className="inline-block align-[-1px] mr-1" /> Cambiar archivo</button>
               </div>
               <div className="bg-neutral-900/50 rounded-2xl border border-white/5 p-6 flex flex-col items-center">
                 {mode === "jpg-pdf" ? (
@@ -1200,7 +1225,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                           </div>
                           <p className="w-52 text-xs text-neutral-500 truncate text-center">{f.name}</p>
                           <span className="absolute top-1 left-1 z-10 w-5 h-5 rounded-full bg-orange-500 text-black text-[10px] font-bold flex items-center justify-center">{i + 1}</span>
-                          <button onClick={() => setFiles(files.filter((_, j) => j !== i))} className="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-neutral-700 hover:bg-red-500 text-white text-[10px] flex items-center justify-center transition opacity-0 group-hover:opacity-100">✕</button>
+                          <button onClick={() => setFiles(files.filter((_, j) => j !== i))} className="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-neutral-700 hover:bg-red-500 text-white text-[10px] flex items-center justify-center transition opacity-0 group-hover:opacity-100"><X size={10} weight="bold" /></button>
                         </div>
                       ))}
                       {/* Botón + para añadir más */}
@@ -1236,7 +1261,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                           </div>
                           <p className="w-56 text-xs text-neutral-500 truncate text-center">{f.name}</p>
                           <span className="absolute top-1 left-1 z-10 w-5 h-5 rounded-full bg-orange-500 text-black text-[10px] font-bold flex items-center justify-center">{i + 1}</span>
-                          <button onClick={() => setFiles(files.filter((_, j) => j !== i))} className="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-neutral-700 hover:bg-red-500 text-white text-[10px] flex items-center justify-center transition opacity-0 group-hover:opacity-100">✕</button>
+                          <button onClick={() => setFiles(files.filter((_, j) => j !== i))} className="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-neutral-700 hover:bg-red-500 text-white text-[10px] flex items-center justify-center transition opacity-0 group-hover:opacity-100"><X size={10} weight="bold" /></button>
                         </div>
                       ))}
                       {/* Botón + para añadir más */}
@@ -1362,7 +1387,12 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                   disabled={processing || (mode === "merge" && files.length < 2)}
                   className="w-full py-3.5 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-black transition-colors hover:shadow-lg hover:shadow-orange-500/25"
                 >
-                  {processing ? "⏳ Procesando..." : t.title}
+                  {processing ? (
+                    <>
+                      <Spinner size={18} weight="bold" className="inline-block animate-spin align-[-3px] mr-2" />
+                      Procesando...
+                    </>
+                  ) : t.title}
                 </motion.button>
               </div>
 

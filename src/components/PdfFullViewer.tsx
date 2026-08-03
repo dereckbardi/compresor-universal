@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CopySimple, X } from "@phosphor-icons/react";
 
 interface Props {
   file: File;
@@ -149,8 +150,8 @@ export default function PdfFullViewer({ file, signature, signPos, signPage, onSi
                       />
                       {/* Controles: copiar, eliminar, redimensionar */}
                       <div className="absolute -top-8 left-0 flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                        <button onClick={onSignCopy} className="w-6 h-6 rounded-md bg-neutral-800 border border-white/20 text-[11px] text-white hover:bg-neutral-700" title="Copiar firma">⧉</button>
-                        <button onClick={onSignRemove} className="w-6 h-6 rounded-md bg-red-600 border border-red-400 text-[11px] text-white hover:bg-red-500" title="Eliminar firma">✕</button>
+                        <button onClick={onSignCopy} className="w-6 h-6 rounded-md bg-neutral-800 border border-white/20 text-[11px] text-white hover:bg-neutral-700" title="Copiar firma"><CopySimple size={11} weight="bold" /></button>
+                        <button onClick={onSignRemove} className="w-6 h-6 rounded-md bg-red-600 border border-red-400 text-[11px] text-white hover:bg-red-500" title="Eliminar firma"><X size={11} weight="bold" /></button>
                       </div>
                       <div
                         className="absolute -bottom-1 -right-1 w-4 h-4 bg-orange-500 border-2 border-white rounded-full cursor-nwse-resize"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { FileText } from "@phosphor-icons/react";
 
 export default function PdfThumbnail({ file }: { file: File }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -39,7 +40,7 @@ export default function PdfThumbnail({ file }: { file: File }) {
     <div className="w-full h-full flex items-center justify-center overflow-hidden bg-white">
       {error ? (
         <div className="flex flex-col items-center gap-1 text-neutral-400">
-          <span className="text-3xl">📄</span>
+          <FileText size={36} className="text-neutral-400" />
           <span className="text-[9px] uppercase tracking-wide">PDF</span>
         </div>
       ) : (

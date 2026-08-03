@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Paperclip, Trash, X } from "@phosphor-icons/react";
 
 // Fuentes cursivas disponibles en Windows para firmas
 const SIGN_FONTS = [
@@ -134,7 +135,7 @@ export default function SignatureModal({ onConfirm, onCancel }: Props) {
       <div className="relative w-full max-w-lg bg-neutral-900 border border-white/10 rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Firmar</h3>
-          <button onClick={onCancel} className="text-neutral-500 hover:text-white text-xl">✕</button>
+          <button onClick={onCancel} className="text-neutral-500 hover:text-white text-xl"><X size={18} /></button>
         </div>
 
         {/* Nombre e iniciales */}
@@ -198,7 +199,7 @@ export default function SignatureModal({ onConfirm, onCancel }: Props) {
               onPointerUp={endDraw}
               onPointerLeave={endDraw}
             />
-            <button onClick={clearDraw} className="mt-2 text-xs text-neutral-500 hover:text-red-400 transition">🗑️ Limpiar</button>
+            <button onClick={clearDraw} className="mt-2 text-xs text-neutral-500 hover:text-red-400 transition"><Trash size={14} className="inline-block align-[-2px] mr-1" /> Limpiar</button>
           </div>
         )}
 
@@ -206,7 +207,7 @@ export default function SignatureModal({ onConfirm, onCancel }: Props) {
         {tab === "cargar" && (
           <div>
             <label className="text-xs text-neutral-400 block mb-2">Sube tu firma (PNG con fondo transparente)</label>
-            <button onClick={() => fileRef.current?.click()} className="w-full py-3 rounded-lg border border-dashed border-neutral-600 text-sm text-neutral-300 hover:border-orange-500 transition">📎 Cargar imagen de firma</button>
+            <button onClick={() => fileRef.current?.click()} className="w-full py-3 rounded-lg border border-dashed border-neutral-600 text-sm text-neutral-300 hover:border-orange-500 transition"><Paperclip size={14} className="inline-block align-[-2px] mr-1" /> Cargar imagen de firma</button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) { const r = new FileReader(); r.onload = () => setLoadedImg(r.result as string); r.readAsDataURL(f); }

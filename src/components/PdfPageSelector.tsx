@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Check, X } from "@phosphor-icons/react";
 
 interface Props {
   file: File;
@@ -118,11 +119,11 @@ export default function PdfPageSelector({ file, selected, onToggle, totalPages, 
               <span className={`absolute inset-0 flex items-center justify-center transition ${selected.has(pg.num) ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`}>
                 {selectAll ? (
                   <span className={`w-12 h-12 rounded-full flex items-center justify-center ${selected.has(pg.num) ? "bg-orange-500" : "bg-orange-500/60"}`}>
-                    <span className="text-2xl font-bold text-white">✓</span>
+                    <Check size={28} weight="bold" className="text-white" />
                   </span>
                 ) : (
                   <span className={`w-12 h-12 rounded-full flex items-center justify-center ${selected.has(pg.num) ? "bg-red-600" : "bg-red-600/60"}`}>
-                    <span className="text-2xl font-bold text-white">✕</span>
+                    <X size={28} weight="bold" className="text-white" />
                   </span>
                 )}
               </span>
