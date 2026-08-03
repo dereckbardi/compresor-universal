@@ -1025,7 +1025,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             <Logo size={1.3} />
           </div>
           <nav className="flex items-center text-sm flex-1 min-w-0 overflow-x-auto no-scrollbar">
-            <div className="flex items-center gap-1 mx-auto">
+            <div className="flex items-center gap-1 w-max mx-auto">
               {NAV.map((n) => (
                 <button
                   key={n.id}
