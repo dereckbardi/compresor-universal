@@ -132,7 +132,7 @@ export default function SignatureModal({ onConfirm, onCancel }: Props) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
       {/* Fondo desenfocado */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative w-full max-w-lg bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 rounded-2xl shadow-2xl p-4 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto my-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Firmar</h3>
           <button onClick={onCancel} className="text-neutral-500 hover:text-neutral-900 dark:hover:text-white text-xl"><X size={18} /></button>

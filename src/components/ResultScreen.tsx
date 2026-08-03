@@ -118,9 +118,9 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
   const isImage = results[0]?.blob.type.startsWith("image/");
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-6 py-10">
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-        <h2 className="text-3xl font-bold">{a.msg}</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold">{a.msg}</h2>
         <p className="text-sm text-neutral-500 mt-1">{results.length} archivo(s) generado(s)</p>
         {(mode === "image" || mode === "pdf") && totalOriginal > 0 && (
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
@@ -149,7 +149,7 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
       <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
         <button onClick={onBack} className="w-12 h-12 rounded-full bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white text-lg hover:border-orange-500 flex items-center justify-center transition" title="Volver"><ArrowLeft size={22} weight="bold" /></button>
         <button onClick={onDelete} className="w-12 h-12 rounded-full bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500 flex items-center justify-center transition" title="Eliminar"><Trash size={22} /></button>
-        <button onClick={onDownloadAll} className="px-6 sm:px-10 py-4 rounded-xl bg-orange-500 hover:bg-orange-400 text-black text-base sm:text-xl font-bold transition hover:shadow-lg hover:shadow-orange-500/25 text-center">
+        <button onClick={onDownloadAll} className="px-6 sm:px-10 min-h-12 py-4 rounded-xl bg-orange-500 hover:bg-orange-400 text-black text-base sm:text-xl font-bold transition hover:shadow-lg hover:shadow-orange-500/25 text-center">
           {a.btn}
         </button>
         <button
@@ -177,9 +177,9 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
       {/* Continuar a... */}
       <div className="bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-white/10 p-5">
         <p className="text-base font-semibold text-neutral-800 dark:text-neutral-200 mb-4">Continuar a...</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {shown.map((t) => (
-            <button key={t.id} onClick={() => onContinue(t.id)} className="flex items-center gap-2.5 px-3 py-3 rounded-xl border border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 hover:border-orange-500 hover:text-neutral-900 dark:hover:text-white text-sm font-medium transition">
+            <button key={t.id} onClick={() => onContinue(t.id)} className="min-h-12 flex items-center gap-2.5 px-3 py-3 rounded-xl border border-neutral-300 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200 hover:border-orange-500 hover:text-neutral-900 dark:hover:text-white text-sm font-medium transition">
               <ContinueIcon name={t.icon} /> {t.label}
             </button>
           ))}

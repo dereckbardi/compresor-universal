@@ -20,6 +20,7 @@ import {
   MagnifyingGlass,
   Package,
   Spinner,
+  SquaresFour,
   WarningCircle,
   Wrench,
   X,
@@ -1047,13 +1048,13 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           <div className="flex items-center gap-2 shrink-0">
             <Logo size={1.3} />
           </div>
-          <nav className="order-last sm:order-none flex items-center text-sm w-full sm:w-auto sm:flex-1 sm:min-w-0 overflow-x-auto no-scrollbar border-t border-neutral-200 dark:border-white/10 pt-2 sm:border-t-0 sm:pt-0">
+          <nav className="order-last sm:order-none flex items-center text-sm w-full sm:w-auto sm:flex-1 sm:min-w-0 overflow-x-auto no-scrollbar border-t border-neutral-200 dark:border-white/10 pt-1.5 sm:border-t-0 sm:pt-0">
             <div className="flex items-center gap-1 w-max sm:mx-auto">
               {NAV.map((n) => (
                 <button
                   key={n.id}
                   onClick={() => switchMode(n.id)}
-                  className={`px-2.5 sm:px-3 py-2 rounded-lg whitespace-nowrap transition ${mode === n.id ? "text-orange-500" : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"}`}
+                  className={`min-h-11 flex items-center px-2.5 sm:px-3 py-2 rounded-lg whitespace-nowrap transition ${mode === n.id ? "text-orange-500" : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"}`}
                 >
                   {n.label}
                 </button>
@@ -1061,8 +1062,13 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             </div>
           </nav>
           <div className="flex items-center gap-2 shrink-0">
-            <Link href="/tools" className="btn-shine shrink-0 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-black font-semibold text-sm transition whitespace-nowrap">
-              Todas las herramientas
+            <Link
+              href="/tools"
+              className="btn-shine shrink-0 min-h-11 inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-black font-semibold text-sm transition whitespace-nowrap"
+              title="Todas las herramientas"
+            >
+              <SquaresFour size={18} weight="bold" className="sm:hidden" aria-hidden="true" />
+              <span className="hidden sm:inline">Todas las herramientas</span>
             </Link>
             <ThemeToggle size="md" />
           </div>
@@ -1086,7 +1092,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           onContinue={(m) => switchMode(m as Mode)}
         />
       ) : files.length === 0 ? (
-        <div className="max-w-3xl mx-auto px-6 py-14 sm:py-16">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
           <HeroFade>
             <div className="text-center mb-10">
               <motion.h1
@@ -1094,7 +1100,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                className="text-4xl sm:text-5xl font-bold tracking-tight mb-4"
+                className="text-3xl sm:text-5xl font-bold tracking-tight mb-4"
               >
                 {t.title}
               </motion.h1>
@@ -1103,7 +1109,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.05 }}
-                className="text-neutral-600 dark:text-neutral-400 max-w-xl mx-auto text-lg"
+                className="text-neutral-600 dark:text-neutral-400 max-w-xl mx-auto text-base sm:text-lg"
               >
                 {t.desc}
               </motion.p>
@@ -1160,10 +1166,10 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
 
           {/* Drop zone / HTML input */}
           {mode === "html-pdf" ? (
-            <motion.div className="border-2 border-dashed border-orange-500/50 rounded-3xl p-10 text-center">
-              <p className="text-lg font-semibold mb-3">HTML listo para convertir</p>
+            <motion.div className="border-2 border-dashed border-orange-500/50 rounded-3xl p-8 sm:p-10 text-center">
+              <p className="text-xl sm:text-2xl font-semibold mb-3">HTML listo para convertir</p>
               <p className="text-neutral-500 text-sm mb-5">Pega tu código HTML en el panel de la derecha y pulsa convertir.</p>
-              <button onClick={run} disabled={processing || !htmlInput.trim()} className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 font-semibold text-black transition">
+              <button onClick={run} disabled={processing || !htmlInput.trim()} className="min-h-12 px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 font-semibold text-black transition">
                 {processing ? (
                   <>
                     <Spinner size={18} weight="bold" className="inline-block animate-spin align-[-3px] mr-2" />
@@ -1181,18 +1187,18 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
             onClick={() => inputRef.current?.click()}
-            className={`relative border-2 border-dashed rounded-3xl p-16 text-center cursor-pointer transition-all duration-200 ${dragOver ? "border-orange-500 bg-orange-500/5 scale-[1.01]" : "border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 bg-white/60 dark:bg-neutral-900/40 hover:bg-white dark:hover:bg-neutral-900/60"}`}
+            className={`relative border-2 border-dashed rounded-3xl p-8 sm:p-16 text-center cursor-pointer transition-all duration-200 ${dragOver ? "border-orange-500 bg-orange-500/5 scale-[1.01]" : "border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 bg-white/60 dark:bg-neutral-900/40 hover:bg-white dark:hover:bg-neutral-900/60"}`}
           >
             <div className="mb-5 flex justify-center">
               <motion.div
                 whileHover={{ scale: 1.1, rotate: 5 }}
-                className="w-20 h-20 rounded-2xl bg-orange-500/15 border border-orange-500/40 flex items-center justify-center text-4xl shadow-lg shadow-orange-500/10"
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-orange-500/15 border border-orange-500/40 flex items-center justify-center text-3xl sm:text-4xl shadow-lg shadow-orange-500/10"
               >
                 {isImageInput ? <Image size={40} /> : <FileText size={40} />}
               </motion.div>
             </div>
-            <p className="text-2xl font-semibold mb-2">Seleccionar archivo{isMulti ? "s" : ""}</p>
-            <p className="text-neutral-500">o arrastra y suelta aquí</p>
+            <p className="text-xl sm:text-2xl font-semibold mb-2">Seleccionar archivo{isMulti ? "s" : ""}</p>
+            <p className="text-sm sm:text-base text-neutral-500">o arrastra y suelta aquí</p>
             <p className="text-xs text-neutral-600 mt-3">
               {isImageInput ? "JPG, PNG, WebP, GIF" : isOfficeInput ? "Word, PowerPoint, Excel, ODF" : "Solo PDF"}
             </p>
@@ -1210,7 +1216,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 <h2 className="text-xl font-semibold">{t.title}</h2>
                 <button onClick={() => { setFiles([]); setResults([]); }} className="text-xs text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition"><X size={12} weight="bold" className="inline-block align-[-1px] mr-1" /> Cambiar archivo</button>
               </div>
-              <div className="bg-neutral-100/80 dark:bg-neutral-900/50 rounded-2xl border border-neutral-200/70 dark:border-white/5 p-6 flex flex-col items-center">
+              <div className="bg-neutral-100/80 dark:bg-neutral-900/50 rounded-2xl border border-neutral-200/70 dark:border-white/5 p-4 sm:p-6 flex flex-col items-center min-w-0 w-full">
                 {mode === "jpg-pdf" ? (
                   <div className="w-full">
                     {/* Vista previa en vivo de TODAS las imágenes con opciones */}
@@ -1374,7 +1380,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
 
             {/* Columna derecha: opciones (25%) */}
             <div className="w-full lg:w-[25%] lg:min-w-[260px]">
-              <div className="bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-neutral-200/70 dark:border-white/5 p-5 sticky top-24 space-y-6">
+              <div className="bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-neutral-200/70 dark:border-white/5 p-4 sm:p-5 sticky top-24 space-y-6 min-w-0">
                 <div>
                   <h3 className="text-sm font-semibold text-orange-500 uppercase tracking-wider mb-4">{t.title}</h3>
                   {renderOptions()}
@@ -1389,7 +1395,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                   whileTap={{ scale: 0.98 }}
                   onClick={run}
                   disabled={processing || (mode === "merge" && files.length < 2)}
-                  className="w-full py-3.5 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-black transition-colors hover:shadow-lg hover:shadow-orange-500/25"
+                  className="w-full min-h-12 py-3.5 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-black transition-colors hover:shadow-lg hover:shadow-orange-500/25"
                 >
                   {processing ? (
                     <>

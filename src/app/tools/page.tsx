@@ -51,7 +51,7 @@ export default function ToolsPage() {
     <main className="min-h-screen bg-white dark:bg-black text-neutral-900 dark:text-white antialiased selection:bg-orange-500/30 overflow-x-clip">
       {/* Header */}
       <header className="border-b border-neutral-200 dark:border-white/10">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Logo size={1.3} />
           </Link>
@@ -65,9 +65,9 @@ export default function ToolsPage() {
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold tracking-tight mb-3">Todas las herramientas</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">Todas las herramientas</h1>
           <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
             Gestiona tus PDF e imágenes con estas herramientas. 100% gratis y sin registro.
           </p>
@@ -93,7 +93,7 @@ export default function ToolsPage() {
         <div className="flex flex-wrap justify-center gap-2 mb-12">
           <button
             onClick={() => setActiveCategory(null)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+            className={`min-h-11 flex items-center px-4 py-2 rounded-full text-sm font-medium transition ${
               activeCategory === null
                 ? "bg-orange-500 text-black"
                 : "bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-white/10"
@@ -105,7 +105,7 @@ export default function ToolsPage() {
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+              className={`min-h-11 flex items-center px-4 py-2 rounded-full text-sm font-medium transition ${
                 activeCategory === cat.id
                   ? "bg-orange-500 text-black"
                   : "bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-white/10"
@@ -166,7 +166,7 @@ export default function ToolsPage() {
       </div>
 
       <footer className="border-t border-neutral-200 dark:border-white/10 mt-12">
-        <div className="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-neutral-600">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 text-center text-xs text-neutral-600">
           <p>COMPRIMEME — 100% gratis y sin registro.</p>
         </div>
       </footer>

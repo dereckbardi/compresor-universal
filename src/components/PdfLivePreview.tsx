@@ -15,6 +15,8 @@ interface Props {
 
 export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCIAL", watermarkOpacity = 0.2, watermarkColor = [1, 1, 1], numPosition = "bottom", crop = { l: 5, t: 5, r: 5, b: 5 }, rotateDeg = 0 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [availW, setAvailW] = useState(0);
   const [pageSize, setPageSize] = useState({ w: 595, h: 842 });
   const [aspect, setAspect] = useState(595 / 842);
   // Guardamos la imagen de la página para poder redibujarla sin borrarla
@@ -126,9 +128,23 @@ export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCI
     ctx.restore();
   }, [mode, watermarkText, watermarkOpacity, watermarkColor, numPosition, crop, pageSize, rotateDeg]);
 
-  const previewH = 300;
   const isRotate = mode === "rotate";
   const rot = rotateDeg; // rotación acumulada, sin módulo (para que gire continuamente)
+
+  // Mide el ancho disponible para que la vista previa (y su versión rotada) nunca
+  // desborde la tarjeta en pantallas pequeñas.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setAvailW(el.clientWidth));
+    ro.observe(el);
+    setAvailW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
+  // En modo rotar hay padding extra (p-10) alrededor; restamos ese espacio para
+  // que la caja rotada 90° siga cabiendo dentro del contenedor.
+  const previewH = Math.min(300, Math.max(120, (availW || 300) - (isRotate ? 80 : 0)));
   const boxStyle: React.CSSProperties = isRotate
     ? {
         width: previewH * aspect,
@@ -139,12 +155,14 @@ export default function PdfLivePreview({ file, mode, watermarkText = "CONFIDENCI
     : { width: previewH * aspect, height: previewH };
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div
-        className={`relative rounded-lg overflow-hidden border border-neutral-200 dark:border-white/10 shadow-xl bg-white ${isRotate ? "m-10" : ""}`}
-        style={boxStyle}
-      >
-        <canvas ref={canvasRef} className="w-full h-full object-contain" style={{ width: "100%", height: "100%" }} />
+    <div ref={wrapRef} className="flex flex-col items-center gap-2 w-full max-w-full min-w-0">
+      <div className={isRotate ? "flex items-center justify-center w-full p-10" : "w-full"}>
+        <div
+          className="relative rounded-lg overflow-hidden border border-neutral-200 dark:border-white/10 shadow-xl bg-white"
+          style={boxStyle}
+        >
+          <canvas ref={canvasRef} className="w-full h-full object-contain" style={{ width: "100%", height: "100%" }} />
+        </div>
       </div>
     </div>
   );
