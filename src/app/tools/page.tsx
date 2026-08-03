@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { TOOLS, CATEGORIES } from "@/lib/tools";
+import { TOOL_CONTENT, type Mode } from "@/lib/toolContent";
 import Logo from "@/components/Logo";
+
+function toolHref(id: string, available: boolean): string {
+  if (!available) return "#";
+  const content = TOOL_CONTENT[id as Mode];
+  return content ? `/${content.slug}` : `/?tool=${id}`;
+}
 
 export default function ToolsPage() {
   return (
@@ -39,7 +46,7 @@ export default function ToolsPage() {
                   {tools.map((tool) => (
                     <Link
                       key={tool.id}
-                      href={tool.available ? `/?tool=${tool.id}` : "#"}
+                      href={toolHref(tool.id, tool.available)}
                       onClick={tool.available ? undefined : (e) => e.preventDefault()}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition group ${
                         tool.available

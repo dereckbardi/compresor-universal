@@ -16,7 +16,7 @@ export const TOOLS: Tool[] = [
   { id: "rotate", name: "Rotar PDF", desc: "Gira todas las páginas de tu PDF 90°, 180° o 270° para corregir su orientación.", icon: "🔄", category: "ordenar", available: true },
   { id: "scan", name: "Escaneo a PDF", desc: "Convierte fotos o escaneos de tus documentos en un PDF legible.", icon: "📷", category: "ordenar", available: false },
   // OPTIMIZAR
-  { id: "compress", name: "Comprimir PDF", desc: "Reduce el peso de tu PDF para que pese menos y sea más fácil de compartir, sin perder calidad.", icon: "🗜️", category: "optimizar", available: true },
+  { id: "pdf", name: "Comprimir PDF", desc: "Reduce el peso de tu PDF para que pese menos y sea más fácil de compartir, sin perder calidad.", icon: "🗜️", category: "optimizar", available: true },
   { id: "repair", name: "Reparar PDF", desc: "Arregla PDFs dañados o que no se abren correctamente.", icon: "🔧", category: "optimizar", available: true },
   { id: "ocr", name: "OCR PDF", desc: "Convierte escaneos en texto editable y buscable dentro del PDF.", icon: "🔍", category: "optimizar", available: true },
   // CONVERTIR A PDF
