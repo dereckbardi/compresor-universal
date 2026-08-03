@@ -138,10 +138,10 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
       )}
 
       {/* Fila de acciones */}
-      <div className="flex items-center justify-center gap-3 mb-8">
+      <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
         <button onClick={onBack} className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 text-white text-lg hover:border-orange-500 flex items-center justify-center transition" title="Volver">←</button>
         <button onClick={onDelete} className="w-12 h-12 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-red-400 hover:border-red-500 flex items-center justify-center transition" title="Eliminar">🗑️</button>
-        <button onClick={onDownloadAll} className="px-10 py-4 rounded-xl bg-orange-500 hover:bg-orange-400 text-black text-xl font-bold transition hover:shadow-lg hover:shadow-orange-500/25">
+        <button onClick={onDownloadAll} className="px-6 sm:px-10 py-4 rounded-xl bg-orange-500 hover:bg-orange-400 text-black text-base sm:text-xl font-bold transition hover:shadow-lg hover:shadow-orange-500/25 text-center">
           {a.btn}
         </button>
         <button

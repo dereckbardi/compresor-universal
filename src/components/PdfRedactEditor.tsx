@@ -151,7 +151,7 @@ export default function PdfRedactEditor({ file, onRects }: Props) {
 
 
   return (
-    <div className="w-full flex gap-4">
+    <div className="w-full flex flex-col lg:flex-row gap-4">
       {/* Barra lateral de miniaturas */}
       <div className="pdf-scroll w-20 shrink-0 max-h-[75vh] overflow-y-auto space-y-2 rounded-xl border border-white/10 bg-neutral-900/60 p-2">
         {pages.map((pg, i) => (
@@ -264,7 +264,7 @@ export default function PdfRedactEditor({ file, onRects }: Props) {
       </div>
 
       {/* Panel de censura */}
-      <div className="w-56 shrink-0 space-y-3">
+      <div className="w-full lg:w-56 lg:shrink-0 space-y-3">
         <div>
           <label className="text-sm text-neutral-400 block mb-2">Buscar texto</label>
           <input

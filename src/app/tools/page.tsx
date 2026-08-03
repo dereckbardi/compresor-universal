@@ -40,7 +40,7 @@ export default function ToolsPage() {
   const hasResults = filteredTools.length > 0;
 
   return (
-    <main className="min-h-screen bg-black text-white antialiased selection:bg-orange-500/30">
+    <main className="min-h-screen bg-black text-white antialiased selection:bg-orange-500/30 overflow-x-clip">
       {/* Header */}
       <header className="border-b border-white/10">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">

@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Evita desbordamiento horizontal en móvil (web "partida": mitad oscura, mitad blanca) */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -88,6 +95,16 @@ body {
 
 *::-webkit-scrollbar-corner {
   background: #0a0a0a;
+}
+
+/* Ocultar barra de scroll para contenedores scrollables (ej. nav del header en móvil) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Ocultar barra de scroll en visores de PDF y previews */

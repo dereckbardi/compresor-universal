@@ -449,7 +449,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
               )}
               {/* Añadir rango */}
               <div className="bg-white/5 rounded-xl p-3 space-y-2">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <label className="text-xs text-neutral-500">De la página</label>
                   <input
                     type="number"
@@ -1014,7 +1014,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white antialiased selection:bg-orange-500/30">
+    <main className="min-h-screen bg-black text-white antialiased selection:bg-orange-500/30 overflow-x-clip">
       <Suspense fallback={null}>
         <ToolParamSync onFound={setMode} />
       </Suspense>
@@ -1024,16 +1024,18 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           <div className="flex items-center gap-2 shrink-0">
             <Logo size={1.3} />
           </div>
-          <nav className="flex items-center gap-1 text-sm flex-1 justify-center">
-            {NAV.map((n) => (
-              <button
-                key={n.id}
-                onClick={() => switchMode(n.id)}
-                className={`px-2.5 sm:px-3 py-2 rounded-lg whitespace-nowrap transition ${mode === n.id ? "text-orange-500" : "text-neutral-400 hover:text-white"}`}
-              >
-                {n.label}
-              </button>
-            ))}
+          <nav className="flex items-center text-sm flex-1 min-w-0 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1 mx-auto">
+              {NAV.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => switchMode(n.id)}
+                  className={`px-2.5 sm:px-3 py-2 rounded-lg whitespace-nowrap transition ${mode === n.id ? "text-orange-500" : "text-neutral-400 hover:text-white"}`}
+                >
+                  {n.label}
+                </button>
+              ))}
+            </div>
           </nav>
           <Link href="/tools" className="btn-shine shrink-0 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-black font-semibold text-sm transition whitespace-nowrap">
             Todas las herramientas
@@ -1085,7 +1087,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, delay: 0.15 }}
-                className="flex justify-center gap-3 mt-6"
+                className="flex flex-wrap justify-center gap-3 mt-6"
               >
                 {(mode === "image"
                   ? [{ f: "JPG", c: "text-blue-400 border-blue-500/40" }, { f: "PNG", c: "text-emerald-400 border-emerald-500/40" }, { f: "WebP", c: "text-orange-400 border-orange-500/40" }, { f: "GIF", c: "text-purple-400 border-purple-500/40" }]
