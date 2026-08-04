@@ -25,7 +25,15 @@ import {
   X,
   type Icon,
 } from "@phosphor-icons/react";
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Reveal } from "@/components/Reveal";
@@ -104,6 +112,8 @@ const FAQS = [
   },
 ];
 
+const HERO_WORDS = ["Comprime", "tus", "archivos", "sin", "esfuerzo"];
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 function ToolIcon({ icon, size = 22 }: { icon: string; size?: number }) {
@@ -179,21 +189,18 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-16 sm:pt-24 sm:pb-20">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
-              Comprime tus archivos{" "}
-              <span className="text-orange-500">sin esfuerzo</span>
-            </h1>
+            <HeroWordReveal />
             <p className="mt-6 text-lg text-neutral-600 dark:text-neutral-400 max-w-xl leading-relaxed">
               Reduce el peso de tus imágenes y PDF directamente en tu navegador. Rápido, privado y 100% gratis.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Link
+              <MagneticButton
                 href="/comprimir-imagenes"
                 className="btn-shine min-h-12 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-orange-500 text-black font-semibold hover:bg-orange-400 transition"
               >
                 Empezar a comprimir
                 <ArrowRight size={18} weight="bold" />
-              </Link>
+              </MagneticButton>
             </div>
           </div>
 
@@ -223,18 +230,30 @@ export default function Home() {
               </div>
             </div>
 
-            <span className="absolute -top-5 -left-3 sm:-left-6 w-14 h-14 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 shadow-lg flex items-center justify-center text-orange-500">
+            <FloatingIcon
+              className="absolute -top-5 -left-3 sm:-left-6 w-14 h-14 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 shadow-lg flex items-center justify-center text-orange-500"
+              range={[-20, 20]}
+            >
               <ImageIcon size={24} weight="bold" />
-            </span>
-            <span className="absolute -top-6 right-4 sm:right-8 w-14 h-14 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 shadow-lg flex items-center justify-center text-orange-500">
+            </FloatingIcon>
+            <FloatingIcon
+              className="absolute -top-6 right-4 sm:right-8 w-14 h-14 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 shadow-lg flex items-center justify-center text-orange-500"
+              range={[-40, 40]}
+            >
               <Scissors size={24} weight="bold" />
-            </span>
-            <span className="absolute -bottom-5 -left-2 sm:-left-8 w-14 h-14 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 shadow-lg flex items-center justify-center text-orange-500">
+            </FloatingIcon>
+            <FloatingIcon
+              className="absolute -bottom-5 -left-2 sm:-left-8 w-14 h-14 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 shadow-lg flex items-center justify-center text-orange-500"
+              range={[-15, 15]}
+            >
               <LockSimple size={24} weight="bold" />
-            </span>
-            <span className="absolute -bottom-4 right-4 sm:right-6 w-12 h-12 rounded-full bg-orange-500 text-black shadow-lg flex items-center justify-center">
+            </FloatingIcon>
+            <FloatingIcon
+              className="absolute -bottom-4 right-4 sm:right-6 w-12 h-12 rounded-full bg-orange-500 text-black shadow-lg flex items-center justify-center"
+              range={[-30, 30]}
+            >
               <ArrowRight size={22} weight="bold" />
-            </span>
+            </FloatingIcon>
           </div>
         </div>
       </section>
@@ -582,11 +601,7 @@ function StepCard({ step }: { step: (typeof STEPS)[number] }) {
 
 function TestimonialCard({ t }: { t: (typeof TESTIMONIALS)[number] }) {
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className="h-full flex flex-col rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-black p-6 shadow-sm hover:shadow-lg hover:shadow-orange-500/15 transition-shadow"
-    >
+    <Testimonial3D className="h-full flex flex-col rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-black p-6 shadow-sm hover:shadow-lg hover:shadow-orange-500/15 transition-shadow">
       <Quotes size={28} weight="fill" className="text-orange-500" aria-hidden="true" />
       <p className="mt-4 flex-1 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
         {t.quote}
@@ -600,7 +615,7 @@ function TestimonialCard({ t }: { t: (typeof TESTIMONIALS)[number] }) {
           <p className="text-xs text-neutral-500">{t.role}</p>
         </div>
       </div>
-    </motion.div>
+    </Testimonial3D>
   );
 }
 
@@ -684,10 +699,185 @@ function FaqItem({
   );
 }
 
+function FloatingIcon({
+  children,
+  className,
+  range,
+}: {
+  children: React.ReactNode;
+  className: string;
+  range: [number, number];
+}) {
+  const reducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+  const y = useTransform(scrollYProgress, [0, 1], range);
+
+  if (reducedMotion) {
+    return <span className={className}>{children}</span>;
+  }
+
+  return (
+    <motion.span className={className} style={{ y }}>
+      {children}
+    </motion.span>
+  );
+}
+
+function HeroWordReveal() {
+  const reducedMotion = useReducedMotion();
+
+  if (reducedMotion) {
+    return (
+      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+        Comprime tus archivos{" "}
+        <span className="text-orange-500">sin esfuerzo</span>
+      </h1>
+    );
+  }
+
+  return (
+    <h1
+      className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]"
+      style={{ perspective: 600 }}
+    >
+      {HERO_WORDS.map((word, i) => {
+        const isOrange = word === "sin" || word === "esfuerzo";
+        return (
+          <motion.span
+            key={i}
+            className="inline-block"
+            style={{ marginRight: i < HERO_WORDS.length - 1 ? "0.25em" : 0 }}
+            initial={{ opacity: 0, y: 16, rotateX: -30 }}
+            animate={{ opacity: 1, y: 0, rotateX: 0 }}
+            transition={{
+              duration: 0.5,
+              ease: "easeOut",
+              delay: 0.1 + i * 0.06,
+            }}
+          >
+            <span className={isOrange ? "text-orange-500" : undefined}>
+              {word}
+            </span>
+          </motion.span>
+        );
+      })}
+    </h1>
+  );
+}
+
+function MagneticButton({
+  children,
+  className,
+  href,
+}: {
+  children: React.ReactNode;
+  className: string;
+  href: string;
+}) {
+  const reducedMotion = useReducedMotion();
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 300, damping: 20 });
+  const springY = useSpring(y, { stiffness: 300, damping: 20 });
+
+  if (reducedMotion) {
+    return (
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <motion.div
+      style={{ x: springX, y: springY }}
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const offsetX = Math.max(
+          -10,
+          Math.min(10, (e.clientX - (rect.left + rect.width / 2)) * 0.3)
+        );
+        const offsetY = Math.max(
+          -10,
+          Math.min(10, (e.clientY - (rect.top + rect.height / 2)) * 0.3)
+        );
+        x.set(offsetX);
+        y.set(offsetY);
+      }}
+      onMouseLeave={() => {
+        x.set(0);
+        y.set(0);
+      }}
+    >
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    </motion.div>
+  );
+}
+
+function Testimonial3D({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className: string;
+}) {
+  const reducedMotion = useReducedMotion();
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+  const springX = useSpring(rotateX, { stiffness: 300, damping: 20 });
+  const springY = useSpring(rotateY, { stiffness: 300, damping: 20 });
+
+  if (reducedMotion) {
+    return (
+      <motion.div
+        whileHover={{ y: -4 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={className}
+      >
+        {children}
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      className={className}
+      style={{
+        rotateX: springX,
+        rotateY: springY,
+        transformPerspective: 800,
+      }}
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const percentX = (e.clientX - centerX) / (rect.width / 2);
+        const percentY = (e.clientY - centerY) / (rect.height / 2);
+        rotateX.set(Math.max(-8, Math.min(8, -percentY * 8)));
+        rotateY.set(Math.max(-8, Math.min(8, percentX * 8)));
+      }}
+      onMouseLeave={() => {
+        rotateX.set(0);
+        rotateY.set(0);
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 function PopularCard({ tool }: { tool: Tool }) {
   return (
     <Link href={toolHref(tool.id)} className="group block h-full">
-      <div className="h-full rounded-2xl p-4 sm:p-5 border border-neutral-200 dark:border-white/10 hover:border-orange-500/60 transition flex items-center gap-3 sm:gap-4">
+      <motion.div
+        className="h-full rounded-2xl p-4 sm:p-5 border border-neutral-200 dark:border-white/10 hover:border-orange-500/60 transition flex items-center gap-3 sm:gap-4"
+        initial={{ scale: 0.96 }}
+        whileInView={{ scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ type: "spring", bounce: 0.25 }}
+      >
         <span className="w-11 h-11 sm:w-12 sm:h-12 shrink-0 rounded-xl bg-orange-500/15 text-orange-600 dark:text-orange-400 flex items-center justify-center">
           <ToolIcon icon={tool.icon} size={24} />
         </span>
@@ -702,7 +892,7 @@ function PopularCard({ tool }: { tool: Tool }) {
           weight="bold"
           className="shrink-0 text-neutral-400 group-hover:text-orange-500 group-hover:translate-x-0.5 transition"
         />
-      </div>
+      </motion.div>
     </Link>
   );
 }
