@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -128,6 +128,7 @@ function toolHref(id: string): string {
 }
 
 export default function Home() {
+  const heroRef = useRef<HTMLElement | null>(null);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -233,24 +234,28 @@ export default function Home() {
             <FloatingIcon
               className="absolute -top-5 -left-3 sm:-left-6 w-14 h-14 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 shadow-lg flex items-center justify-center text-orange-500"
               range={[-20, 20]}
+              target={heroRef}
             >
               <ImageIcon size={24} weight="bold" />
             </FloatingIcon>
             <FloatingIcon
               className="absolute -top-6 right-4 sm:right-8 w-14 h-14 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 shadow-lg flex items-center justify-center text-orange-500"
               range={[-40, 40]}
+              target={heroRef}
             >
               <Scissors size={24} weight="bold" />
             </FloatingIcon>
             <FloatingIcon
               className="absolute -bottom-5 -left-2 sm:-left-8 w-14 h-14 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 shadow-lg flex items-center justify-center text-orange-500"
               range={[-15, 15]}
+              target={heroRef}
             >
               <LockSimple size={24} weight="bold" />
             </FloatingIcon>
             <FloatingIcon
               className="absolute -bottom-4 right-4 sm:right-6 w-12 h-12 rounded-full bg-orange-500 text-black shadow-lg flex items-center justify-center"
               range={[-30, 30]}
+              target={heroRef}
             >
               <ArrowRight size={22} weight="bold" />
             </FloatingIcon>
@@ -703,13 +708,18 @@ function FloatingIcon({
   children,
   className,
   range,
+  target,
 }: {
   children: React.ReactNode;
   className: string;
   range: [number, number];
+  target?: React.RefObject<HTMLElement | null>;
 }) {
   const reducedMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll();
+  const { scrollYProgress } = useScroll({
+    target,
+    offset: ["start end", "end start"],
+  });
   const y = useTransform(scrollYProgress, [0, 1], range);
 
   if (reducedMotion) {
