@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 import { CheckCircle, PaperPlaneTilt } from "@phosphor-icons/react";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -21,6 +22,27 @@ export default function SubscribeForm({
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Efecto magnético: el botón sigue sutilmente el cursor (respeta reduced-motion)
+  const reducedMotion = useReducedMotion();
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const springX = useSpring(mx, { stiffness: 300, damping: 20 });
+  const springY = useSpring(my, { stiffness: 300, damping: 20 });
+
+  function handleMagneticMove(e: React.MouseEvent<HTMLButtonElement>) {
+    if (reducedMotion) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetX = Math.max(-10, Math.min(10, (e.clientX - (rect.left + rect.width / 2)) * 0.3));
+    const offsetY = Math.max(-10, Math.min(10, (e.clientY - (rect.top + rect.height / 2)) * 0.3));
+    mx.set(offsetX);
+    my.set(offsetY);
+  }
+
+  function handleMagneticLeave() {
+    mx.set(0);
+    my.set(0);
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -80,9 +102,12 @@ export default function SubscribeForm({
             aria-label="Tu correo electrónico"
             className="min-h-12 flex-1 rounded-xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 px-4 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:border-orange-500/60 transition"
           />
-          <button
+          <motion.button
             type="submit"
             disabled={status === "sending"}
+            style={reducedMotion ? undefined : { x: springX, y: springY }}
+            onMouseMove={handleMagneticMove}
+            onMouseLeave={handleMagneticLeave}
             className="min-h-12 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-orange-500 text-black font-semibold hover:bg-orange-400 disabled:opacity-60 disabled:cursor-not-allowed transition"
           >
             {status === "sending" ? (
@@ -93,7 +118,7 @@ export default function SubscribeForm({
                 <PaperPlaneTilt size={18} weight="bold" />
               </>
             )}
-          </button>
+          </motion.button>
         </div>
 
         {status === "ok" && (
