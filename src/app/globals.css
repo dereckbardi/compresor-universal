@@ -98,23 +98,28 @@ body {
   background: #f4f4f5;
 }
 
+.dark,
 .dark * {
   scrollbar-color: #0a0a0a #000000;
 }
 
+.dark,
 .dark *::-webkit-scrollbar-track {
   background: #000000;
 }
 
+.dark,
 .dark *::-webkit-scrollbar-thumb {
   background: #0a0a0a;
   border: 1px solid #1a1a1a;
 }
 
+.dark,
 .dark *::-webkit-scrollbar-thumb:hover {
   background: #1a1a1a;
 }
 
+.dark,
 .dark *::-webkit-scrollbar-corner {
   background: #000000;
 }
