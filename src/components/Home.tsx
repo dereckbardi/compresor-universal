@@ -8,6 +8,7 @@ import {
   Browser,
   Check,
   CheckCircle,
+  CurrencyDollar,
   DownloadSimple,
   Files,
   Image as ImageIcon,
@@ -120,6 +121,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [activeTab, setActiveTab] = useState<"privacy" | "speed" | "free">("privacy");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -318,6 +320,135 @@ export default function Home() {
             </StaggerItem>
           ))}
         </Stagger>
+      </section>
+
+      {/* ¿Por qué elegirnos? */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
+        <Reveal>
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">¿Por qué elegirnos?</h2>
+            <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+              Las razones por las que COMPRIMEME es diferente.
+            </p>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.05}>
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+            {[
+              { id: "privacy" as const, label: "Privacidad", icon: LockSimple },
+              { id: "speed" as const, label: "Rapidez", icon: Lightning },
+              { id: "free" as const, label: "Gratis", icon: CurrencyDollar },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                aria-selected={activeTab === tab.id}
+                role="tab"
+                className="relative min-h-12 px-4 sm:px-5 rounded-xl text-sm font-semibold cursor-pointer transition-colors duration-200 flex items-center gap-2"
+              >
+                {activeTab === tab.id && (
+                  <motion.span
+                    layoutId="tab-pill"
+                    className="absolute inset-0 rounded-xl bg-orange-500"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <span
+                  className={`relative z-10 flex items-center gap-2 ${
+                    activeTab === tab.id
+                      ? "text-black"
+                      : "border border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400"
+                  } px-4 py-2 rounded-lg`}
+                >
+                  <tab.icon size={18} weight="bold" />
+                  {tab.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </Reveal>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="mt-10"
+          >
+            {activeTab === "privacy" && (
+              <Stagger className="flex flex-col items-center gap-4 max-w-md mx-auto">
+                <p className="text-base sm:text-lg font-semibold text-center">
+                  Tus archivos nunca salen de tu dispositivo
+                </p>
+                {[
+                  "Todo ocurre en tu navegador",
+                  "Nada se sube a ningún servidor",
+                  "Sin almacenamiento ni cookies de seguimiento",
+                  "Tú tienes el control total",
+                ].map((item) => (
+                  <StaggerItem key={item} className="w-full">
+                    <div className="flex items-center gap-3">
+                      <span className="w-7 h-7 shrink-0 rounded-full bg-orange-500/15 text-orange-500 flex items-center justify-center">
+                        <Check size={14} weight="bold" />
+                      </span>
+                      <span className="text-sm text-neutral-700 dark:text-neutral-300">{item}</span>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </Stagger>
+            )}
+
+            {activeTab === "speed" && (
+              <Stagger className="flex flex-col items-center gap-4 max-w-md mx-auto">
+                <p className="text-base sm:text-lg font-semibold text-center">
+                  Compresión instantánea sin esperas
+                </p>
+                {[
+                  "Procesamiento en milisegundos",
+                  "Sin colas ni tiempos de espera",
+                  "Funciona en cualquier dispositivo",
+                  "Resultados al instante",
+                ].map((item) => (
+                  <StaggerItem key={item} className="w-full">
+                    <div className="flex items-center gap-3">
+                      <span className="w-7 h-7 shrink-0 rounded-full bg-orange-500/15 text-orange-500 flex items-center justify-center">
+                        <Check size={14} weight="bold" />
+                      </span>
+                      <span className="text-sm text-neutral-700 dark:text-neutral-300">{item}</span>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </Stagger>
+            )}
+
+            {activeTab === "free" && (
+              <Stagger className="flex flex-col items-center gap-4 max-w-md mx-auto">
+                <p className="text-base sm:text-lg font-semibold text-center">
+                  Sin costes ocultos, sin límites
+                </p>
+                {[
+                  "100% gratuito",
+                  "Sin registro ni correo",
+                  "Sin límite de archivos",
+                  "Sin marcas de agua",
+                ].map((item) => (
+                  <StaggerItem key={item} className="w-full">
+                    <div className="flex items-center gap-3">
+                      <span className="w-7 h-7 shrink-0 rounded-full bg-orange-500/15 text-orange-500 flex items-center justify-center">
+                        <Check size={14} weight="bold" />
+                      </span>
+                      <span className="text-sm text-neutral-700 dark:text-neutral-300">{item}</span>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </Stagger>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </section>
 
       {/* Preguntas frecuentes */}
