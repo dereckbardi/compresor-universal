@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# COMPRIMEME 🗜️
 
-## Getting Started
+Comprime y gestiona imágenes y PDFs **100% gratis, sin registro y en tu navegador**. Los archivos se procesan localmente (privacidad total); las conversiones pesadas corren en un backend con motores reales (LibreOffice, qpdf, Ghostscript).
 
-First, run the development server:
+**Web en producción:** https://comprimeme.vercel.app
+
+---
+
+## ✨ Funcionalidades
+
+### Cliente (en el navegador, sin subir archivos)
+- **Comprimir imágenes**: JPG, PNG, WebP, GIF
+- **PDF**: comprimir, unir, dividir, eliminar páginas, extraer, rotar, recortar, JPG↔PDF
+- **Editar PDF**: marca de agua, números de página, censurar (redactar), firmar
+- **OCR PDF** (reconocimiento de texto, Tesseract.js) y **Reparar PDF**
+
+### Backend (Cloud Run — LibreOffice, qpdf, Ghostscript)
+- **Conversión Office ↔ PDF**: Word, PowerPoint, Excel (y ODF)
+- **Seguridad PDF**: proteger / desbloquear con contraseña, convertir a PDF/A
+- **HTML → PDF**
+
+## 🛠️ Stack técnico
+
+| Capa | Tecnología |
+|------|-----------|
+| Frontend | Next.js 16 (App Router) + TypeScript + Tailwind CSS v4 |
+| Animaciones | Framer Motion (respectan `prefers-reduced-motion`) |
+| Iconos | Phosphor Icons |
+| Backend | Docker + LibreOffice, qpdf, Ghostscript (Cloud Run) |
+| Deploy | Vercel (frontend) + Cloud Run (backend) |
+| Base de datos | Upstash KV (Redis) — suscriptores |
+| Emails | Resend |
+| PWA | Service Worker + manifest |
+
+## 📄 Páginas
+
+- `/` — Home/landing con animaciones
+- `/tools` — catálogo de todas las herramientas
+- `/[tool]` — página por herramienta (26 rutas, SEO)
+- `/notificar` — panel de administrador para enviar avisos a suscriptores
+
+---
+
+## 🔑 Variables de entorno
+
+Crea un `.env.local` (ver `.env.example`):
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# URL del backend (Cloud Run). Si no se define, usa el valor por defecto.
+NEXT_PUBLIC_BACKEND_URL=https://comprimeme-956795747152.us-central1.run.app
+
+# URL canónica del sitio (sitemap/robots)
+NEXT_PUBLIC_SITE_URL=https://comprimeme.vercel.app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Variables que debe tener el **backend (Cloud Run / Vercel)**:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Suscripción (Upstash KV / Redis)
+KV_URL=
+KV_REST_API_URL=
+KV_REST_API_TOKEN=
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Avisos por email (Resend)
+RESEND_API_KEY=
 
-## Learn More
+# Token de administrador del panel /notificar
+ADMIN_TOKEN=
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 🖥️ Requisitos para correr localmente
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Node.js 22+**
+- Para el backend (conversiones): **LibreOffice**, **qpdf**, **Ghostscript** y **Python 3** con `pdf2docx`, `python-pptx`, `openpyxl`, `pdfplumber`, `pillow` (ver `Dockerfile`)
+- **Redis** (Upstash) para la suscripción
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🚀 Desarrollo
 
-## Deploy on Vercel
+```bash
+npm install
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📦 Producción
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build
+npm run start
+```
+
+## 📬 Suscripción y avisos
+
+- El formulario de suscripción (Home, /tools y pantalla de resultado) guarda emails en **Upstash KV (Redis)** vía `/api/subscribe` (con rate limit anti-spam).
+- El panel **/notificar** envía avisos a todos los suscriptores vía `/api/notify` (Resend, envío en lotes de 100).
+
+## 🔒 Seguridad
+
+- Procesamiento en el navegador (los archivos del usuario no se suben a servidores en las herramientas cliente)
+- Validación de archivos PDF (magic number `%PDF-`) antes de pasarlos a los motores
+- Comparación de token de administrador **timing-safe** (`crypto.timingSafeEqual`)
+- **Rate limit** en el endpoint de suscripción (5 intentos/10 min por IP)
+- CORS configurado para frontend (Vercel) → backend (Cloud Run)
