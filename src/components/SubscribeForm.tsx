@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 import { CheckCircle, PaperPlaneTilt } from "@phosphor-icons/react";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -22,6 +22,21 @@ export default function SubscribeForm({
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Oculta el mensaje de éxito/error tras 5s con animación de salida.
+  useEffect(() => {
+    if (status === "ok" || status === "error") {
+      if (hideTimer.current) clearTimeout(hideTimer.current);
+      hideTimer.current = setTimeout(() => {
+        setStatus("idle");
+        setErrorMsg("");
+      }, 5000);
+    }
+    return () => {
+      if (hideTimer.current) clearTimeout(hideTimer.current);
+    };
+  }, [status]);
 
   // Efecto magnético: el botón sigue sutilmente el cursor (respeta reduced-motion)
   const reducedMotion = useReducedMotion();
@@ -121,17 +136,36 @@ export default function SubscribeForm({
           </motion.button>
         </div>
 
-        {status === "ok" && (
-          <p className="mt-4 text-sm text-neutral-700 dark:text-neutral-300 flex items-center justify-center gap-2" aria-live="polite">
-            <CheckCircle size={18} weight="bold" className="text-orange-500" />
-            ¡Gracias! Te avisaremos cuando haya novedades.
-          </p>
-        )}
-        {status === "error" && (
-          <p className="mt-4 text-sm text-red-600 dark:text-red-400" role="alert" aria-live="polite">
-            {errorMsg}
-          </p>
-        )}
+        <AnimatePresence mode="wait">
+          {status === "ok" && (
+            <motion.p
+              key="ok"
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.97 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="mt-4 text-sm text-neutral-700 dark:text-neutral-300 flex items-center justify-center gap-2"
+              aria-live="polite"
+            >
+              <CheckCircle size={18} weight="bold" className="text-orange-500" />
+              ¡Gracias! Te avisaremos cuando haya novedades.
+            </motion.p>
+          )}
+          {status === "error" && (
+            <motion.p
+              key="error"
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.97 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="mt-4 text-sm text-red-600 dark:text-red-400"
+              role="alert"
+              aria-live="polite"
+            >
+              {errorMsg}
+            </motion.p>
+          )}
+        </AnimatePresence>
       </form>
     </div>
   );
