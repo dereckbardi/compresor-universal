@@ -120,12 +120,6 @@ export default function Home() {
                 Empezar a comprimir
                 <ArrowRight size={18} weight="bold" />
               </Link>
-              <Link
-                href="/tools"
-                className="min-h-12 inline-flex items-center justify-center gap-2 px-6 rounded-xl border border-neutral-200 dark:border-white/10 text-neutral-900 dark:text-white font-semibold hover:border-orange-500/60 transition"
-              >
-                Ver todas las herramientas
-              </Link>
             </div>
           </div>
 
