@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { Redis } from "@upstash/redis";
 import { Resend } from "resend";
 import { withCors, corsOptionsResponse } from "@/lib/cors";
@@ -16,6 +17,15 @@ const redis = process.env.KV_REST_API_URL
 
 export function OPTIONS(req: NextRequest) {
   return corsOptionsResponse(req);
+}
+
+// Comparación de token en tiempo constante (anti timing attack).
+function isValidToken(provided: string, expected: string): boolean {
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  // Deben tener el mismo largo para timingSafeEqual; si no, ya es inválido
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
 }
 
 function buildHtml(subject: string, message: string): string {
@@ -107,7 +117,7 @@ export async function POST(req: NextRequest) {
     const bodyToken = body?.token;
     const token = headerToken || bodyToken;
 
-    if (!token || token !== process.env.ADMIN_TOKEN) {
+    if (!token || !isValidToken(token, process.env.ADMIN_TOKEN)) {
       return NextResponse.json(
         { error: "Token de administrador no válido." },
         { status: 403, headers: withCors({}, req) }
