@@ -28,8 +28,6 @@ function normalize(s: string): string {
     .toLowerCase();
 }
 
-const POPULAR_TOOLS = TOOLS.filter((t) => t.popular && t.available);
-
 export default function ToolsPage() {
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -44,7 +42,6 @@ export default function ToolsPage() {
     });
   }, [activeCategory, normalizedQuery]);
 
-  const showPopular = !normalizedQuery && !activeCategory;
   const hasResults = filteredTools.length > 0;
 
   return (
@@ -115,20 +112,6 @@ export default function ToolsPage() {
             </button>
           ))}
         </div>
-
-        {/* Más populares (solo cuando no hay búsqueda ni filtro activo) */}
-        {showPopular && (
-          <div className="mb-14">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-4">
-              Más populares
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {POPULAR_TOOLS.map((tool) => (
-                <ToolCard key={tool.id} tool={tool} featured />
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Catálogo completo, agrupado por categoría (oculta categorías sin resultados) */}
         {!hasResults ? (

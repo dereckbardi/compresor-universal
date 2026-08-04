@@ -24,3 +24,6 @@ Thumbs.db
 # Logs
 *.log
 tsconfig.tsbuildinfo
+
+# Suscriptores (emails reales - no subir)
+data/subscribers.json
