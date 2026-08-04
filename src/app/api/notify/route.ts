@@ -22,32 +22,61 @@ function buildHtml(subject: string, message: string): string {
   const escaped = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-  const lines = escaped(message)
-    .split("\n")
-    .map((l) => `<p style="margin:0 0 8px 0">${l || "&nbsp;"}</p>`)
+  const paragraphs = escaped(message)
+    .split(/\n+/)
+    .filter((l) => l.trim())
+    .map((l) => `<p style="margin:0 0 14px 0;font-size:16px;line-height:1.7;color:#404040">${l.replace(/^(•|-) /, "<span style=\"color:#f97316;font-weight:700\">• </span>")}</p>`)
     .join("");
+
+  // Un botón/CTA generado a partir de la primera línea en negrita con asteriscos, si existe
+  const ctaMatch = escaped(message).match(/\[CTA\]([^\n]+)/);
+  const ctaButton = ctaMatch
+    ? `<div style="text-align:center;margin:24px 0 8px">
+        <a href="${escaped("https://comprimeme.vercel.app")}" style="display:inline-block;background:#f97316;color:#000000;text-decoration:none;font-weight:800;font-size:16px;padding:14px 32px;border-radius:12px">${escaped(ctaMatch[1].trim())}</a>
+      </div>`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  @media (prefers-color-scheme: dark) {
+    .bg { background: #0a0a0a !important; }
+    .card { background: #171717 !important; }
+    .title { color: #ededed !important; }
+    .body-text { color: #d4d4d4 !important; }
+    .footer-text { color: #737373 !important; }
+    .header-bar { background: #f97316 !important; }
+  }
+  body { margin:0; padding:0; -webkit-font-smoothing: antialiased; }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 16px" class="bg">
     <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.08)" class="card">
+        <!-- Header -->
         <tr>
-          <td style="background:#f97316;padding:24px 32px;text-align:center">
-            <span style="font-size:20px;font-weight:800;color:#000;letter-spacing:.01em">COMPRIMEME</span>
+          <td style="background:#f97316;padding:32px 40px;text-align:center" class="header-bar">
+            <div style="display:inline-block;background:#000;color:#fff;width:46px;height:46px;line-height:46px;border-radius:12px;font-size:26px;font-weight:800">C</div>
+            <div style="font-size:24px;font-weight:800;color:#000;letter-spacing:.02em;margin-top:10px">COMPRIMEME</div>
+            <div style="font-size:13px;color:#3a3a3a;font-weight:600;margin-top:2px">Herramientas gratis para PDF e imágenes</div>
           </td>
         </tr>
+        <!-- Cuerpo -->
         <tr>
-          <td style="padding:32px">
-            <h1 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#171717">${escaped(subject)}</h1>
-            <div style="font-size:15px;line-height:1.6;color:#525252">${lines}</div>
+          <td style="padding:40px" class="body">
+            <h1 style="margin:0 0 18px;font-size:26px;font-weight:800;color:#0a0a0a;letter-spacing:-.01em" class="title">${escaped(subject)}</h1>
+            <div class="body-text">${paragraphs}</div>
+            ${ctaButton}
           </td>
         </tr>
+        <!-- Pie -->
         <tr>
-          <td style="padding:16px 32px 24px;border-top:1px solid #e5e5e5">
-            <p style="margin:0;font-size:12px;color:#a3a3a3;text-align:center">COMPRIMEME — Herramientas gratis para PDF e imágenes</p>
+          <td style="padding:20px 40px 28px;border-top:1px solid #ececec;background:#fafafa" class="card">
+            <p style="margin:0 0 6px;font-size:12px;color:#a3a3a3;text-align:center" class="footer-text">COMPRIMEME — 100% gratis y sin registro</p>
+            <p style="margin:0;font-size:11px;color:#c4c4c4;text-align:center">comprimeme.vercel.app</p>
           </td>
         </tr>
       </table>
