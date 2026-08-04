@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import { Redis } from "@upstash/redis";
 import { withCors, corsOptionsResponse } from "@/lib/cors";
 
 export const runtime = "nodejs";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const SUBSCRIBERS_FILE = path.join(DATA_DIR, "subscribers.json");
+// Clave en Redis donde se guarda la lista de suscriptores.
+// Guardamos un hash/set con "1" por email para deduplicar de forma atómica.
+const SUBSCRIBERS_KEY = "subscribers";
+
+// Cliente Redis desde las variables de entorno que Vercel KV/Upstash crea
+// automáticamente (KV_REST_API_URL, KV_REST_API_TOKEN, KV_URL, etc.).
+const redis = process.env.KV_REST_API_URL
+  ? Redis.fromEnv()
+  : new Redis({
+      url: process.env.KV_URL || "",
+      token: process.env.KV_REST_API_TOKEN || "",
+    });
 
 export function OPTIONS(req: NextRequest) {
   return corsOptionsResponse(req);
@@ -27,27 +36,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await fs.mkdir(DATA_DIR, { recursive: true });
-
-    let subscribers: string[] = [];
-    try {
-      const raw = await fs.readFile(SUBSCRIBERS_FILE, "utf-8");
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        subscribers = parsed.filter((s) => typeof s === "string");
-      }
-    } catch {
-      // El archivo no existe o está vacío: empezamos de cero.
-    }
-
-    if (!subscribers.includes(email)) {
-      subscribers.push(email);
-      await fs.writeFile(
-        SUBSCRIBERS_FILE,
-        JSON.stringify(subscribers, null, 2) + "\n",
-        "utf-8"
-      );
-    }
+    // Guarda el email como miembro de un set Redis (deduplica automáticamente).
+    await redis.sadd(SUBSCRIBERS_KEY, email);
 
     return NextResponse.json({ ok: true }, { headers: withCors({}, req) });
   } catch (err: unknown) {

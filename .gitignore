@@ -1,4 +1,4 @@
-# Secrets
+﻿# Secrets
 .env
 *.secret
 **/.env
@@ -25,5 +25,3 @@ Thumbs.db
 *.log
 tsconfig.tsbuildinfo
 
-# Suscriptores (emails reales - no subir)
-data/subscribers.json
