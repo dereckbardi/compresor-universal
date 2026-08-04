@@ -4,7 +4,6 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
-  ArrowUpRight,
   Browser,
   Check,
   CheckCircle,
@@ -15,6 +14,7 @@ import {
   PaperPlaneTilt,
   Scissors,
   ShieldCheck,
+  SquaresFour,
   type Icon,
 } from "@phosphor-icons/react";
 import Logo from "@/components/Logo";
@@ -90,9 +90,11 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Link
               href="/tools"
-              className="hidden sm:inline-flex items-center text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition"
+              className="btn-shine shrink-0 min-h-11 inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-black font-semibold text-sm transition whitespace-nowrap"
+              title="Todas las herramientas"
             >
-              Herramientas
+              <SquaresFour size={18} weight="bold" className="sm:hidden" aria-hidden="true" />
+              <span className="hidden sm:inline">Todas las herramientas</span>
             </Link>
             <ThemeToggle size="sm" />
           </div>
@@ -178,29 +180,12 @@ export default function Home() {
               Las favoritas para aligerar tus archivos en segundos.
             </p>
           </div>
-          <Link
-            href="/tools"
-            className="hidden sm:inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-orange-600 dark:text-orange-400 hover:underline"
-          >
-            Ver todas
-            <ArrowUpRight size={16} weight="bold" />
-          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {POPULAR_TOOLS.map((tool) => (
             <PopularCard key={tool.id} tool={tool} />
           ))}
-        </div>
-
-        <div className="mt-6 sm:hidden">
-          <Link
-            href="/tools"
-            className="min-h-11 w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-neutral-200 dark:border-white/10 text-sm font-medium hover:border-orange-500/60 transition"
-          >
-            Ver todas las herramientas
-            <ArrowRight size={16} weight="bold" />
-          </Link>
         </div>
       </section>
 
