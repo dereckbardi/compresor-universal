@@ -164,7 +164,7 @@ function ToolCard({ tool, featured = false }: { tool: Tool; featured?: boolean }
         tool.available
           ? featured
             ? "bg-gradient-to-br from-orange-500/10 to-white dark:to-neutral-900 border-orange-500/30 hover:border-orange-500/60"
-            : "bg-neutral-100/80 dark:bg-neutral-900/60 border-neutral-200/70 dark:border-white/5 hover:border-neutral-300 dark:border-white/20"
+            : "bg-neutral-100/80 dark:bg-neutral-900/60 border-neutral-200/70 dark:border-white/5 hover:border-orange-500/60"
           : "bg-neutral-100/70 dark:bg-neutral-900/30 border-neutral-200/70 dark:border-white/5 opacity-40 cursor-not-allowed"
       }`}
     >
