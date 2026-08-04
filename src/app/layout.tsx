@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { ThemeProvider, THEME_STORAGE_KEY } from "@/components/ThemeProvider";
 
@@ -69,6 +70,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ServiceWorkerRegister />
           {children}
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
