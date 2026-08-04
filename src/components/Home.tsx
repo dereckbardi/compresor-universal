@@ -19,6 +19,8 @@ import {
 } from "@phosphor-icons/react";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
+import { Reveal } from "@/components/Reveal";
+import { Stagger, StaggerItem } from "@/components/Stagger";
 import { TOOLS, TOOL_ICONS, type Tool } from "@/lib/tools";
 import { TOOL_CONTENT, type Mode } from "@/lib/toolContent";
 
@@ -167,40 +169,49 @@ export default function Home() {
 
       {/* Herramientas más populares */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Herramientas más populares</h2>
-          <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-            Las favoritas para aligerar tus archivos en segundos.
-          </p>
-        </div>
+        <Reveal>
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Herramientas más populares</h2>
+            <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+              Las favoritas para aligerar tus archivos en segundos.
+            </p>
+          </div>
+        </Reveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {POPULAR_TOOLS.map((tool) => (
-            <PopularCard key={tool.id} tool={tool} />
+            <StaggerItem key={tool.id} className="h-full">
+              <PopularCard tool={tool} />
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </section>
 
       {/* Beneficios */}
       <section className="border-y border-neutral-200 dark:border-white/10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
+        <Reveal>
+          <Stagger className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
             {BENEFITS.map((b) => (
-              <div key={b.title} className="text-center">
-                <span className="mx-auto w-12 h-12 rounded-full bg-orange-500/15 text-orange-600 dark:text-orange-400 flex items-center justify-center">
-                  {b.icon}
-                </span>
-                <h3 className="mt-4 text-sm font-semibold">{b.title}</h3>
-                <p className="mt-1 text-xs text-neutral-500 leading-relaxed">{b.text}</p>
-              </div>
+              <StaggerItem key={b.title}>
+                <div className="text-center">
+                  <span className="mx-auto w-12 h-12 rounded-full bg-orange-500/15 text-orange-600 dark:text-orange-400 flex items-center justify-center">
+                    {b.icon}
+                  </span>
+                  <h3 className="mt-4 text-sm font-semibold">{b.title}</h3>
+                  <p className="mt-1 text-xs text-neutral-500 leading-relaxed">{b.text}</p>
+                </div>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
+        </Reveal>
         </div>
       </section>
 
       {/* Suscripción */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-        <div className="max-w-xl mx-auto text-center">
+        <Reveal delay={0.05}>
+          <div className="max-w-xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">¿Quieres enterarte de las novedades?</h2>
           <p className="mt-3 text-neutral-600 dark:text-neutral-400">
             Suscríbete para recibir nuevas herramientas y mejoras. Sin spam, prometido.
@@ -248,7 +259,8 @@ export default function Home() {
               </p>
             )}
           </form>
-        </div>
+          </div>
+        </Reveal>
       </section>
 
       {/* Footer */}
