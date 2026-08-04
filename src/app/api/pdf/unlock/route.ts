@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { makeTempDir, writeInput, cleanup, unlockPdf } from "@/lib/server/convert";
+import { makeTempDir, writeInput, cleanup, unlockPdf, isPdfBuffer } from "@/lib/server/convert";
 import { withCors, corsOptionsResponse } from "@/lib/cors";
 
 export const runtime = "nodejs";
@@ -32,6 +32,14 @@ export async function POST(req: NextRequest) {
 
     dir = await makeTempDir();
     const buf = Buffer.from(await file.arrayBuffer());
+
+    if (!isPdfBuffer(buf)) {
+      return NextResponse.json(
+        { error: "El archivo no es un PDF válido." },
+        { status: 400, headers: withCors({}, req) }
+      );
+    }
+
     const inputPath = await writeInput(dir, file.name || "documento.pdf", buf);
 
     const pdf = await unlockPdf(inputPath, password);

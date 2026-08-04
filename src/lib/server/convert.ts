@@ -72,6 +72,16 @@ export function isOfficeFile(filename: string): boolean {
 }
 
 /**
+ * Verifica que un buffer sea realmente un PDF revisando su firma "%PDF-"
+ * al inicio del archivo (los primeros bytes, tolerando algunos bytes de
+ * basura antes si el archivo viene con BOM u otros prefijos raros).
+ */
+export function isPdfBuffer(buf: Buffer): boolean {
+  const header = buf.subarray(0, 1024).toString("latin1");
+  return header.includes("%PDF-");
+}
+
+/**
  * Convierte un archivo de Office a PDF usando LibreOffice headless.
  * Devuelve el buffer del PDF resultante.
  */
