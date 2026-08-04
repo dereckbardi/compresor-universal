@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { makeTempDir, writeInput, cleanup, pdfToOffice } from "@/lib/server/convert";
+import { withCors } from "@/lib/cors";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -11,25 +12,29 @@ const MAX_SIZE = 50 * 1024 * 1024;
  * body: multipart/form-data con "file" y "target" (docx | pptx | xlsx)
  * Convierte un PDF a Word/PowerPoint/Excel usando LibreOffice.
  */
+export function OPTIONS(req: NextRequest) {
+  return NextResponse.json({}, { status: 204, headers: withCors({}, req) });
+}
+
 export async function POST(req: NextRequest) {
   let dir: string | null = null;
   try {
     const form = await req.formData();
     const file = form.get("file");
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: "No se recibió ningún archivo." }, { status: 400 });
+      return NextResponse.json({ error: "No se recibió ningún archivo." }, { status: 400, headers: withCors({}, req) });
     }
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "El archivo supera el límite de 50MB." }, { status: 413 });
+      return NextResponse.json({ error: "El archivo supera el límite de 50MB." }, { status: 413, headers: withCors({}, req) });
     }
 
     const target = String(form.get("target") || "docx");
     if (!["docx", "pptx", "xlsx"].includes(target)) {
-      return NextResponse.json({ error: "Formato de salida no válido." }, { status: 400 });
+      return NextResponse.json({ error: "Formato de salida no válido." }, { status: 400, headers: withCors({}, req) });
     }
     // Validar que sea PDF
     if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") {
-      return NextResponse.json({ error: "Solo se permiten archivos PDF." }, { status: 415 });
+      return NextResponse.json({ error: "Solo se permiten archivos PDF." }, { status: 415, headers: withCors({}, req) });
     }
 
     dir = await makeTempDir();
@@ -46,16 +51,19 @@ export async function POST(req: NextRequest) {
 
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
-      headers: {
-        "Content-Type": mime[target],
-        "Content-Disposition": `attachment; filename="${name}"`,
-      },
+      headers: withCors(
+        {
+          "Content-Type": mime[target],
+          "Content-Disposition": `attachment; filename="${name}"`,
+        },
+        req
+      ),
     });
   } catch (err: any) {
     console.error("pdf-to-office error:", err);
     return NextResponse.json(
       { error: "No se pudo convertir el PDF. El formato puede no ser compatible con la conversión." },
-      { status: 500 }
+      { status: 500, headers: withCors({}, req) }
     );
   } finally {
     if (dir) await cleanup(dir);

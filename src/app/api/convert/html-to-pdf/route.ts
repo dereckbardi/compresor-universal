@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { makeTempDir, writeInput, cleanup, htmlToPdf } from "@/lib/server/convert";
+import { withCors } from "@/lib/cors";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -11,6 +12,10 @@ const MAX_SIZE = 2 * 1024 * 1024; // 2MB de HTML
  * body: JSON { html: "..." }
  * Convierte HTML a PDF usando LibreOffice.
  */
+export function OPTIONS(req: NextRequest) {
+  return NextResponse.json({}, { status: 204, headers: withCors({}, req) });
+}
+
 export async function POST(req: NextRequest) {
   let dir: string | null = null;
   try {
@@ -29,10 +34,10 @@ export async function POST(req: NextRequest) {
 
     html = (html || "").trim();
     if (!html) {
-      return NextResponse.json({ error: "No se recibió HTML." }, { status: 400 });
+      return NextResponse.json({ error: "No se recibió HTML." }, { status: 400, headers: withCors({}, req) });
     }
     if (html.length > MAX_SIZE) {
-      return NextResponse.json({ error: "El HTML supera el límite de 2MB." }, { status: 413 });
+      return NextResponse.json({ error: "El HTML supera el límite de 2MB." }, { status: 413, headers: withCors({}, req) });
     }
 
     dir = await makeTempDir();
@@ -43,14 +48,17 @@ export async function POST(req: NextRequest) {
 
     return new NextResponse(new Uint8Array(pdf), {
       status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="pagina.pdf"`,
-      },
+      headers: withCors(
+        {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="pagina.pdf"`,
+        },
+        req
+      ),
     });
   } catch (err: any) {
     console.error("html-to-pdf error:", err);
-    return NextResponse.json({ error: err?.message || "Error al convertir el HTML." }, { status: 500 });
+    return NextResponse.json({ error: err?.message || "Error al convertir el HTML." }, { status: 500, headers: withCors({}, req) });
   } finally {
     if (dir) await cleanup(dir);
   }
