@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { Redis } from "@upstash/redis";
-import { Resend } from "resend";
 import { withCors, corsOptionsResponse } from "@/lib/cors";
 
 export const runtime = "nodejs";
@@ -98,9 +97,9 @@ function buildHtml(subject: string, message: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    if (!process.env.RESEND_API_KEY) {
+    if (!process.env.RESEND_API_KEY && !process.env.BREVO_API_KEY) {
       return NextResponse.json(
-        { error: "Servicio de correo no configurado (falta RESEND_API_KEY)." },
+        { error: "Servicio de correo no configurado (falta BREVO_API_KEY o RESEND_API_KEY)." },
         { status: 500, headers: withCors({}, req) }
       );
     }
@@ -145,39 +144,72 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
     const html = buildHtml(subject, message);
+    const from = process.env.MAIL_FROM || "dereckbardiv@gmail.com";
+    const fromName = process.env.MAIL_FROM_NAME || "COMPRIMEME";
 
-    const BATCH_SIZE = 100;
     const failedEmails: string[] = [];
     let sent = 0;
 
-    for (let i = 0; i < emails.length; i += BATCH_SIZE) {
-      const batch = emails.slice(i, i + BATCH_SIZE);
-      const payload = batch.map((email) => ({
-        from: "COMPRIMEME <onboarding@resend.dev>",
-        to: email,
-        subject,
-        html,
-      }));
-
-      try {
-        const { data, error } = await resend.batch.send(payload);
-        if (error) {
-          // Si el batch completo falla, márcalos todos como fallidos
-          failedEmails.push(...batch);
-        } else {
-          // Resend devuelve un resultado por email en el mismo orden que se envió
-          data?.data?.forEach((result, idx) => {
-            if (result?.id) {
-              sent++;
-            } else {
-              failedEmails.push(batch[idx]);
-            }
+    if (process.env.BREVO_API_KEY) {
+      // --- Brevo (envía a cualquier persona vía REST API) ---
+      const brevoKey = process.env.BREVO_API_KEY;
+      for (const email of emails) {
+        try {
+          const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+            method: "POST",
+            headers: {
+              "accept": "application/json",
+              "content-type": "application/json",
+              "api-key": brevoKey,
+            },
+            body: JSON.stringify({
+              sender: { name: fromName, email: from },
+              to: [{ email }],
+              subject,
+              htmlContent: html,
+            }),
           });
+          if (!res.ok) {
+            failedEmails.push(email);
+          } else {
+            sent++;
+          }
+        } catch {
+          failedEmails.push(email);
         }
-      } catch {
-        failedEmails.push(...batch);
+      }
+    } else {
+      // --- Resend (fallback; solo llega al correo verificado sin dominio) ---
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const BATCH_SIZE = 100;
+
+      for (let i = 0; i < emails.length; i += BATCH_SIZE) {
+        const batch = emails.slice(i, i + BATCH_SIZE);
+        const payload = batch.map((email) => ({
+          from: `COMPRIMEME <onboarding@resend.dev>`,
+          to: email,
+          subject,
+          html,
+        }));
+
+        try {
+          const { data, error } = await resend.batch.send(payload);
+          if (error) {
+            failedEmails.push(...batch);
+          } else {
+            data?.data?.forEach((result: { id?: string } | undefined, idx: number) => {
+              if (result?.id) {
+                sent++;
+              } else {
+                failedEmails.push(batch[idx]);
+              }
+            });
+          }
+        } catch {
+          failedEmails.push(...batch);
+        }
       }
     }
 
