@@ -25,6 +25,17 @@ export function OPTIONS(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const hasKvEnv =
+      !!process.env.KV_REST_API_URL ||
+      (!!process.env.KV_URL && !!process.env.KV_REST_API_TOKEN);
+
+    if (!hasKvEnv) {
+      return NextResponse.json(
+        { error: "Servicio de suscripción no configurado (faltan variables de Redis)." },
+        { status: 500, headers: withCors({}, req) }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const email =
       typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";

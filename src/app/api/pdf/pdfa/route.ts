@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { makeTempDir, writeInput, cleanup, toPdfA } from "@/lib/server/convert";
 import { withCors, corsOptionsResponse } from "@/lib/cors";
 
@@ -10,7 +10,7 @@ const MAX_SIZE = 50 * 1024 * 1024;
 /**
  * POST /api/pdf/pdfa
  * body: multipart/form-data con "file"
- * Convierte un PDF al estÃ¡ndar PDF/A (archivo para conservaciÃ³n a largo plazo).
+ * Convierte un PDF al estándar PDF/A (archivo para conservación a largo plazo).
  */
 export function OPTIONS(req: NextRequest) {
   return corsOptionsResponse(req);
@@ -22,10 +22,10 @@ export async function POST(req: NextRequest) {
     const form = await req.formData();
     const file = form.get("file");
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: "No se recibiÃ³ ningÃºn archivo." }, { status: 400, headers: withCors({}, req) });
+      return NextResponse.json({ error: "No se recibió ningún archivo." }, { status: 400, headers: withCors({}, req) });
     }
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "El archivo supera el lÃ­mite de 50MB." }, { status: 413, headers: withCors({}, req) });
+      return NextResponse.json({ error: "El archivo supera el límite de 50MB." }, { status: 413, headers: withCors({}, req) });
     }
 
     dir = await makeTempDir();
@@ -51,4 +51,3 @@ export async function POST(req: NextRequest) {
     if (dir) await cleanup(dir);
   }
 }
-

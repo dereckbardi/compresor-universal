@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { makeTempDir, writeInput, cleanup, unlockPdf } from "@/lib/server/convert";
 import { withCors, corsOptionsResponse } from "@/lib/cors";
 
@@ -10,7 +10,7 @@ const MAX_SIZE = 50 * 1024 * 1024;
 /**
  * POST /api/pdf/unlock
  * body: multipart/form-data con "file" y opcional "password"
- * Elimina la contraseÃ±a de un PDF.
+ * Elimina la contraseña de un PDF.
  */
 export function OPTIONS(req: NextRequest) {
   return corsOptionsResponse(req);
@@ -22,10 +22,10 @@ export async function POST(req: NextRequest) {
     const form = await req.formData();
     const file = form.get("file");
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: "No se recibiÃ³ ningÃºn archivo." }, { status: 400, headers: withCors({}, req) });
+      return NextResponse.json({ error: "No se recibió ningún archivo." }, { status: 400, headers: withCors({}, req) });
     }
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "El archivo supera el lÃ­mite de 50MB." }, { status: 413, headers: withCors({}, req) });
+      return NextResponse.json({ error: "El archivo supera el límite de 50MB." }, { status: 413, headers: withCors({}, req) });
     }
 
     const password = typeof form.get("password") === "string" ? (form.get("password") as string) : undefined;
@@ -49,13 +49,12 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("unlock error:", err);
     const msg = String(err?.message || "");
-    // qpdf avisa con "invalid password" cuando la contraseÃ±a es incorrecta
+    // qpdf avisa con "invalid password" cuando la contraseña es incorrecta
     if (/password|invalid/i.test(msg)) {
-      return NextResponse.json({ error: "ContraseÃ±a incorrecta o el PDF no estÃ¡ protegido." }, { status: 400, headers: withCors({}, req) });
+      return NextResponse.json({ error: "Contraseña incorrecta o el PDF no está protegido." }, { status: 400, headers: withCors({}, req) });
     }
     return NextResponse.json({ error: "No se pudo desbloquear el PDF." }, { status: 500, headers: withCors({}, req) });
   } finally {
     if (dir) await cleanup(dir);
   }
 }
-
