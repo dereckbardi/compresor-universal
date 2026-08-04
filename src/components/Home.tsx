@@ -115,7 +115,7 @@ export default function Home() {
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link
                 href="/comprimir-imagenes"
-                className="min-h-12 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-orange-500 text-black font-semibold hover:bg-orange-400 transition"
+                className="btn-shine min-h-12 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-orange-500 text-black font-semibold hover:bg-orange-400 transition"
               >
                 Empezar a comprimir
                 <ArrowRight size={18} weight="bold" />
