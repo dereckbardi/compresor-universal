@@ -167,13 +167,11 @@ export default function Home() {
 
       {/* Herramientas más populares */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-        <div className="flex items-end justify-between gap-4 mb-8">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Herramientas más populares</h2>
-            <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-              Las favoritas para aligerar tus archivos en segundos.
-            </p>
-          </div>
+        <div className="text-center mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Herramientas más populares</h2>
+          <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+            Las favoritas para aligerar tus archivos en segundos.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
