@@ -7,6 +7,8 @@ import { TOOLS, CATEGORIES, TOOL_ICONS, type Tool } from "@/lib/tools";
 import { TOOL_CONTENT, type Mode } from "@/lib/toolContent";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
+import { Reveal } from "@/components/Reveal";
+import { Stagger, StaggerItem } from "@/components/Stagger";
 
 function ToolIcon({ icon, size = 22 }: { icon: string; size?: number }) {
   const TIcon: Icon | undefined = TOOL_ICONS[icon];
@@ -63,12 +65,14 @@ export default function ToolsPage() {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">Todas las herramientas</h1>
-          <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-            Gestiona tus PDF e imágenes con estas herramientas. 100% gratis y sin registro.
-          </p>
-        </div>
+        <Reveal>
+          <div className="text-center mb-8">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">Todas las herramientas</h1>
+            <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
+              Gestiona tus PDF e imágenes con estas herramientas. 100% gratis y sin registro.
+            </p>
+          </div>
+        </Reveal>
 
         {/* Buscador */}
         <div className="max-w-md mx-auto mb-6">
@@ -133,14 +137,18 @@ export default function ToolsPage() {
               if (tools.length === 0) return null;
               return (
                 <div key={cat.id}>
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-4">
-                    {cat.name}
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Reveal>
+                    <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-4">
+                      {cat.name}
+                    </h2>
+                  </Reveal>
+                  <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {tools.map((tool) => (
-                      <ToolCard key={tool.id} tool={tool} />
+                      <StaggerItem key={tool.id} className="h-full">
+                        <ToolCard tool={tool} />
+                      </StaggerItem>
                     ))}
-                  </div>
+                  </Stagger>
                 </div>
               );
             })}
