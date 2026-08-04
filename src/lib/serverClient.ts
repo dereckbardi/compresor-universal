@@ -1,4 +1,5 @@
 import { PdfResult } from "@/lib/pdfOps";
+import { apiUrl } from "@/lib/backendUrl";
 
 /**
  * Cliente para las herramientas que requieren servidor (LibreOffice, qpdf, Ghostscript).
@@ -40,7 +41,7 @@ async function postForm(
 /** Convierte un archivo de Office (Word/PPT/Excel/ODF) a PDF vía LibreOffice. */
 export async function officeToPdf(file: File): Promise<ServerResult> {
   const originalSize = file.size;
-  const blob = await postForm("/api/convert/office-to-pdf", file);
+  const blob = await postForm(apiUrl("/api/convert/office-to-pdf"), file);
   const base = file.name.replace(/\.[^.]+$/, "");
   return {
     name: `${base}.pdf`,
@@ -53,7 +54,7 @@ export async function officeToPdf(file: File): Promise<ServerResult> {
 /** Convierte un PDF a Office (Word/PPT/Excel) vía LibreOffice. */
 export async function pdfToOffice(file: File, target: "docx" | "pptx" | "xlsx"): Promise<ServerResult> {
   const originalSize = file.size;
-  const blob = await postForm("/api/convert/pdf-to-office", file, { target });
+  const blob = await postForm(apiUrl("/api/convert/pdf-to-office"), file, { target });
   const base = file.name.replace(/\.pdf$/i, "") || "documento";
   return {
     name: `${base}.${target}`,
@@ -66,7 +67,7 @@ export async function pdfToOffice(file: File, target: "docx" | "pptx" | "xlsx"):
 /** Elimina la contraseña de un PDF vía qpdf. */
 export async function unlockPdf(file: File, password?: string): Promise<ServerResult> {
   const originalSize = file.size;
-  const blob = await postForm("/api/pdf/unlock", file, password ? { password } : undefined);
+  const blob = await postForm(apiUrl("/api/pdf/unlock"), file, password ? { password } : undefined);
   return {
     name: "desbloqueado.pdf",
     originalSize,
@@ -78,7 +79,7 @@ export async function unlockPdf(file: File, password?: string): Promise<ServerRe
 /** Protege un PDF con contraseña vía qpdf. */
 export async function protectPdf(file: File, password: string): Promise<ServerResult> {
   const originalSize = file.size;
-  const blob = await postForm("/api/pdf/protect", file, { password });
+  const blob = await postForm(apiUrl("/api/pdf/protect"), file, { password });
   return {
     name: "protegido.pdf",
     originalSize,
@@ -90,7 +91,7 @@ export async function protectPdf(file: File, password: string): Promise<ServerRe
 /** Convierte un PDF a PDF/A vía Ghostscript. */
 export async function toPdfA(file: File): Promise<ServerResult> {
   const originalSize = file.size;
-  const blob = await postForm("/api/pdf/pdfa", file);
+  const blob = await postForm(apiUrl("/api/pdf/pdfa"), file);
   return {
     name: "pdfa.pdf",
     originalSize,
@@ -101,7 +102,7 @@ export async function toPdfA(file: File): Promise<ServerResult> {
 
 /** Convierte HTML a PDF vía servidor (LibreOffice). */
 export async function htmlToPdf(html: string): Promise<ServerResult> {
-  const res = await fetch("/api/convert/html-to-pdf", {
+  const res = await fetch(apiUrl("/api/convert/html-to-pdf"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ html }),

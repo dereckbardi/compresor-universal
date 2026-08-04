@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import PdfPreview from "@/components/PdfPreview";
+import { apiUrl } from "@/lib/backendUrl";
 
 interface Props {
   file: File;
@@ -24,7 +25,7 @@ export default function OfficePreview({ file }: Props) {
       try {
         const form = new FormData();
         form.append("file", file);
-        const res = await fetch("/api/convert/office-to-pdf", { method: "POST", body: form });
+        const res = await fetch(apiUrl("/api/convert/office-to-pdf"), { method: "POST", body: form });
         if (!res.ok) throw new Error("fallo");
         const blob = await res.blob();
         if (cancelled) return;
