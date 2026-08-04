@@ -36,12 +36,12 @@ export default function MagneticButton({
       onMouseMove={(e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const offsetX = Math.max(
-          -10,
-          Math.min(10, (e.clientX - (rect.left + rect.width / 2)) * 0.3)
+          -18,
+          Math.min(18, (e.clientX - (rect.left + rect.width / 2)) * 0.4)
         );
         const offsetY = Math.max(
-          -10,
-          Math.min(10, (e.clientY - (rect.top + rect.height / 2)) * 0.3)
+          -18,
+          Math.min(18, (e.clientY - (rect.top + rect.height / 2)) * 0.4)
         );
         x.set(offsetX);
         y.set(offsetY);
