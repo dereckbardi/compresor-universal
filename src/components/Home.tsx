@@ -346,23 +346,23 @@ export default function Home() {
                 onClick={() => setActiveTab(tab.id)}
                 aria-selected={activeTab === tab.id}
                 role="tab"
-                className="relative min-h-12 px-4 sm:px-5 rounded-xl text-sm font-semibold cursor-pointer transition-colors duration-200 flex items-center gap-2"
+                className="relative min-h-12 px-2 sm:px-3 rounded-2xl text-sm sm:text-base font-semibold cursor-pointer transition-colors duration-200 flex items-center gap-2"
               >
                 {activeTab === tab.id && (
                   <motion.span
                     layoutId="tab-pill"
-                    className="absolute inset-0 rounded-xl bg-orange-500"
+                    className="absolute inset-0 rounded-2xl bg-orange-500"
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}
                 <span
-                  className={`relative z-10 flex items-center gap-2 ${
+                  className={`relative z-10 flex items-center gap-2.5 ${
                     activeTab === tab.id
                       ? "text-black"
                       : "border border-neutral-200 dark:border-white/10 text-neutral-600 dark:text-neutral-400"
-                  } px-4 py-2 rounded-lg`}
+                  } px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl`}
                 >
-                  <tab.icon size={18} weight="bold" />
+                  <tab.icon size={22} weight="bold" />
                   {tab.label}
                 </span>
               </button>
