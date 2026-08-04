@@ -37,6 +37,7 @@ import PdfRedactEditor from "@/components/PdfRedactEditor";
 import SignatureModal, { SignatureResult } from "@/components/SignatureModal";
 import PdfFullViewer from "@/components/PdfFullViewer";
 import ResultScreen from "@/components/ResultScreen";
+import SubscribeForm from "@/components/SubscribeForm";
 import OfficePreview from "@/components/OfficePreview";
 import Logo from "@/components/Logo";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -1082,6 +1083,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
 
       {/* Cuerpo: resultado | home (sin archivos) | vista de trabajo (con archivos) */}
       {results.length > 0 ? (
+        <>
         <ResultScreen
           mode={mode}
           results={results}
@@ -1093,6 +1095,10 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           onBack={() => { setResults([]); }}
           onContinue={(m) => switchMode(m as Mode)}
         />
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 pb-12">
+          <SubscribeForm compact />
+        </div>
+        </>
       ) : files.length === 0 ? (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
           <HeroFade>

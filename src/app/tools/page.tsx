@@ -9,6 +9,7 @@ import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Reveal } from "@/components/Reveal";
 import { Stagger, StaggerItem } from "@/components/Stagger";
+import SubscribeForm from "@/components/SubscribeForm";
 
 function ToolIcon({ icon, size = 22 }: { icon: string; size?: number }) {
   const TIcon: Icon | undefined = TOOL_ICONS[icon];
@@ -154,6 +155,16 @@ export default function ToolsPage() {
             })}
           </div>
         )}
+      </div>
+
+      {/* Suscripción */}
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16">
+        <Reveal>
+          <SubscribeForm
+            title="¿Quieres enterarte de las novedades?"
+            subtitle="Recibe nuevas herramientas y mejoras directamente en tu correo."
+          />
+        </Reveal>
       </div>
 
       <footer className="border-t border-neutral-200 dark:border-white/10 mt-12">
