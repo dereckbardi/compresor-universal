@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { makeTempDir, writeInput, cleanup, protectPdf, isPdfBuffer } from "@/lib/server/convert";
+import { cleanup, protectPdf } from "@/lib/server/convert";
+import { parsePdfRequest } from "@/lib/pdfRequest";
 import { withCors, corsOptionsResponse } from "@/lib/cors";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
-
-const MAX_SIZE = 50 * 1024 * 1024;
 
 /**
  * POST /api/pdf/protect
@@ -19,32 +18,16 @@ export function OPTIONS(req: NextRequest) {
 export async function POST(req: NextRequest) {
   let dir: string | null = null;
   try {
-    const form = await req.formData();
-    const file = form.get("file");
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: "No se recibió ningún archivo." }, { status: 400, headers: withCors({}, req) });
-    }
-    if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "El archivo supera el límite de 50MB." }, { status: 413, headers: withCors({}, req) });
-    }
+    const parsed = await parsePdfRequest(req);
+    if (!parsed.ok) return parsed.response;
+    dir = parsed.dir;
+    const { form, inputPath } = parsed;
 
     const password = String(form.get("password") || "");
     if (password.length < 4) {
       return NextResponse.json({ error: "La contraseña debe tener al menos 4 caracteres." }, { status: 400, headers: withCors({}, req) });
     }
     const owner = typeof form.get("ownerPassword") === "string" ? (form.get("ownerPassword") as string) : undefined;
-
-    dir = await makeTempDir();
-    const buf = Buffer.from(await file.arrayBuffer());
-
-    if (!isPdfBuffer(buf)) {
-      return NextResponse.json(
-        { error: "El archivo no es un PDF válido." },
-        { status: 400, headers: withCors({}, req) }
-      );
-    }
-
-    const inputPath = await writeInput(dir, file.name || "documento.pdf", buf);
 
     const pdf = await protectPdf(inputPath, password, owner);
 
