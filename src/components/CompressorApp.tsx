@@ -1096,7 +1096,10 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           onContinue={(m) => switchMode(m as Mode)}
         />
         <div className="max-w-2xl mx-auto px-4 sm:px-6 pb-12">
-          <SubscribeForm compact />
+          <SubscribeForm
+            title="¿Quieres enterarte de las novedades?"
+            subtitle="Recibe nuevas herramientas y mejoras directamente en tu correo."
+          />
         </div>
         </>
       ) : files.length === 0 ? (
