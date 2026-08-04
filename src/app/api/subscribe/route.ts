@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
+import { Ratelimit } from "@upstash/ratelimit";
 import { withCors, corsOptionsResponse } from "@/lib/cors";
 
 export const runtime = "nodejs";
@@ -19,6 +20,13 @@ const redis = process.env.KV_REST_API_URL
       token: process.env.KV_REST_API_TOKEN || "",
     });
 
+// Límite de intentos de suscripción: 5 por IP cada 10 minutos (anti-spam).
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "10 m"),
+  prefix: "ratelimit:subscribe",
+});
+
 export function OPTIONS(req: NextRequest) {
   return corsOptionsResponse(req);
 }
@@ -33,6 +41,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Servicio de suscripción no configurado (faltan variables de Redis)." },
         { status: 500, headers: withCors({}, req) }
+      );
+    }
+
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+
+    const { success } = await ratelimit.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Demasiados intentos. Intenta de nuevo en unos minutos." },
+        { status: 429, headers: withCors({}, req) }
       );
     }
 
