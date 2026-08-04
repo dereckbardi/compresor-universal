@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { makeTempDir, writeInput, cleanup, isOfficeFile, officeToPdf } from "@/lib/server/convert";
-import { withCors } from "@/lib/cors";
+import { withCors, corsOptionsResponse } from "@/lib/cors";
 
 export const runtime = "nodejs";
 export const maxDuration = 120; // Cloud Run / Next: 120s
@@ -13,7 +13,7 @@ const MAX_SIZE = 50 * 1024 * 1024; // 50MB
  * Convierte Word/PPT/Excel/ODF a PDF usando LibreOffice.
  */
 export function OPTIONS(req: NextRequest) {
-  return NextResponse.json({}, { status: 204, headers: withCors({}, req) });
+  return corsOptionsResponse(req);
 }
 
 export async function POST(req: NextRequest) {
@@ -22,10 +22,10 @@ export async function POST(req: NextRequest) {
     const form = await req.formData();
     const file = form.get("file");
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: "No se recibió ningún archivo." }, { status: 400, headers: withCors({}, req) });
+      return NextResponse.json({ error: "No se recibiÃ³ ningÃºn archivo." }, { status: 400, headers: withCors({}, req) });
     }
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "El archivo supera el límite de 50MB." }, { status: 413, headers: withCors({}, req) });
+      return NextResponse.json({ error: "El archivo supera el lÃ­mite de 50MB." }, { status: 413, headers: withCors({}, req) });
     }
 
     const filename = file.name || "documento";
@@ -59,3 +59,4 @@ export async function POST(req: NextRequest) {
     if (dir) await cleanup(dir);
   }
 }
+

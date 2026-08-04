@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { makeTempDir, writeInput, cleanup, htmlToPdf } from "@/lib/server/convert";
-import { withCors } from "@/lib/cors";
+import { withCors, corsOptionsResponse } from "@/lib/cors";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -13,7 +13,7 @@ const MAX_SIZE = 2 * 1024 * 1024; // 2MB de HTML
  * Convierte HTML a PDF usando LibreOffice.
  */
 export function OPTIONS(req: NextRequest) {
-  return NextResponse.json({}, { status: 204, headers: withCors({}, req) });
+  return corsOptionsResponse(req);
 }
 
 export async function POST(req: NextRequest) {
@@ -34,10 +34,10 @@ export async function POST(req: NextRequest) {
 
     html = (html || "").trim();
     if (!html) {
-      return NextResponse.json({ error: "No se recibió HTML." }, { status: 400, headers: withCors({}, req) });
+      return NextResponse.json({ error: "No se recibiÃ³ HTML." }, { status: 400, headers: withCors({}, req) });
     }
     if (html.length > MAX_SIZE) {
-      return NextResponse.json({ error: "El HTML supera el límite de 2MB." }, { status: 413, headers: withCors({}, req) });
+      return NextResponse.json({ error: "El HTML supera el lÃ­mite de 2MB." }, { status: 413, headers: withCors({}, req) });
     }
 
     dir = await makeTempDir();
@@ -63,3 +63,4 @@ export async function POST(req: NextRequest) {
     if (dir) await cleanup(dir);
   }
 }
+

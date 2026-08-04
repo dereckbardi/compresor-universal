@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 /** Orígenes permitidos para CORS. */
 export const ALLOWED_ORIGINS = [
@@ -39,4 +39,12 @@ export function withCors(headers: HeadersInit = {}, req?: NextRequest): Headers 
   h.set("Access-Control-Allow-Headers", CORS_HEADERS["Access-Control-Allow-Headers"]);
   h.set("Access-Control-Max-Age", CORS_HEADERS["Access-Control-Max-Age"]);
   return h;
+}
+
+/**
+ * Respuesta para el preflight OPTIONS. IMPORTANTE: 204 NO admite cuerpo, asi
+ * que se devuelve un NextResponse vacio (null) con los headers CORS.
+ */
+export function corsOptionsResponse(req: NextRequest) {
+  return new NextResponse(null, { status: 204, headers: withCors({}, req) });
 }
