@@ -138,20 +138,36 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const html = buildHtml(subject, message);
 
+    const BATCH_SIZE = 100;
     const failedEmails: string[] = [];
     let sent = 0;
 
-    for (const email of emails) {
+    for (let i = 0; i < emails.length; i += BATCH_SIZE) {
+      const batch = emails.slice(i, i + BATCH_SIZE);
+      const payload = batch.map((email) => ({
+        from: "COMPRIMEME <onboarding@resend.dev>",
+        to: email,
+        subject,
+        html,
+      }));
+
       try {
-        await resend.emails.send({
-          from: "COMPRIMEME <onboarding@resend.dev>",
-          to: email,
-          subject,
-          html,
-        });
-        sent++;
+        const { data, error } = await resend.batch.send(payload);
+        if (error) {
+          // Si el batch completo falla, márcalos todos como fallidos
+          failedEmails.push(...batch);
+        } else {
+          // Resend devuelve un resultado por email en el mismo orden que se envió
+          data?.data?.forEach((result, idx) => {
+            if (result?.id) {
+              sent++;
+            } else {
+              failedEmails.push(batch[idx]);
+            }
+          });
+        }
       } catch {
-        failedEmails.push(email);
+        failedEmails.push(...batch);
       }
     }
 
