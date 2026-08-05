@@ -23,9 +23,24 @@ export const metadata: Metadata = {
   description: "Comprime imágenes (JPG, PNG, WebP) y PDFs gratis y sin subir archivos a servidores. 100% en tu navegador.",
   keywords: ["comprimir imagen", "comprimir pdf", "reducir tamaño", "compresor gratis"],
   openGraph: {
-    title: "COMPRIMEME",
-    description: "Comprime imágenes y PDFs gratis, sin subir archivos.",
+    title: "COMPRIMEME — Comprime imágenes y PDF gratis",
+    description: "Comprime imágenes y PDFs gratis, sin subir archivos a servidores. 100% en tu navegador.",
     type: "website",
+    url: "https://comprimeme.vercel.app",
+    images: [
+      {
+        url: "/og-default.jpg",
+        width: 1200,
+        height: 632,
+        alt: "COMPRIMEME — Comprime imágenes y PDF gratis",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "COMPRIMEME — Comprime imágenes y PDF gratis",
+    description: "Comprime imágenes y PDFs gratis, sin subir archivos a servidores.",
+    images: ["/og-default.jpg"],
   },
   manifest: "/manifest.webmanifest",
   robots: { index: true, follow: true },
