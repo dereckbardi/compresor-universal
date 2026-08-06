@@ -61,6 +61,79 @@ html.theme-anim *::after {
   }
 }
 
+/*
+ * Overlay glassmorphism para transición de tema (opción #4).
+ * Un panel fijo con efecto de vidrio esmerilado hace un fundido rápido
+ * (fade in + fade out) al cambiar de tema. No interfiere con los clics
+ * (pointer-events: none) y se respeta prefers-reduced-motion.
+ */
+.theme-fade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  backdrop-filter: blur(0px);
+  background: transparent;
+}
+
+.theme-fade-overlay.theme-fade-active {
+  animation: theme-fade 400ms ease;
+}
+
+@keyframes theme-fade {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    background: rgba(255, 255, 255, 0);
+  }
+  40% {
+    opacity: 0.55;
+    backdrop-filter: blur(6px);
+    background: rgba(255, 255, 255, 0.25);
+  }
+  60% {
+    opacity: 0.55;
+    backdrop-filter: blur(6px);
+    background: rgba(0, 0, 0, 0.2);
+  }
+  100% {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-fade-overlay.theme-fade-active {
+    animation: none;
+  }
+}
+
+/*
+ * Micro-interacción del botón de tema (opción #6):
+ * el sol/luna gira y escala al cambiar de tema. La clase .theme-anim en <html>
+ * activa la rotación; se aplica SOLO al alternar (no en la carga).
+ */
+html.theme-anim .theme-toggle-icon {
+  animation: theme-icon-spin 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes theme-icon-spin {
+  0% {
+    transform: rotate(0deg) scale(0.85);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-anim .theme-toggle-icon {
+    animation: none;
+  }
+}
+
 /* Efecto brillo (shine sweep) para botones CTA */
 .btn-shine {
   position: relative;

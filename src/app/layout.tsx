@@ -83,6 +83,7 @@ export default function RootLayout({
         style={{ fontFamily: "var(--font-space-grotesk), system-ui, sans-serif" }}
       >
         <ThemeProvider>
+          <div id="theme-fade-overlay" aria-hidden="true" className="theme-fade-overlay" />
           <ServiceWorkerRegister />
           {children}
           <Analytics />

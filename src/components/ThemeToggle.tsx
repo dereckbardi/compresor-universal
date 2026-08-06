@@ -19,8 +19,8 @@ export default function ThemeToggle({ size = "md" }: { size?: "sm" | "md" }) {
       title="Cambiar tema"
       className={`shrink-0 ${sizes} rounded-lg flex items-center justify-center text-neutral-500 hover:text-orange-500 dark:text-neutral-400 dark:hover:text-white border border-transparent hover:border-orange-500/60 transition`}
     >
-      <Sun size={iconSize} weight="bold" className="hidden dark:block" />
-      <Moon size={iconSize} weight="bold" className="block dark:hidden" />
+      <Sun size={iconSize} weight="bold" className="theme-toggle-icon hidden dark:block" />
+      <Moon size={iconSize} weight="bold" className="theme-toggle-icon block dark:hidden" />
     </button>
   );
 }

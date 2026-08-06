@@ -44,11 +44,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = useCallback(() => {
     setTheme((t) => {
       const next = t === "dark" ? "light" : "dark";
-      // Activa la transición suave SOLO al cambiar (no en la carga inicial),
-      // y la desactiva tras 350ms para no interferir con interacciones futuras.
+      // Transición suave de colores SOLO al cambiar (no en carga inicial).
       const root = document.documentElement;
       root.classList.add("theme-anim");
-      window.setTimeout(() => root.classList.remove("theme-anim"), 350);
+      window.setTimeout(() => root.classList.remove("theme-anim"), 400);
+      // Overlay glassmorphism: fundido de vidrio esmerilado para una transición
+      // de tema más cinematográfica.
+      const overlay = document.getElementById("theme-fade-overlay");
+      if (overlay) {
+        overlay.classList.remove("theme-fade-active");
+        void overlay.offsetWidth; // reinicia la animación
+        overlay.classList.add("theme-fade-active");
+      }
       return next;
     });
   }, []);
