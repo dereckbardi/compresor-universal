@@ -13,6 +13,64 @@ function bytesToBlob(bytes: Uint8Array, name: string): Blob {
   return new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
 }
 
+/**
+ * Convierte los datos de píxel crudos que devuelve pdf.js (img.data) a un
+ * ImageData válido para dibujar en canvas. pdf.js NO entrega bytes de un
+ * JPEG/PNG codificado: entrega píxeles decodificados etiquetados con `kind`
+ * (1 = escala de grises 1bpp empaquetado, 2 = RGB 24bpp, 3 = RGBA 32bpp).
+ */
+function rawPixelsToImageData(img: { width: number; height: number; kind?: number; data?: unknown }): ImageData | null {
+  const { width, height, kind, data } = img;
+  if (!data || !width || !height) return null;
+  let src: Uint8ClampedArray;
+  if (data instanceof Uint8ClampedArray) src = data;
+  else if (data instanceof Uint8Array) src = new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength);
+  else if (ArrayBuffer.isView(data as ArrayBufferView)) {
+    const view = data as ArrayBufferView;
+    src = new Uint8ClampedArray(view.buffer, view.byteOffset, view.byteLength);
+  } else {
+    return null;
+  }
+
+  const out = new Uint8ClampedArray(width * height * 4);
+  if (kind === 3) {
+    // RGBA_32BPP: ya viene en 4 bytes por píxel
+    if (src.length < out.length) return null;
+    out.set(src.subarray(0, out.length));
+  } else if (kind === 2) {
+    // RGB_24BPP: 3 bytes por píxel, se expande añadiendo alfa opaco
+    const pixels = width * height;
+    if (src.length < pixels * 3) return null;
+    for (let i = 0, j = 0; i < pixels * 3; i += 3, j += 4) {
+      out[j] = src[i]; out[j + 1] = src[i + 1]; out[j + 2] = src[i + 2]; out[j + 3] = 255;
+    }
+  } else if (kind === 1) {
+    // GRAYSCALE_1BPP: 1 bit por píxel, empaquetado en bytes, con padding por fila a byte completo
+    const rowBytes = Math.ceil(width / 8);
+    if (src.length < rowBytes * height) return null;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const byte = src[y * rowBytes + (x >> 3)];
+        const bit = (byte >> (7 - (x & 7))) & 1;
+        const val = bit ? 255 : 0;
+        const j = (y * width + x) * 4;
+        out[j] = val; out[j + 1] = val; out[j + 2] = val; out[j + 3] = 255;
+      }
+    }
+  } else if (src.length === width * height * 4) {
+    // kind desconocido pero el tamaño calza con RGBA: se asume RGBA
+    out.set(src.subarray(0, out.length));
+  } else if (src.length === width * height * 3) {
+    // kind desconocido pero el tamaño calza con RGB: se asume RGB
+    for (let i = 0, j = 0; i < src.length; i += 3, j += 4) {
+      out[j] = src[i]; out[j + 1] = src[i + 1]; out[j + 2] = src[i + 2]; out[j + 3] = 255;
+    }
+  } else {
+    return null;
+  }
+  return new ImageData(out, width, height);
+}
+
 /** Reparar PDF: reconstruye la estructura con pdf-lib para arreglar archivos dañados. */
 export async function repairPdf(file: File): Promise<PdfResult> {
   const data = await file.arrayBuffer();
@@ -420,7 +478,11 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
     const ops = await page.getOperatorList();
     for (let o = 0; o < ops.fnArray.length; o++) {
       const fn = ops.fnArray[o];
-      if (fn !== OPS.paintImageXObject && fn !== OPS.paintInlineImageXObject && fn !== OPS.paintImageMaskXObject) continue;
+      // OJO: paintImageMaskXObject son máscaras/stencils monocromos que el PDF usa para
+      // pintar con el color de relleno actual (subrayados, viñetas, adornos finos de texto),
+      // NO son fotos ni imágenes reales. Extraerlas producía esos "palitos negros" en PDFs
+      // de texto normal, ya que son formas delgadas rellenas de un solo color.
+      if (fn !== OPS.paintImageXObject && fn !== OPS.paintInlineImageXObject) continue;
       let img;
       try {
         if (fn === OPS.paintImageXObject) {
@@ -428,7 +490,7 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
           if (typeof imgName !== "string") continue;
           img = await page.objs.get(imgName);
         } else {
-          // Inline o mask: datos directos en args
+          // Inline: datos directos en args
           const arg = ops.argsArray[o][0];
           if (arg && typeof arg === "object" && arg.width) img = arg;
         }
@@ -436,79 +498,47 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
         continue;
       }
       if (!img || !img.width || !img.height) continue;
+      // Descarta máscaras de imagen (stencils de 1 bit sin color propio): no son fotos.
+      if ((img as any).isMask || (img as any).imageMask) continue;
+      // Descarta imágenes minúsculas (líneas/adornos de 1-2 px), casi nunca son fotos reales.
+      if (img.width < 8 || img.height < 8) continue;
 
-      // Extraer bytes: pdf.js devuelve img.data que puede ser Uint8Array o objeto decodificado {buffer, length}
-      let bytes: Uint8Array | null = null;
+      let outBlob: Blob | null = null;
       try {
-        if (img.data instanceof Uint8Array) {
-          bytes = img.data;
-        } else if (img.data && typeof img.data === "object" && img.data.buffer) {
-          const arr = img.data.buffer;
-          if (arr instanceof Uint8Array) bytes = arr;
-          else if (arr instanceof ArrayBuffer) bytes = new Uint8Array(arr);
-        } else if (img.bitmap) {
-          // Si pdf.js ya decodificó a ImageBitmap
+        if (img.bitmap) {
+          // pdf.js ya decodificó a ImageBitmap
           const canvas2 = document.createElement("canvas");
           canvas2.width = img.width;
           canvas2.height = img.height;
           canvas2.getContext("2d")?.drawImage(img.bitmap, 0, 0);
-          const b2 = await new Promise<Blob | null>((resolve) => canvas2.toBlob((b) => resolve(b), "image/jpeg", 0.92));
-          if (b2) {
-            count++;
-            total += b2.size;
-            blobs.push(b2);
-            names.push(`${prefix}-imagen-${count}.jpg`);
+          outBlob = await new Promise<Blob | null>((resolve) => canvas2.toBlob((b) => resolve(b), "image/jpeg", 0.92));
+        } else if (img.data) {
+          // pdf.js devuelve datos de píxel crudos (no un JPEG/PNG codificado), etiquetados
+          // con `kind`: 1 = escala de grises 1bpp, 2 = RGB 24bpp, 3 = RGBA 32bpp. Antes el
+          // código envolvía estos bytes crudos en un Blob "image/jpeg" o "image/png" y
+          // esperaba que el navegador los decodificara como si fueran un archivo de imagen
+          // real, lo cual nunca funciona (no son bytes de imagen codificada) y terminaba
+          // generando canvases en blanco/negro.
+          const imgData = rawPixelsToImageData(img);
+          if (imgData) {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.putImageData(imgData, 0, 0);
+              outBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92));
+            }
           }
-          continue;
         }
       } catch {
-        bytes = null;
+        outBlob = null;
       }
-      if (!bytes) continue;
-
-      count++;
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) continue;
-      try {
-        const kind = (img as any).kind;
-        const mime = kind === 3 ? "image/jpeg" : "image/png";
-        const blob = new Blob([bytes as any], { type: mime });
-        let bitmap: ImageBitmap | null = null;
-        try {
-          bitmap = await createImageBitmap(blob);
-        } catch {
-          // crearImageBitmap no soportado para este formato -> intentar via Image
-          try {
-            bitmap = await new Promise<ImageBitmap | null>((resolve) => {
-              const im = new Image();
-              const url = URL.createObjectURL(blob);
-              im.onload = () => {
-                const c = document.createElement("canvas");
-                c.width = im.width;
-                c.height = im.height;
-                c.getContext("2d")?.drawImage(im, 0, 0);
-                URL.revokeObjectURL(url);
-                resolve(c as unknown as ImageBitmap);
-              };
-              im.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
-              im.src = url;
-            });
-          } catch {
-            bitmap = null;
-          }
-        }
-        if (bitmap) ctx.drawImage(bitmap as any, 0, 0);
-        const outBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92));
-        if (outBlob) {
-          total += outBlob.size;
-          blobs.push(outBlob);
-          names.push(`${prefix}-imagen-${count}.jpg`);
-        }
-      } catch {
-        continue;
+      if (outBlob) {
+        count++;
+        total += outBlob.size;
+        blobs.push(outBlob);
+        names.push(`${prefix}-imagen-${count}.jpg`);
       }
     }
   }
