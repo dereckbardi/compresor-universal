@@ -1,4 +1,4 @@
-const CACHE_NAME = "comprimeme-v1";
+const CACHE_NAME = "comprimeme-v2";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 // Install: cache the app shell
