@@ -390,6 +390,240 @@ export async function pdfToJpg(file: File, scale = 1.5, fileLabel = ""): Promise
   return { blobs, names, originalSize: file.size, compressedSize: total };
 }
 
+/**
+ * Renderiza cada página del PDF a un formato de imagen dado (PNG/WebP).
+ * Se usa como base para PDF a PNG, PDF a WebP, etc.
+ */
+async function renderPdfPages(file: File, mime: string, ext: string, fileLabel = "", scale = 1.5): Promise<PdfResult> {
+  const pdfjs = await import("pdfjs-dist");
+  if (!(pdfjs as any).GlobalWorkerOptions?.workerSrc) {
+    (pdfjs as any).GlobalWorkerOptions.workerSrc =
+      new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+  }
+  const data = new Uint8Array(await file.arrayBuffer());
+  const doc = await pdfjs.getDocument({ data }).promise;
+  const blobs: Blob[] = [];
+  const names: string[] = [];
+  let total = 0;
+  const prefix = fileLabel || file.name.replace(/\.pdf$/i, "");
+
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) continue;
+    await page.render({ canvasContext: ctx, viewport } as any).promise;
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), mime, 0.92));
+    if (blob) {
+      total += blob.size;
+      blobs.push(blob);
+      names.push(`${prefix}-pagina-${i}.${ext}`);
+    }
+  }
+  if (!blobs.length) throw new Error("No se pudieron renderizar las páginas");
+  return { blobs, names, originalSize: file.size, compressedSize: total };
+}
+
+/** PDF a PNG (con transparencia). */
+export async function pdfToPng(file: File, fileLabel = ""): Promise<PdfResult> {
+  return renderPdfPages(file, "image/png", "png", fileLabel);
+}
+
+/** PDF a WebP. */
+export async function pdfToWebp(file: File, fileLabel = ""): Promise<PdfResult> {
+  return renderPdfPages(file, "image/webp", "webp", fileLabel);
+}
+
+/**
+ * PDF a TIFF: renderiza cada página a píxeles y las codifica como TIFF
+ * (RGB sin compresión) en el cliente, ya que el canvas no exporta TIFF nativo.
+ */
+export async function pdfToTiff(file: File, fileLabel = "", scale = 1.5): Promise<PdfResult> {
+  const pdfjs = await import("pdfjs-dist");
+  if (!(pdfjs as any).GlobalWorkerOptions?.workerSrc) {
+    (pdfjs as any).GlobalWorkerOptions.workerSrc =
+      new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+  }
+  const data = new Uint8Array(await file.arrayBuffer());
+  const doc = await pdfjs.getDocument({ data }).promise;
+  const blobs: Blob[] = [];
+  const names: string[] = [];
+  let total = 0;
+  const prefix = fileLabel || file.name.replace(/\.pdf$/i, "");
+
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) continue;
+    await page.render({ canvasContext: ctx, viewport } as any).promise;
+    // Convertir canvas a RGB puro (sin alfa) para TIFF
+    const w = canvas.width, h = canvas.height;
+    const data2 = ctx.getImageData(0, 0, w, h).data;
+    const rgb = new Uint8Array(w * h * 3);
+    for (let p = 0, j = 0; p < data2.length; p += 4, j += 3) {
+      rgb[j] = data2[p]; rgb[j + 1] = data2[p + 1]; rgb[j + 2] = data2[p + 2];
+    }
+    const tiff = encodeTiffRgb(w, h, rgb);
+    total += tiff.byteLength;
+    blobs.push(new Blob([tiff], { type: "image/tiff" }));
+    names.push(`${prefix}-pagina-${i}.tiff`);
+  }
+  if (!blobs.length) throw new Error("No se pudieron renderizar las páginas");
+  return { blobs, names, originalSize: file.size, compressedSize: total };
+}
+
+/** Codifica píxeles RGB en un TIFF sin comprimir (baseline, little-endian). */
+function encodeTiffRgb(width: number, height: number, rgb: Uint8Array): ArrayBuffer {
+  const spp = 3; // muestras por píxel (RGB)
+  const bps = 8; // bits por muestra
+  const rowsPerStrip = height;
+  const stripByteCounts = width * height * spp;
+
+  // Estructura: header (8) + IFD
+  const entries = 11;
+  const ifdOffset = 8;
+  const dataStart = ifdOffset + 2 + entries * 12 + 4;
+  const buf = new ArrayBuffer(dataStart + stripByteCounts);
+  const dv = new DataView(buf);
+  const u8 = new Uint8Array(buf);
+
+  // Header TIFF little-endian
+  u8[0] = 0x49; u8[1] = 0x49; // "II"
+  dv.setUint16(2, 42, true);
+  dv.setUint32(4, ifdOffset, true);
+
+  // Número de entradas
+  dv.setUint16(ifdOffset, entries, true);
+  let e = ifdOffset + 2;
+  const setEntry = (tag: number, type: number, count: number, value: number) => {
+    dv.setUint16(e, tag, true); dv.setUint16(e + 2, type, true); dv.setUint32(e + 4, count, true);
+    // Value cabe en 4 bytes para SHORT/LONG
+    dv.setUint32(e + 8, value, true);
+    e += 12;
+  };
+  setEntry(256, 4, 1, width);            // ImageWidth (LONG)
+  setEntry(257, 4, 1, height);           // ImageLength (LONG)
+  setEntry(258, 3, 3, (bps << 16) | (bps << 8) | bps); // BitsPerSample (SHORT x3)
+  setEntry(259, 3, 1, 1);                // Compression = 1 (none)
+  setEntry(262, 3, 1, 2);                // Photometric = RGB
+  setEntry(273, 4, 1, dataStart);        // StripOffsets
+  setEntry(277, 3, 1, spp);              // SamplesPerPixel
+  setEntry(278, 4, 1, rowsPerStrip);     // RowsPerStrip
+  setEntry(279, 4, 1, stripByteCounts);  // StripByteCounts
+  setEntry(282, 5, 1, 72);               // XResolution (RATIONAL, approx)
+  setEntry(283, 5, 1, 72);               // YResolution (RATIONAL, approx)
+  dv.setUint32(e, 0, true);              // next IFD = 0
+
+  // Datos de píxeles
+  u8.set(rgb, dataStart);
+  return buf;
+}
+
+/** Agrega una página en blanco al final del PDF. */
+export async function addBlankPage(file: File, fileLabel = ""): Promise<PdfResult> {
+  const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+  const { rgb } = await import("pdf-lib");
+  const pages = src.getPages();
+  const size = pages[0]?.getSize() || { width: 595.28, height: 841.89 };
+  const blank = src.addPage([size.width, size.height]);
+  blank.drawRectangle({ x: 0, y: 0, width: size.width, height: size.height, color: rgb(1, 1, 1) });
+  const bytes = await src.save({ useObjectStreams: true });
+  const base = fileLabel || file.name.replace(/\.pdf$/i, "");
+  return { blobs: [bytesToBlob(bytes, base + "-con-pagina-en-blanco.pdf")], names: [base + "-con-pagina-en-blanco.pdf"], originalSize: file.size, compressedSize: bytes.length };
+}
+
+/** Edita los metadatos (título y autor) de un PDF. */
+export async function editMetadata(file: File, title: string, author: string, fileLabel = ""): Promise<PdfResult> {
+  const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+  if (title.trim()) src.setTitle(title.trim());
+  if (author.trim()) src.setAuthor(author.trim());
+  const bytes = await src.save({ useObjectStreams: true });
+  const base = fileLabel || file.name.replace(/\.pdf$/i, "");
+  return { blobs: [bytesToBlob(bytes, base + "-metadatos.pdf")], names: [base + "-metadatos.pdf"], originalSize: file.size, compressedSize: bytes.length };
+}
+
+/** Convierte un archivo SVG a PDF (una página por SVG). Se rasteriza el SVG a alta resolución
+ *  vía canvas (pdf-lib no embebe SVG nativo) y se inserta como imagen en una página A4. */
+export async function svgToPdf(files: File[], fileLabel = ""): Promise<PdfResult> {
+  const blobs: Blob[] = [];
+  const names: string[] = [];
+  let total = 0;
+  const W = 595.28, H = 841.89; // A4 points
+  for (const file of files) {
+    const svgText = await file.text();
+    // Crear un blob SVG y cargarlo como imagen
+    const svgBlob = new Blob([svgText], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = () => rej(new Error("No se pudo leer el SVG")); img.src = url; });
+    // Rasterizar a 2x para nitidez (A4 aprox 1240x1754 px)
+    const scale = 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(2, Math.floor(img.naturalWidth * scale));
+    canvas.height = Math.max(2, Math.floor(img.naturalHeight * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) { URL.revokeObjectURL(url); continue; }
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(url);
+    const pngBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
+    if (!pngBlob) continue;
+    // Embeber en PDF, escalando para llenar la página conservando aspecto
+    const doc = await PDFDocument.create();
+    const page = doc.addPage([W, H]);
+    const pngImage = await doc.embedPng(await pngBlob.arrayBuffer());
+    const aspect = pngImage.width / pngImage.height;
+    let w = W - 48, h = w / aspect;
+    if (h > H - 48) { h = H - 48; w = h * aspect; }
+    page.drawImage(pngImage, { x: (W - w) / 2, y: (H - h) / 2, width: w, height: h });
+    const bytes = await doc.save({ useObjectStreams: true });
+    const base = file.name.replace(/\.svg$/i, "");
+    blobs.push(bytesToBlob(bytes, base + ".pdf"));
+    names.push(base + ".pdf");
+    total += bytes.length;
+  }
+  if (!blobs.length) throw new Error("No se pudieron convertir los SVG");
+  return { blobs, names, originalSize: files.reduce((s, f) => s + f.size, 0), compressedSize: total };
+}
+
+/** Cuenta palabras y páginas de un PDF y devuelve un reporte .txt. */
+export async function countWords(file: File, fileLabel = ""): Promise<PdfResult> {
+  const pdfjs = await import("pdfjs-dist");
+  if (!(pdfjs as any).GlobalWorkerOptions?.workerSrc) {
+    (pdfjs as any).GlobalWorkerOptions.workerSrc =
+      new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+  }
+  const data = new Uint8Array(await file.arrayBuffer());
+  const doc = await pdfjs.getDocument({ data }).promise;
+  let totalWords = 0, totalChars = 0;
+  const perPage: { page: number; words: number; chars: number }[] = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const tc = await page.getTextContent();
+    const text = (tc.items as any[]).map((it) => it.str || "").join(" ");
+    const words = text.split(/\s+/).filter((w) => w.length > 0).length;
+    const chars = text.replace(/\s/g, "").length;
+    totalWords += words; totalChars += chars;
+    perPage.push({ page: i, words, chars });
+  }
+  let report = `Reporte de palabras - ${file.name}\n`;
+  report += `Páginas: ${doc.numPages}\n`;
+  report += `Palabras totales: ${totalWords}\n`;
+  report += `Caracteres (sin espacios): ${totalChars}\n\n`;
+  report += `Desglose por página:\n`;
+  perPage.forEach((p) => { report += `  Página ${p.page}: ${p.words} palabras, ${p.chars} caracteres\n`; });
+  const base = fileLabel || file.name.replace(/\.pdf$/i, "");
+  const bytes = new TextEncoder().encode(report);
+  return { blobs: [new Blob([report], { type: "text/plain" })], names: [base + "-reporte.txt"], originalSize: file.size, compressedSize: bytes.length };
+}
+
 /** Add a text watermark to all pages */
 export async function addWatermark(file: File, text: string, opts: { opacity?: number; size?: number; diagonal?: boolean; color?: [number, number, number] } = {}): Promise<PdfResult> {
   const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });

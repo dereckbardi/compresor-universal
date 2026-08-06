@@ -43,7 +43,14 @@ export type Mode =
   | "pdf-images"
   | "pdf-text"
   | "pdf-grayscale"
-  | "pdf-zip";
+  | "pdf-zip"
+  | "pdf-png"
+  | "pdf-webp"
+  | "pdf-tiff"
+  | "svg-pdf"
+  | "count-words"
+  | "blank-page"
+  | "edit-meta";
 
 export interface ToolContent {
   title: string;
@@ -84,6 +91,13 @@ export const TOOL_CONTENT: Record<Mode, ToolContent> = {
 "pdf-text": { title: "PDF a texto", desc: "Extrae el texto de tu PDF a un archivo .txt.", slug: "pdf-a-texto" },
 "pdf-grayscale": { title: "PDF a escala de grises", desc: "Convierte tu PDF a blanco y negro.", slug: "pdf-a-escala-de-grises" },
 "pdf-zip": { title: "PDF a Zip", desc: "Comprime tu PDF dentro de un archivo ZIP sin extraer nada.", slug: "pdf-a-zip" },
+"pdf-png": { title: "PDF a PNG", desc: "Convierte cada página de tu PDF en una imagen PNG con transparencia.", slug: "pdf-a-png" },
+"pdf-webp": { title: "PDF a WebP", desc: "Convierte cada página de tu PDF en una imagen WebP ligera.", slug: "pdf-a-webp" },
+"pdf-tiff": { title: "PDF a TIFF", desc: "Convierte cada página de tu PDF en una imagen TIFF de alta calidad.", slug: "pdf-a-tiff" },
+"svg-pdf": { title: "SVG a PDF", desc: "Convierte tus archivos SVG vectoriales en PDF manteniendo la calidad.", slug: "svg-a-pdf" },
+"count-words": { title: "Contador de palabras", desc: "Cuenta las palabras, caracteres y páginas de tu PDF y descárgalo como reporte.", slug: "contador-de-palabras-pdf" },
+"blank-page": { title: "Agregar página en blanco", desc: "Añade una página en blanco al final de tu PDF.", slug: "agregar-pagina-en-blanco-pdf" },
+"edit-meta": { title: "Editar metadatos", desc: "Cambia el título y autor de tu PDF.", slug: "editar-metadatos-pdf" },
   "html-pdf": { title: "HTML a PDF", desc: "Pega tu código HTML y conviértelo en un PDF descargable.", slug: "html-a-pdf" },
 };
 

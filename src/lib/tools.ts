@@ -94,8 +94,12 @@ export const TOOLS: Tool[] = [
   { id: "ppt-pdf", name: "POWERPOINT a PDF", desc: "Convierte presentaciones de PowerPoint en PDF listas para compartir.", icon: "FilePpt", category: "a-pdf", available: true },
   { id: "excel-pdf", name: "EXCEL a PDF", desc: "Convierte hojas de cálculo de Excel en PDF con sus tablas intactas.", icon: "FileXls", category: "a-pdf", available: true },
   { id: "html-pdf", name: "HTML a PDF", desc: "Convierte una página web en un PDF descargable.", icon: "Globe", category: "a-pdf", available: true },
+  { id: "svg-pdf", name: "SVG a PDF", desc: "Convierte tus archivos SVG vectoriales en PDF manteniendo la calidad.", icon: "FileImage", category: "a-pdf", available: true },
   // CONVERTIR DESDE PDF
   { id: "pdf-jpg", name: "PDF a JPG", desc: "Convierte cada página de tu PDF en una imagen JPG independiente.", icon: "Image", category: "desde-pdf", available: true },
+  { id: "pdf-png", name: "PDF a PNG", desc: "Convierte cada página de tu PDF en una imagen PNG con transparencia.", icon: "FileImage", category: "desde-pdf", available: true },
+  { id: "pdf-webp", name: "PDF a WebP", desc: "Convierte cada página de tu PDF en una imagen WebP ligera.", icon: "FileImage", category: "desde-pdf", available: true },
+  { id: "pdf-tiff", name: "PDF a TIFF", desc: "Convierte cada página de tu PDF en una imagen TIFF de alta calidad.", icon: "FileImage", category: "desde-pdf", available: true },
   { id: "pdf-word", name: "PDF a WORD", desc: "Convierte tu PDF en un documento de Word editable.", icon: "FileDoc", category: "desde-pdf", available: true, popular: true, tagline: "Edita ese PDF como si fuera un Word normal" },
   { id: "pdf-ppt", name: "PDF a POWERPOINT", desc: "Convierte tu PDF en una presentación de PowerPoint editable.", icon: "FilePpt", category: "desde-pdf", available: true },
   { id: "pdf-excel", name: "PDF a EXCEL", desc: "Convierte tu PDF en una hoja de cálculo de Excel editable.", icon: "FileXls", category: "desde-pdf", available: true },
@@ -109,6 +113,9 @@ export const TOOLS: Tool[] = [
   { id: "redact", name: "Censurar PDF", desc: "Oculta de forma permanente la información sensible de tu PDF.", icon: "EyeSlash", category: "editar", available: true },
   { id: "crop", name: "Recortar PDF", desc: "Recorta el contenido de las páginas de tu PDF a la zona que necesites.", icon: "Crop", category: "editar", available: true },
   { id: "pdf-grayscale", name: "PDF a escala de grises", desc: "Convierte todas las páginas de tu PDF a blanco y negro (escala de grises).", icon: "DropHalfBottom", category: "editar", available: true },
+  { id: "blank-page", name: "Agregar página en blanco", desc: "Añade una página en blanco al final de tu PDF.", icon: "FileDoc", category: "editar", available: true },
+  { id: "edit-meta", name: "Editar metadatos", desc: "Cambia el título y el autor de tu PDF.", icon: "FileText", category: "editar", available: true },
+  { id: "count-words", name: "Contador de palabras", desc: "Cuenta las palabras, caracteres y páginas de tu PDF y descárgalo como reporte.", icon: "Hash", category: "editar", available: true },
   // SEGURIDAD
   { id: "sign", name: "Firmar PDF", desc: "Añade tu firma a tu PDF sin necesidad de imprimirlo.", icon: "PenNib", category: "seguridad", available: true },
   { id: "unlock", name: "Desbloquear PDF", desc: "Elimina la contraseña de tu PDF para acceder libremente a su contenido.", icon: "LockSimpleOpen", category: "seguridad", available: true },

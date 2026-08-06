@@ -67,6 +67,13 @@ const ACTION_TEXT: Record<string, { msg: string; btn: string }> = {
   "pdf-text": { msg: "El texto de tu PDF ha sido extraído", btn: "Descargar archivo TXT" },
   "pdf-grayscale": { msg: "Tu PDF ha sido convertido a escala de grises", btn: "Descargar PDF en gris" },
   "pdf-zip": { msg: "Tu PDF se ha guardado dentro de un ZIP", btn: "Descargar ZIP" },
+  "pdf-png": { msg: "Tus páginas se han convertido a PNG", btn: "Descargar PNG" },
+  "pdf-webp": { msg: "Tus páginas se han convertido a WebP", btn: "Descargar WebP" },
+  "pdf-tiff": { msg: "Tus páginas se han convertido a TIFF", btn: "Descargar TIFF" },
+  "svg-pdf": { msg: "Tus SVG se han convertido a PDF", btn: "Descargar PDF" },
+  "blank-page": { msg: "Se añadió una página en blanco", btn: "Descargar PDF" },
+  "count-words": { msg: "Se generó el reporte de palabras", btn: "Descargar reporte TXT" },
+  "edit-meta": { msg: "Los metadatos se han actualizado", btn: "Descargar PDF" },
   default: { msg: "Tu archivo ha sido procesado", btn: "Descargar resultado" },
 };
 

@@ -14,7 +14,10 @@ import {
   Eye,
   EyeSlash,
   FileArchive,
+  FileDoc,
+  FileImage,
   FileText,
+  Hash,
   Image,
   Lightbulb,
   LockSimple,
@@ -47,7 +50,7 @@ import { compressImage, formatBytes, formatPercent, CompressedImage } from "@/li
 import { compressPdf, CompressedPdf } from "@/lib/pdfCompressor";
 import {
   mergePdfs, splitPdf, splitByRanges, splitBySize, removePages, extractPages, rotatePdf,
-  imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, redactPdfAtPoints, repairPdf, pdfToText, pdfToGrayscale, PdfResult,
+  imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, redactPdfAtPoints, repairPdf, pdfToText, pdfToGrayscale, pdfToPng, pdfToWebp, pdfToTiff, svgToPdf, addBlankPage, editMetadata, countWords, PdfResult,
 } from "@/lib/pdfOps";
 import { ocrPdf } from "@/lib/ocr";
 import { officeToPdf, unlockPdf, protectPdf, toPdfA, pdfToOffice, htmlToPdf } from "@/lib/serverClient";
@@ -145,16 +148,19 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
   const [showProtectPw, setShowProtectPw] = useState(false);
   const [showUnlockPw, setShowUnlockPw] = useState(false);
   const [htmlInput, setHtmlInput] = useState("");
+  const [metaTitle, setMetaTitle] = useState("");
+  const [metaAuthor, setMetaAuthor] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const signInputRef = useRef<HTMLInputElement>(null);
 
-  const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip";
+  const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip" || mode === "pdf-png" || mode === "pdf-webp" || mode === "pdf-tiff" || mode === "svg-pdf";
   const isImageInput = mode === "image" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf";
+  const isSvgInput = mode === "svg-pdf";
   const isOfficeInput = mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf";
   const isHtmlInput = mode === "html-pdf";
-  const isPdfInput = mode === "pdf" || mode === "merge" || mode === "split" || mode === "pdf-jpg" || mode === "rotate" || mode === "extract" || mode === "remove" || mode === "watermark" || mode === "page-num" || mode === "sign" || mode === "redact" || mode === "crop" || mode === "unlock" || mode === "protect" || mode === "pdf-a" || mode === "repair" || mode === "ocr" || mode === "pdf-images" || mode === "pdf-text" || mode === "pdf-grayscale" || mode === "pdf-zip";
+  const isPdfInput = mode === "pdf" || mode === "merge" || mode === "split" || mode === "pdf-jpg" || mode === "rotate" || mode === "extract" || mode === "remove" || mode === "watermark" || mode === "page-num" || mode === "sign" || mode === "redact" || mode === "crop" || mode === "unlock" || mode === "protect" || mode === "pdf-a" || mode === "repair" || mode === "ocr" || mode === "pdf-images" || mode === "pdf-text" || mode === "pdf-grayscale" || mode === "pdf-zip" || mode === "pdf-png" || mode === "pdf-webp" || mode === "pdf-tiff" || mode === "blank-page" || mode === "count-words" || mode === "edit-meta";
   const isServerMode = SERVER_MODES.has(mode);
-  const acceptedExt = isImageInput ? "image/*" : isOfficeInput ? ".doc,.docx,.ppt,.pptx,.xls,.xlsx,.odt,.odp,.ods,.rtf,.txt" : isHtmlInput ? ".html,.htm" : "application/pdf,.pdf";
+  const acceptedExt = isImageInput ? "image/*" : isSvgInput ? ".svg" : isOfficeInput ? ".doc,.docx,.ppt,.pptx,.xls,.xlsx,.odt,.odp,.ods,.rtf,.txt" : isHtmlInput ? ".html,.htm" : "application/pdf,.pdf";
 
   // Título/descripción por herramienta: viven en @/lib/toolContent para que las
   // páginas SEO (/[tool]) usen exactamente el mismo texto en <title>/<meta description>.
@@ -179,14 +185,14 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
     setResults([]);
     // Filtrar por tipo según la herramienta
     const arr = Array.from(list).filter((f) =>
-      isImageInput ? f.type.startsWith("image/") : isOfficeInput ? /office|word|presentation|spreadsheet|officedocument|text\/plain|application\/rtf|opendocument/.test(f.type) || /\.(docx?|pptx?|xlsx?|odt|odp|ods|rtf|txt)$/i.test(f.name) : f.type === "application/pdf" || /\.[pP][dD][fF]$/.test(f.name)
+      isImageInput ? f.type.startsWith("image/") : isSvgInput ? f.type === "image/svg+xml" || /\.svg$/i.test(f.name) : isOfficeInput ? /office|word|presentation|spreadsheet|officedocument|text\/plain|application\/rtf|opendocument/.test(f.type) || /\.(docx?|pptx?|xlsx?|odt|odp|ods|rtf|txt)$/i.test(f.name) : f.type === "application/pdf" || /\.[pP][dD][fF]$/.test(f.name)
     );
     if (arr.length === 0) {
-      setError(isImageInput ? "Solo se permiten imágenes (JPG, PNG, WebP)" : isOfficeInput ? "Solo se permiten archivos de Word, PowerPoint o Excel" : "Solo se permiten archivos PDF");
+      setError(isImageInput ? "Solo se permiten imágenes (JPG, PNG, WebP)" : isSvgInput ? "Solo se permiten archivos SVG" : isOfficeInput ? "Solo se permiten archivos de Word, PowerPoint o Excel" : "Solo se permiten archivos PDF");
       return;
     }
     setFiles((prev) => (isMulti ? [...prev, ...arr] : arr));
-  }, [isMulti, isImageInput]);
+  }, [isMulti, isImageInput, isSvgInput]);
 
   const parsePages = (): number[] =>
     pagesInput.split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => !isNaN(n) && n > 0);
@@ -355,6 +361,57 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             originalSize: total, compressedSize: blob.size,
             ratio: blob.size / total, blob,
           }]);
+          setProcessing(false); return;
+        }
+        case "pdf-png": {
+          const out: Result[] = [];
+          for (const file of files) {
+            const rp = await pdfToPng(file, file.name.replace(/\.pdf$/i, ""));
+            rp.blobs.forEach((blob, idx) => out.push({ name: rp.names[idx], originalSize: rp.originalSize, compressedSize: rp.compressedSize, ratio: rp.compressedSize / rp.originalSize, blob }));
+          }
+          setResults(out); setProcessing(false); return;
+        }
+        case "pdf-webp": {
+          const out: Result[] = [];
+          for (const file of files) {
+            const rw = await pdfToWebp(file, file.name.replace(/\.pdf$/i, ""));
+            rw.blobs.forEach((blob, idx) => out.push({ name: rw.names[idx], originalSize: rw.originalSize, compressedSize: rw.compressedSize, ratio: rw.compressedSize / rw.originalSize, blob }));
+          }
+          setResults(out); setProcessing(false); return;
+        }
+        case "pdf-tiff": {
+          const out: Result[] = [];
+          for (const file of files) {
+            const rt = await pdfToTiff(file, file.name.replace(/\.pdf$/i, ""));
+            rt.blobs.forEach((blob, idx) => out.push({ name: rt.names[idx], originalSize: rt.originalSize, compressedSize: rt.compressedSize, ratio: rt.compressedSize / rt.originalSize, blob }));
+          }
+          setResults(out); setProcessing(false); return;
+        }
+        case "svg-pdf": {
+          const r = await svgToPdf(files, "");
+          setResults(r.blobs.map((blob, idx) => ({ name: r.names[idx], originalSize: r.originalSize, compressedSize: r.compressedSize, ratio: r.compressedSize / r.originalSize, blob })));
+          setProcessing(false); return;
+        }
+        case "blank-page": {
+          const out: Result[] = [];
+          for (const file of files) {
+            const rb = await addBlankPage(file, file.name.replace(/\.pdf$/i, ""));
+            out.push({ name: rb.names[0], originalSize: rb.originalSize, compressedSize: rb.compressedSize, ratio: rb.compressedSize / rb.originalSize, blob: rb.blobs[0] });
+          }
+          setResults(out); setProcessing(false); return;
+        }
+        case "count-words": {
+          const out: Result[] = [];
+          for (const file of files) {
+            const rc = await countWords(file, file.name.replace(/\.pdf$/i, ""));
+            out.push({ name: rc.names[0], originalSize: rc.originalSize, compressedSize: rc.compressedSize, ratio: rc.compressedSize / rc.originalSize, blob: rc.blobs[0] });
+          }
+          setResults(out); setProcessing(false); return;
+        }
+        case "edit-meta": {
+          if (!metaTitle.trim() && !metaAuthor.trim()) throw new Error("Escribe al menos un título o un autor");
+          const r = await editMetadata(files[0], metaTitle, metaAuthor, files[0].name.replace(/\.pdf$/i, ""));
+          setResults([{ name: r.names[0], originalSize: r.originalSize, compressedSize: r.compressedSize, ratio: r.compressedSize / r.originalSize, blob: r.blobs[0] }]);
           setProcessing(false); return;
         }
         case "watermark": {
@@ -1156,6 +1213,92 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
         </div>
       );
     }
+    if (mode === "pdf-png") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Cada página de tu PDF se convertirá en una imagen PNG, manteniendo la transparencia si el PDF la tiene.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
+            <FileImage size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Ideal para conservar calidad sin pérdida o fondos transparentes.
+          </div>
+        </div>
+      );
+    }
+    if (mode === "pdf-webp") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Cada página de tu PDF se convertirá en una imagen WebP, mucho más ligera que JPG o PNG.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
+            <FileImage size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Perfecto para la web: mismo aspecto con menos peso.
+          </div>
+        </div>
+      );
+    }
+    if (mode === "pdf-tiff") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Cada página de tu PDF se convertirá en una imagen TIFF de alta calidad, sin pérdida.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
+            <FileImage size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Muy usado en imprenta y escaneo profesional.
+          </div>
+        </div>
+      );
+    }
+    if (mode === "svg-pdf") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Cada archivo SVG se convertirá en una página PDF manteniendo su calidad vectorial.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
+            <FileImage size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Los vectores se ven nítidos a cualquier tamaño.
+          </div>
+        </div>
+      );
+    }
+    if (mode === "blank-page") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Se añadirá una página en blanco al final de tu PDF, sin modificar las páginas existentes.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
+            <FileDoc size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Útil antes de firmar o añadir contenido nuevo.
+          </div>
+        </div>
+      );
+    }
+    if (mode === "count-words") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Se contarán las palabras, caracteres y páginas de tu PDF y se generará un reporte .txt.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
+            <Hash size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Con desglose por página.
+          </div>
+        </div>
+      );
+    }
+    if (mode === "edit-meta") {
+      return (
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Título</label>
+            <input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} placeholder="Nuevo título del PDF" className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-500" />
+          </div>
+          <div>
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Autor</label>
+            <input value={metaAuthor} onChange={(e) => setMetaAuthor(e.target.value)} placeholder="Nombre del autor" className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-500" />
+          </div>
+        </div>
+      );
+    }
     if (mode === "html-pdf") {
       return (
         <div className="space-y-3">
@@ -1278,8 +1421,10 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                   ? [{ f: "PPT", c: "text-orange-600 dark:text-orange-400 border-orange-500/40" }, { f: "PPTX", c: "text-orange-600 dark:text-orange-400 border-orange-500/40" }, { f: "ODP", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }]
                   : mode === "excel-pdf"
                   ? [{ f: "XLS", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }, { f: "XLSX", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }, { f: "ODS", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }]
-                  : mode === "unlock" || mode === "protect" || mode === "pdf-a" || mode === "pdf-zip"
+                  : mode === "unlock" || mode === "protect" || mode === "pdf-a" || mode === "pdf-zip" || mode === "pdf-png" || mode === "pdf-webp" || mode === "pdf-tiff" || mode === "blank-page" || mode === "count-words" || mode === "edit-meta"
                   ? [{ f: "PDF", c: "text-red-600 dark:text-red-400 border-red-500/40" }]
+                  : mode === "svg-pdf"
+                  ? [{ f: "SVG", c: "text-orange-600 dark:text-orange-400 border-orange-500/40" }]
                   : mode === "pdf-word"
                   ? [{ f: "PDF", c: "text-red-600 dark:text-red-400 border-red-500/40" }, { f: "DOCX", c: "text-blue-600 dark:text-blue-400 border-blue-500/40" }]
                   : mode === "pdf-ppt"
@@ -1347,7 +1492,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
             <p className="text-xl sm:text-2xl font-semibold mb-2">Seleccionar archivo{isMulti ? "s" : ""}</p>
             <p className="text-sm sm:text-base text-neutral-500">o arrastra y suelta aquí</p>
             <p className="text-xs text-neutral-600 mt-3">
-              {isImageInput ? "JPG, PNG, WebP, GIF" : isOfficeInput ? "Word, PowerPoint, Excel, ODF" : "Solo PDF"}
+              {isImageInput ? "JPG, PNG, WebP, GIF" : isSvgInput ? "SVG" : isOfficeInput ? "Word, PowerPoint, Excel, ODF" : "Solo PDF"}
             </p>
           </motion.div>
           </ToolTransition>
@@ -1396,7 +1541,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                     <p className="text-sm text-neutral-500 text-center">{files.length} imagen(es) · {formatBytes(files.reduce((s, f) => s + f.size, 0))}</p>
                     {files.length > 1 && <p className="text-[10px] text-neutral-600 text-center mt-1">Arrastra para cambiar el orden</p>}
                   </div>
-                ) : (mode === "image" || mode === "pdf" || mode === "merge" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip") ? (
+                ) : (mode === "image" || mode === "pdf" || mode === "merge" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip" || mode === "pdf-png" || mode === "pdf-webp" || mode === "pdf-tiff" || mode === "svg-pdf") ? (
                   <div className="w-full">
                     {/* Miniaturas de todos los archivos a comprimir/unir/convertir + botón añadir */}
                     <div className="flex flex-wrap gap-4 justify-center mb-5">
@@ -1410,7 +1555,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                           className={`relative group flex flex-col items-center gap-1.5 cursor-grab active:cursor-grabbing transition ${dragIdx === i ? "opacity-50" : ""}`}
                         >
                           <div className="w-56 h-64 bg-white rounded-lg p-2 shadow-lg flex items-center justify-center overflow-hidden">
-                            {mode === "image" ? (
+                            {mode === "image" || mode === "svg-pdf" ? (
                               <img src={URL.createObjectURL(f)} alt={f.name} className="w-full h-full object-contain rounded-md" />
                             ) : (
                               <PdfThumbnail file={f} />
