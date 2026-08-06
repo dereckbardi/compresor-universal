@@ -14,6 +14,35 @@ function bytesToBlob(bytes: Uint8Array, name: string): Blob {
 }
 
 /**
+ * Heurística para descartar rellenos/adornos casi de un solo color (barras,
+ * fondos, gradientes exportados como raster por herramientas de diagramas)
+ * que no son fotos reales. Compara una muestra de píxeles contra el color
+ * promedio; si casi todos son prácticamente iguales, no se considera foto.
+ */
+function isLikelyPhoto(imgData: ImageData): boolean {
+  const d = imgData.data;
+  const totalPixels = imgData.width * imgData.height;
+  const step = Math.max(4, Math.floor((totalPixels / 400) * 4)); // ~400 muestras como máximo
+  let r = 0, g = 0, b = 0, n = 0;
+  for (let i = 0; i < d.length; i += step) {
+    r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
+  }
+  if (n === 0) return false;
+  r /= n; g /= n; b /= n;
+  let variance = 0;
+  n = 0;
+  for (let i = 0; i < d.length; i += step) {
+    const dr = d[i] - r, dg = d[i + 1] - g, db = d[i + 2] - b;
+    variance += dr * dr + dg * dg + db * db;
+    n++;
+  }
+  variance /= n;
+  // Umbral bajo = casi un solo color (relleno/adorno). Una foto real tiene
+  // mucha más variación de color entre píxeles.
+  return variance > 90;
+}
+
+/**
  * Convierte los datos de píxel crudos que devuelve pdf.js (img.data) a un
  * ImageData válido para dibujar en canvas. pdf.js NO entrega bytes de un
  * JPEG/PNG codificado: entrega píxeles decodificados etiquetados con `kind`
@@ -500,20 +529,25 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
       if (!img || !img.width || !img.height) continue;
       // Descarta máscaras de imagen (stencils de 1 bit sin color propio): no son fotos.
       if ((img as any).isMask || (img as any).imageMask) continue;
-      // Descarta imágenes minúsculas (líneas/adornos/artefactos de 1-2 px): casi nunca son fotos reales.
-      // Subimos el umbral a 32px en el lado menor: los PDFs de texto/diagramas vectoriales generan
-      // fragmentos diminutos (ej. 11x40 px, ~700 bytes) que no son fotos, solo artefactos del documento.
-      if (img.width < 32 || img.height < 32) continue;
+      // Descarta líneas/barras/adornos delgados: diagramas hechos en Visio, Canva,
+      // PowerPoint, etc. suelen exportar bordes, flechas y rellenos de un diagrama como
+      // docenas de mini-imágenes en vez de líneas vectoriales (ej. una barra de 11×40 px).
+      // Si alguna de las dos dimensiones es muy chica, casi nunca es una foto real.
+      if (Math.min(img.width, img.height) < 24) continue;
+      // Descarta imágenes muy pequeñas en total (iconos/adornos de esquina).
+      if (img.width * img.height < 40 * 40) continue;
 
       let outBlob: Blob | null = null;
       try {
+        let imgData: ImageData | null = null;
+        let bitmapCanvas: HTMLCanvasElement | null = null;
         if (img.bitmap) {
           // pdf.js ya decodificó a ImageBitmap
-          const canvas2 = document.createElement("canvas");
-          canvas2.width = img.width;
-          canvas2.height = img.height;
-          canvas2.getContext("2d")?.drawImage(img.bitmap, 0, 0);
-          outBlob = await new Promise<Blob | null>((resolve) => canvas2.toBlob((b) => resolve(b), "image/jpeg", 0.92));
+          bitmapCanvas = document.createElement("canvas");
+          bitmapCanvas.width = img.width;
+          bitmapCanvas.height = img.height;
+          bitmapCanvas.getContext("2d")?.drawImage(img.bitmap, 0, 0);
+          imgData = bitmapCanvas.getContext("2d")?.getImageData(0, 0, img.width, img.height) ?? null;
         } else if (img.data) {
           // pdf.js devuelve datos de píxel crudos (no un JPEG/PNG codificado), etiquetados
           // con `kind`: 1 = escala de grises 1bpp, 2 = RGB 24bpp, 3 = RGBA 32bpp. Antes el
@@ -521,16 +555,19 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
           // esperaba que el navegador los decodificara como si fueran un archivo de imagen
           // real, lo cual nunca funciona (no son bytes de imagen codificada) y terminaba
           // generando canvases en blanco/negro.
-          const imgData = rawPixelsToImageData(img);
-          if (imgData) {
-            const canvas = document.createElement("canvas");
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext("2d");
-            if (ctx) {
-              ctx.putImageData(imgData, 0, 0);
-              outBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92));
-            }
+          imgData = rawPixelsToImageData(img);
+        }
+        // Descarta rellenos casi de un solo color: es la firma de barras, fondos y
+        // adornos de diagramas (gradientes/bordes exportados como raster), no de fotos.
+        if (imgData && !isLikelyPhoto(imgData)) imgData = null;
+        if (imgData) {
+          const canvas = bitmapCanvas ?? document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.putImageData(imgData, 0, 0);
+            outBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92));
           }
         }
       } catch {
