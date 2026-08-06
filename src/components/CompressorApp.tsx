@@ -331,21 +331,31 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           setResults(out); setProcessing(false); return;
         }
         case "pdf-zip": {
-          // Mete el PDF tal cual dentro de un ZIP (no se extrae ni modifica nada).
-          const out: Result[] = [];
+          // Mete TODOS los PDFs dentro de UN solo ZIP (no se extrae ni modifica nada).
+          const JSZip = (await import("jszip")).default;
+          const zip = new JSZip();
+          const usedNames = new Set<string>();
+          let total = 0;
           for (const file of files) {
-            const JSZip = (await import("jszip")).default;
-            const zip = new JSZip();
-            zip.file(file.name, file);
-            const blob = await zip.generateAsync({ type: "blob" });
-            const base = file.name.replace(/\.pdf$/i, "");
-            out.push({
-              name: base + ".zip",
-              originalSize: file.size, compressedSize: blob.size,
-              ratio: blob.size / file.size, blob,
-            });
+            let name = file.name;
+            let i = 2;
+            while (usedNames.has(name)) {
+              const dot = file.name.lastIndexOf(".");
+              name = dot > 0 ? `${file.name.slice(0, dot)} (${i})${file.name.slice(dot)}` : `${file.name} (${i})`;
+              i++;
+            }
+            usedNames.add(name);
+            zip.file(name, file);
+            total += file.size;
           }
-          setResults(out); setProcessing(false); return;
+          const blob = await zip.generateAsync({ type: "blob" });
+          const base = files.length === 1 ? files[0].name.replace(/\.pdf$/i, "") : "pdfs";
+          setResults([{
+            name: base + ".zip",
+            originalSize: total, compressedSize: blob.size,
+            ratio: blob.size / total, blob,
+          }]);
+          setProcessing(false); return;
         }
         case "watermark": {
           if (!watermarkText.trim()) throw new Error("Escribe el texto de la marca de agua");
