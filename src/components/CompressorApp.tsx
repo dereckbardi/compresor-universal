@@ -148,7 +148,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const signInputRef = useRef<HTMLInputElement>(null);
 
-  const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg";
+  const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip";
   const isImageInput = mode === "image" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf";
   const isOfficeInput = mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf";
   const isHtmlInput = mode === "html-pdf";
@@ -458,7 +458,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
       zip.file(name, r.blob);
     }
     const blob = await zip.generateAsync({ type: "blob" });
-    const base = mode === "pdf-images" ? "imagenes" : mode === "pdf-jpg" ? "paginas-jpg" : mode === "split" || mode === "extract" ? "paginas-pdf" : "archivos";
+    const base = mode === "pdf-images" ? "imagenes" : mode === "pdf-zip" ? "pdfs" : mode === "pdf-jpg" ? "paginas-jpg" : mode === "split" || mode === "extract" ? "paginas-pdf" : "archivos";
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = `${base}.zip`; a.click();
@@ -1386,7 +1386,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                     <p className="text-sm text-neutral-500 text-center">{files.length} imagen(es) · {formatBytes(files.reduce((s, f) => s + f.size, 0))}</p>
                     {files.length > 1 && <p className="text-[10px] text-neutral-600 text-center mt-1">Arrastra para cambiar el orden</p>}
                   </div>
-                ) : (mode === "image" || mode === "pdf" || mode === "merge" || mode === "pdf-jpg") ? (
+                ) : (mode === "image" || mode === "pdf" || mode === "merge" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip") ? (
                   <div className="w-full">
                     {/* Miniaturas de todos los archivos a comprimir/unir/convertir + botón añadir */}
                     <div className="flex flex-wrap gap-4 justify-center mb-5">
