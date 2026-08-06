@@ -130,7 +130,9 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
 
   // Preview del primer resultado
   const previewUrl = results[0] ? URL.createObjectURL(results[0].blob) : null;
-  const isImage = results[0]?.blob.type.startsWith("image/");
+  // TIFF no se renderiza en <img> en la mayoría de navegadores, así que no lo tratamos como imagen visible.
+  const isTiff = results[0]?.name.toLowerCase().endsWith(".tiff") || results[0]?.name.toLowerCase().endsWith(".tif") || results[0]?.blob.type === "image/tiff";
+  const isImage = !isTiff && results[0]?.blob.type.startsWith("image/");
   const isPdfBlob = results[0]?.blob.type === "application/pdf" || results[0]?.name.toLowerCase().endsWith(".pdf");
 
   return (

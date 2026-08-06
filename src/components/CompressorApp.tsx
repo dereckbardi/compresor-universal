@@ -525,7 +525,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
       zip.file(name, r.blob);
     }
     const blob = await zip.generateAsync({ type: "blob" });
-    const base = mode === "pdf-images" ? "imagenes" : mode === "pdf-zip" ? "pdfs" : mode === "pdf-jpg" ? "paginas-jpg" : mode === "split" || mode === "extract" ? "paginas-pdf" : "archivos";
+    const base = mode === "pdf-images" ? "imagenes" : mode === "pdf-zip" ? "pdfs" : mode === "pdf-jpg" ? "paginas-jpg" : mode === "pdf-png" ? "paginas-png" : mode === "pdf-webp" ? "paginas-webp" : mode === "pdf-tiff" ? "paginas-tiff" : mode === "split" || mode === "extract" ? "paginas-pdf" : "archivos";
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = `${base}.zip`; a.click();
