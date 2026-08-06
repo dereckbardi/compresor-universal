@@ -102,7 +102,7 @@ export const TOOLS: Tool[] = [
   { id: "pdf-a", name: "PDF a PDF/A", desc: "Convierte tu PDF al formato de archivo estándar para conservación a largo plazo.", icon: "Package", category: "desde-pdf", available: true },
   { id: "pdf-images", name: "Extraer imágenes", desc: "Extrae todas las imágenes de tu PDF y descárgalas en un ZIP.", icon: "FileArchive", category: "desde-pdf", available: true, popular: true, tagline: "Saca las imágenes de tu PDF en segundos" },
   { id: "pdf-text", name: "PDF a texto", desc: "Extrae el texto de tu PDF y descárgalo como archivo .txt editable.", icon: "FileText", category: "desde-pdf", available: true },
-  { id: "pdf-zip", name: "PDF a ZIP", desc: "Mete tu PDF tal cual dentro de un archivo ZIP, sin extraer ni modificar nada.", icon: "FileArchive", category: "desde-pdf", available: true },
+  { id: "pdf-zip", name: "PDF a Zip", desc: "Mete tu PDF tal cual dentro de un archivo ZIP, sin extraer ni modificar nada.", icon: "FileArchive", category: "desde-pdf", available: true },
   // EDITAR
   { id: "page-num", name: "Números de página", desc: "Añade números de página a tu PDF en la posición que elijas.", icon: "Hash", category: "editar", available: true },
   { id: "watermark", name: "Marca de agua", desc: "Añade un texto semitransparente a todas las páginas de tu PDF.", icon: "Drop", category: "editar", available: true },
