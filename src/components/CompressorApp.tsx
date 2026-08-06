@@ -10,8 +10,10 @@ import {
   Check,
   ClipboardText,
   CopySimple,
+  DropHalfBottom,
   Eye,
   EyeSlash,
+  FileArchive,
   FileText,
   Image,
   Lightbulb,
@@ -797,7 +799,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
         </div>
       );
     }
-    if (mode === "jpg-pdf") {
+    if (mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf") {
       return (
         <div className="space-y-5">
           <div>
@@ -1045,6 +1047,42 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           </p>
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
             <MagnifyingGlass size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> El procesamiento se hace en tu navegador (puede tardar en PDFs grandes).
+          </div>
+        </div>
+      );
+    }
+    if (mode === "pdf-images") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Se buscarán todas las imágenes incrustadas en tu PDF y se descargarán como archivos JPG independientes.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
+            <FileArchive size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Si el PDF tiene varias imágenes, se comprimen automáticamente en un ZIP al descargar todo.
+          </div>
+        </div>
+      );
+    }
+    if (mode === "pdf-text") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Se extraerá el texto de cada página de tu PDF, en orden, y se generará un archivo .txt listo para editar.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
+            <FileText size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Si tu PDF es un escaneo sin texto real, prueba antes con la herramienta OCR PDF.
+          </div>
+        </div>
+      );
+    }
+    if (mode === "pdf-grayscale") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Cada página de tu PDF se convertirá a blanco y negro (escala de grises), manteniendo el resto del diseño.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
+            <DropHalfBottom size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Ideal para reducir el peso antes de imprimir o para documentos que no necesitan color.
           </div>
         </div>
       );

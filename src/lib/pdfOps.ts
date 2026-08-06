@@ -201,9 +201,18 @@ export async function imagesToPdf(files: File[], opts: ImgToPdfOpts = {}): Promi
   let total = files.reduce((s, f) => s + f.size, 0);
 
   // Convierte WebP/TIFF a PNG vía canvas (pdf-lib solo embebe JPG/PNG nativo).
-  async function toPngBytes(file: File): Promise<Uint8Array> {
-    const isNative = file.type === "image/png" || file.type === "image/jpeg" || /\.(png|jpe?g)$/i.test(file.name);
-    if (isNative) return new Uint8Array(await file.arrayBuffer());
+  // Devuelve también si el resultado quedó codificado como PNG, para saber
+  // con qué método de pdf-lib hay que embeberlo (antes esto se re-deducía
+  // del nombre/tipo original del archivo, lo que rompía WebP/TIFF: se
+  // convertían a PNG pero luego se intentaban embeber como JPG).
+  async function toPngBytes(file: File): Promise<{ bytes: Uint8Array; isPng: boolean }> {
+    const isNativePng = file.type === "image/png" || /\.png$/i.test(file.name);
+    const isNativeJpg = file.type === "image/jpeg" || /\.jpe?g$/i.test(file.name);
+    if (isNativePng || isNativeJpg) {
+      return { bytes: new Uint8Array(await file.arrayBuffer()), isPng: isNativePng };
+    }
+    // WebP, TIFF u otros formatos: se decodifican en un canvas y siempre
+    // se re-codifican como PNG.
     const url = URL.createObjectURL(file);
     try {
       const img = new Image();
@@ -214,7 +223,7 @@ export async function imagesToPdf(files: File[], opts: ImgToPdfOpts = {}): Promi
       const ctx = canvas.getContext("2d")!;
       ctx.drawImage(img, 0, 0);
       const png = canvas.toDataURL("image/png");
-      return Uint8Array.from(atob(png.split(",")[1]), (ch) => ch.charCodeAt(0));
+      return { bytes: Uint8Array.from(atob(png.split(",")[1]), (ch) => ch.charCodeAt(0)), isPng: true };
     } finally {
       URL.revokeObjectURL(url);
     }
@@ -226,8 +235,8 @@ export async function imagesToPdf(files: File[], opts: ImgToPdfOpts = {}): Promi
   if (unify) {
     const doc = await PDFDocument.create();
     for (const file of files) {
-      const bytes = await toPngBytes(file);
-      const img = file.type === "image/png" || /\.png$/i.test(file.name) ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+      const { bytes, isPng } = await toPngBytes(file);
+      const img = isPng ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
       const aspect = img.width / img.height;
       const availW = pw - 2 * m, availH = ph - 2 * m;
       let w = availW, h = availW / aspect;
@@ -241,8 +250,7 @@ export async function imagesToPdf(files: File[], opts: ImgToPdfOpts = {}): Promi
   } else {
     for (const file of files) {
       const doc = await PDFDocument.create();
-      const bytes = await toPngBytes(file);
-      const isPng = file.type === "image/png" || /\.png$/i.test(file.name);
+      const { bytes, isPng } = await toPngBytes(file);
       const img = isPng ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
       const aspect = img.width / img.height;
       const availW = pw - 2 * m, availH = ph - 2 * m;
