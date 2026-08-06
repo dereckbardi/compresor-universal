@@ -418,6 +418,36 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
     URL.revokeObjectURL(url);
   };
 
+  // Descarga todos los resultados: si hay más de uno, se empaquetan en un
+  // único ZIP (antes se llamaba a download() en bucle, lo que disparaba
+  // varias descargas simultáneas que el navegador bloqueaba o mezclaba,
+  // dando la sensación de que "Descargar ZIP" bajaba solo una imagen suelta).
+  const downloadAll = async () => {
+    if (results.length === 0) return;
+    const forceZip = mode === "pdf-images"; // el botón siempre dice "Descargar ZIP" para esta tool
+    if (results.length === 1 && !forceZip) { download(results[0]); return; }
+    const JSZip = (await import("jszip")).default;
+    const zip = new JSZip();
+    const usedNames = new Set<string>();
+    for (const r of results) {
+      let name = r.name || "archivo";
+      let i = 2;
+      while (usedNames.has(name)) {
+        const dot = r.name.lastIndexOf(".");
+        name = dot > 0 ? `${r.name.slice(0, dot)} (${i})${r.name.slice(dot)}` : `${r.name} (${i})`;
+        i++;
+      }
+      usedNames.add(name);
+      zip.file(name, r.blob);
+    }
+    const blob = await zip.generateAsync({ type: "blob" });
+    const base = mode === "pdf-images" ? "imagenes" : mode === "pdf-jpg" ? "paginas-jpg" : mode === "split" || mode === "extract" ? "paginas-pdf" : "archivos";
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${base}.zip`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const totalOriginal = results.reduce((s, r) => s + r.originalSize, 0);
   const totalCompressed = results.reduce((s, r) => s + r.compressedSize, 0);
   const t = titles[mode];
@@ -1156,7 +1186,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           results={results}
           totalOriginal={totalOriginal}
           totalCompressed={totalCompressed}
-          onDownloadAll={() => results.forEach(download)}
+          onDownloadAll={() => { void downloadAll(); }}
           onDownloadOne={(r) => download(r)}
           onDelete={() => { setResults([]); setFiles([]); }}
           onBack={() => { setResults([]); }}
