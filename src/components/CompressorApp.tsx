@@ -45,7 +45,7 @@ import { compressImage, formatBytes, formatPercent, CompressedImage } from "@/li
 import { compressPdf, CompressedPdf } from "@/lib/pdfCompressor";
 import {
   mergePdfs, splitPdf, splitByRanges, splitBySize, removePages, extractPages, rotatePdf,
-  imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, redactPdfAtPoints, repairPdf, PdfResult,
+  imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, redactPdfAtPoints, repairPdf, pdfToText, pdfToGrayscale, PdfResult,
 } from "@/lib/pdfOps";
 import { ocrPdf } from "@/lib/ocr";
 import { officeToPdf, unlockPdf, protectPdf, toPdfA, pdfToOffice, htmlToPdf } from "@/lib/serverClient";
@@ -147,7 +147,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
   const signInputRef = useRef<HTMLInputElement>(null);
 
   const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg";
-  const isImageInput = mode === "image" || mode === "jpg-pdf";
+  const isImageInput = mode === "image" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf";
   const isOfficeInput = mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf";
   const isHtmlInput = mode === "html-pdf";
   const isPdfInput = mode === "pdf" || mode === "merge" || mode === "split" || mode === "pdf-jpg" || mode === "rotate" || mode === "extract" || mode === "remove" || mode === "watermark" || mode === "page-num" || mode === "sign" || mode === "redact" || mode === "crop" || mode === "unlock" || mode === "protect" || mode === "pdf-a" || mode === "repair" || mode === "ocr";
@@ -299,6 +299,35 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           r = await removePages(files[0], pages); break;
         }
         case "jpg-pdf": r = await imagesToPdf(files, { pageSize: imgPageSize, orientation: imgOrientation, margin: imgMargin, unify: imgUnify }); break;
+        case "png-pdf":
+        case "webp-pdf":
+        case "tiff-pdf": r = await imagesToPdf(files, { pageSize: imgPageSize, orientation: imgOrientation, margin: imgMargin, unify: imgUnify }); break;
+        case "pdf-images": {
+          const out: Result[] = [];
+          for (const file of files) {
+            const rimg = await extractImagesFromPdf(file, file.name.replace(/\.pdf$/i, ""));
+            rimg.blobs.forEach((blob, idx) => {
+              out.push({ name: rimg.names[idx], originalSize: rimg.originalSize, compressedSize: rimg.compressedSize, ratio: rimg.compressedSize / rimg.originalSize, blob });
+            });
+          }
+          setResults(out); setProcessing(false); return;
+        }
+        case "pdf-text": {
+          const out: Result[] = [];
+          for (const file of files) {
+            const rt = await pdfToText(file, file.name.replace(/\.pdf$/i, ""));
+            rt.blobs.forEach((blob, idx) => out.push({ name: rt.names[idx], originalSize: rt.originalSize, compressedSize: rt.compressedSize, ratio: rt.compressedSize / rt.originalSize, blob }));
+          }
+          setResults(out); setProcessing(false); return;
+        }
+        case "pdf-grayscale": {
+          const out: Result[] = [];
+          for (const file of files) {
+            const rg = await pdfToGrayscale(file, file.name.replace(/\.pdf$/i, ""));
+            rg.blobs.forEach((blob, idx) => out.push({ name: rg.names[idx], originalSize: rg.originalSize, compressedSize: rg.compressedSize, ratio: rg.compressedSize / rg.originalSize, blob }));
+          }
+          setResults(out); setProcessing(false); return;
+        }
         case "watermark": {
           if (!watermarkText.trim()) throw new Error("Escribe el texto de la marca de agua");
           r = await addWatermark(files[0], watermarkText, { opacity: watermarkOpacity, color: watermarkColor }); break;

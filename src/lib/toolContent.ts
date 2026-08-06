@@ -36,7 +36,13 @@ export type Mode =
   | "pdf-excel"
   | "repair"
   | "ocr"
-  | "html-pdf";
+  | "html-pdf"
+  | "png-pdf"
+  | "webp-pdf"
+  | "tiff-pdf"
+  | "pdf-images"
+  | "pdf-text"
+  | "pdf-grayscale";
 
 export interface ToolContent {
   title: string;
@@ -70,6 +76,12 @@ export const TOOL_CONTENT: Record<Mode, ToolContent> = {
   "pdf-excel": { title: "PDF a EXCEL", desc: "Convierte tu PDF en una hoja de cálculo de Excel editable.", slug: "pdf-a-excel" },
   repair: { title: "Reparar PDF", desc: "Arregla PDFs dañados o que no se abren correctamente, reconstruyendo su estructura.", slug: "reparar-pdf" },
   ocr: { title: "OCR PDF", desc: "Convierte escaneos en texto editable y buscable dentro del PDF usando reconocimiento óptico.", slug: "ocr-pdf" },
+"png-pdf": { title: "PNG a PDF", desc: "Convierte tus imágenes PNG en un PDF.", slug: "png-a-pdf" },
+"webp-pdf": { title: "WEBP a PDF", desc: "Convierte tus imágenes WebP en un PDF.", slug: "webp-a-pdf" },
+"tiff-pdf": { title: "TIFF a PDF", desc: "Convierte tus imágenes TIFF en un PDF.", slug: "tiff-a-pdf" },
+"pdf-images": { title: "Extraer imágenes", desc: "Extrae todas las imágenes de tu PDF en un ZIP.", slug: "extraer-imagenes-pdf" },
+"pdf-text": { title: "PDF a texto", desc: "Extrae el texto de tu PDF a un archivo .txt.", slug: "pdf-a-texto" },
+"pdf-grayscale": { title: "PDF a escala de grises", desc: "Convierte tu PDF a blanco y negro.", slug: "pdf-a-escala-de-grises" },
   "html-pdf": { title: "HTML a PDF", desc: "Pega tu código HTML y conviértelo en un PDF descargable.", slug: "html-a-pdf" },
 };
 

@@ -200,14 +200,34 @@ export async function imagesToPdf(files: File[], opts: ImgToPdfOpts = {}): Promi
   const m = MARGINS[ margin ] ?? MARGINS.none;
   let total = files.reduce((s, f) => s + f.size, 0);
 
+  // Convierte WebP/TIFF a PNG vía canvas (pdf-lib solo embebe JPG/PNG nativo).
+  async function toPngBytes(file: File): Promise<Uint8Array> {
+    const isNative = file.type === "image/png" || file.type === "image/jpeg" || /\.(png|jpe?g)$/i.test(file.name);
+    if (isNative) return new Uint8Array(await file.arrayBuffer());
+    const url = URL.createObjectURL(file);
+    try {
+      const img = new Image();
+      await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = () => rej(new Error("No se pudo leer la imagen")); img.src = url; });
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0);
+      const png = canvas.toDataURL("image/png");
+      return Uint8Array.from(atob(png.split(",")[1]), (ch) => ch.charCodeAt(0));
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
   const blobs: Blob[] = [];
   const names: string[] = [];
 
   if (unify) {
     const doc = await PDFDocument.create();
     for (const file of files) {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      const img = file.type === "image/png" ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+      const bytes = await toPngBytes(file);
+      const img = file.type === "image/png" || /\.png$/i.test(file.name) ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
       const aspect = img.width / img.height;
       const availW = pw - 2 * m, availH = ph - 2 * m;
       let w = availW, h = availW / aspect;
@@ -221,8 +241,9 @@ export async function imagesToPdf(files: File[], opts: ImgToPdfOpts = {}): Promi
   } else {
     for (const file of files) {
       const doc = await PDFDocument.create();
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      const img = file.type === "image/png" ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+      const bytes = await toPngBytes(file);
+      const isPng = file.type === "image/png" || /\.png$/i.test(file.name);
+      const img = isPng ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
       const aspect = img.width / img.height;
       const availW = pw - 2 * m, availH = ph - 2 * m;
       let w = availW, h = availW / aspect;
@@ -230,8 +251,9 @@ export async function imagesToPdf(files: File[], opts: ImgToPdfOpts = {}): Promi
       const page = doc.addPage([pw, ph]);
       page.drawImage(img, { x: (pw - w) / 2, y: (ph - h) / 2, width: w, height: h });
       const out = await doc.save({ useObjectStreams: true });
-      blobs.push(bytesToBlob(out, file.name.replace(/\.[^.]+$/, "") + ".pdf"));
-      names.push(file.name.replace(/\.[^.]+$/, "") + ".pdf");
+      const base = file.name.replace(/\.[^.]+$/, "");
+      blobs.push(bytesToBlob(out, base + ".pdf"));
+      names.push(base + ".pdf");
     }
   }
 
@@ -521,3 +543,75 @@ export async function redactPdfAtPoints(file: File, rects: { page: number; x: nu
   return { blobs: [bytesToBlob(bytes, 'censurado.pdf')], names: ['censurado.pdf'], originalSize: file.size, compressedSize: bytes.length };
 }
 
+
+/** PDF a texto: extrae el texto de cada página con pdfjs y genera un .txt descargable. */
+export async function pdfToText(file: File, fileLabel = ""): Promise<PdfResult> {
+  const pdfjs = await import("pdfjs-dist");
+  if (!(pdfjs as any).GlobalWorkerOptions?.workerSrc) {
+    (pdfjs as any).GlobalWorkerOptions.workerSrc =
+      new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+  }
+  const data = new Uint8Array(await file.arrayBuffer());
+  const doc = await pdfjs.getDocument({ data }).promise;
+  const parts: string[] = [];
+  for (let p = 1; p <= doc.numPages; p++) {
+    const page = await doc.getPage(p);
+    const content = await page.getTextContent();
+    let line = "";
+    const lines: string[] = [];
+    for (const item of content.items as any[]) {
+      const str = (item.str ?? "").trim();
+      if (!str) continue;
+      if (item.hasEOL) { lines.push(line + str); line = ""; }
+      else line += str;
+    }
+    if (line.trim()) lines.push(line);
+    parts.push(`--- Página ${p} ---\n` + lines.join("\n"));
+  }
+  if (!parts.length) throw new Error("No se pudo extraer texto de este PDF");
+  const text = parts.join("\n\n");
+  const bytes = new TextEncoder().encode(text);
+  const base = fileLabel || file.name.replace(/\.pdf$/i, "") || "documento";
+  const blob = new Blob([bytes], { type: "text/plain;charset=utf-8" });
+  return { blobs: [blob], names: [`${base}.txt`], originalSize: file.size, compressedSize: bytes.length };
+}
+
+/** PDF a escala de grises: renderiza cada página, la convierte a gris y reconstruye el PDF. */
+export async function pdfToGrayscale(file: File, fileLabel = ""): Promise<PdfResult> {
+  const pdfjs = await import("pdfjs-dist");
+  if (!(pdfjs as any).GlobalWorkerOptions?.workerSrc) {
+    (pdfjs as any).GlobalWorkerOptions.workerSrc =
+      new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+  }
+  const { PDFDocument } = await import("pdf-lib");
+  const data = new Uint8Array(await file.arrayBuffer());
+  const doc = await pdfjs.getDocument({ data }).promise;
+  const out = await PDFDocument.create();
+  let total = 0;
+  for (let p = 1; p <= doc.numPages; p++) {
+    const page = await doc.getPage(p);
+    const viewport = page.getViewport({ scale: 2 });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext("2d")!;
+    await page.render({ canvasContext: ctx, canvas, viewport } as any).promise;
+    // Convertir a escala de grises (recorrer píxeles)
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const g = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
+      d[i] = g; d[i + 1] = g; d[i + 2] = g;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    const png = canvas.toDataURL("image/png");
+    const pngBytes = Uint8Array.from(atob(png.split(",")[1]), (c) => c.charCodeAt(0));
+    const img = await out.embedPng(pngBytes);
+    const outPage = out.addPage([viewport.width / 2, viewport.height / 2]);
+    outPage.drawImage(img, { x: 0, y: 0, width: viewport.width / 2, height: viewport.height / 2 });
+    total += pngBytes.length;
+  }
+  const bytes = await out.save({ useObjectStreams: true });
+  const base = fileLabel || file.name.replace(/\.pdf$/i, "") || "documento";
+  return { blobs: [bytesToBlob(bytes, `${base}-escala-grises.pdf`)], names: [`${base}-escala-grises.pdf`], originalSize: file.size, compressedSize: bytes.length };
+}
