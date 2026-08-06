@@ -501,6 +501,7 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
   let count = 0;
   const prefix = fileLabel || file.name.replace(/\.pdf$/i, "");
   const OPS = (pdfjs as any).OPS;
+  let sawCandidate = false; // true si hay imágenes que pasan los filtros de tamaño/máscara
 
   for (let p = 1; p <= doc.numPages; p++) {
     const page = await doc.getPage(p);
@@ -536,6 +537,7 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
       if (Math.min(img.width, img.height) < 24) continue;
       // Descarta imágenes muy pequeñas en total (iconos/adornos de esquina).
       if (img.width * img.height < 40 * 40) continue;
+      sawCandidate = true;
 
       let outBlob: Blob | null = null;
       try {
@@ -578,6 +580,27 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
         total += outBlob.size;
         blobs.push(outBlob);
         names.push(`${prefix}-imagen-${count}.jpg`);
+      }
+    }
+  }
+  // Si el PDF tiene imágenes candidatas (que pasaron los filtros) pero ninguna se pudo
+  // convertir a JPG (p.ej. capturas de pantalla grandes cuyo canvas/toBlob falla), renderizamos
+  // las páginas completas como imágenes de respaldo. Así un PDF de capturas nunca queda vacío.
+  if (!blobs.length && sawCandidate) {
+    for (let p = 1; p <= doc.numPages; p++) {
+      const page = await doc.getPage(p);
+      const vp = page.getViewport({ scale: 1.5 });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.floor(vp.width);
+      canvas.height = Math.floor(vp.height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) continue;
+      await page.render({ canvasContext: ctx, viewport: vp } as any).promise;
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92));
+      if (blob) {
+        total += blob.size;
+        blobs.push(blob);
+        names.push(`${prefix}-pagina-${p}.jpg`);
       }
     }
   }
