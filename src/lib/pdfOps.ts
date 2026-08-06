@@ -501,7 +501,7 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
   let count = 0;
   const prefix = fileLabel || file.name.replace(/\.pdf$/i, "");
   const OPS = (pdfjs as any).OPS;
-  let sawCandidate = false; // true si hay imágenes que pasan los filtros de tamaño/máscara
+  let sawCandidate = false; // true si hay imágenes embebidas (activa el fallback si la extracción falla)
 
   for (let p = 1; p <= doc.numPages; p++) {
     const page = await doc.getPage(p);
@@ -513,6 +513,9 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
       // NO son fotos ni imágenes reales. Extraerlas producía esos "palitos negros" en PDFs
       // de texto normal, ya que son formas delgadas rellenas de un solo color.
       if (fn !== OPS.paintImageXObject && fn !== OPS.paintInlineImageXObject) continue;
+      // El PDF tiene al menos una imagen embebida: si la conversión falla, activaremos el
+      // fallback de renderizado de páginas (importante para capturas de pantalla).
+      sawCandidate = true;
       let img;
       try {
         if (fn === OPS.paintImageXObject) {
@@ -537,7 +540,6 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
       if (Math.min(img.width, img.height) < 24) continue;
       // Descarta imágenes muy pequeñas en total (iconos/adornos de esquina).
       if (img.width * img.height < 40 * 40) continue;
-      sawCandidate = true;
 
       let outBlob: Blob | null = null;
       try {
