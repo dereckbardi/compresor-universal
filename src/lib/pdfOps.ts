@@ -500,8 +500,10 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
       if (!img || !img.width || !img.height) continue;
       // Descarta máscaras de imagen (stencils de 1 bit sin color propio): no son fotos.
       if ((img as any).isMask || (img as any).imageMask) continue;
-      // Descarta imágenes minúsculas (líneas/adornos de 1-2 px), casi nunca son fotos reales.
-      if (img.width < 8 || img.height < 8) continue;
+      // Descarta imágenes minúsculas (líneas/adornos/artefactos de 1-2 px): casi nunca son fotos reales.
+      // Subimos el umbral a 32px en el lado menor: los PDFs de texto/diagramas vectoriales generan
+      // fragmentos diminutos (ej. 11x40 px, ~700 bytes) que no son fotos, solo artefactos del documento.
+      if (img.width < 32 || img.height < 32) continue;
 
       let outBlob: Blob | null = null;
       try {
@@ -539,25 +541,6 @@ export async function extractImagesFromPdf(file: File, fileLabel = ""): Promise<
         total += outBlob.size;
         blobs.push(outBlob);
         names.push(`${prefix}-imagen-${count}.jpg`);
-      }
-    }
-  }
-  if (!blobs.length) {
-    // Fallback: renderizar las páginas a JPG (útil para PDFs cuyas imágenes no se detectan por operador)
-    for (let p = 1; p <= doc.numPages; p++) {
-      const page = await doc.getPage(p);
-      const vp = page.getViewport({ scale: 1.5 });
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.floor(vp.width);
-      canvas.height = Math.floor(vp.height);
-      const ctx = canvas.getContext("2d");
-      if (!ctx) continue;
-      await page.render({ canvasContext: ctx, viewport: vp } as any).promise;
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92));
-      if (blob) {
-        total += blob.size;
-        blobs.push(blob);
-        names.push(`${prefix}-pagina-${p}.jpg`);
       }
     }
   }
