@@ -148,7 +148,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const signInputRef = useRef<HTMLInputElement>(null);
 
-  const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip";
+  const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip";
   const isImageInput = mode === "image" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf";
   const isOfficeInput = mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf";
   const isHtmlInput = mode === "html-pdf";
@@ -1354,7 +1354,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                 <button onClick={() => { setFiles([]); setResults([]); }} className="text-xs text-neutral-500 hover:text-red-600 dark:hover:text-red-400 transition"><X size={12} weight="bold" className="inline-block align-[-1px] mr-1" /> Cambiar archivo</button>
               </div>
               <div className="bg-neutral-100/80 dark:bg-neutral-900/50 rounded-2xl border border-neutral-200/70 dark:border-white/5 p-4 sm:p-6 flex flex-col items-center min-w-0 w-full">
-                {mode === "jpg-pdf" ? (
+                {mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf" ? (
                   <div className="w-full">
                     {/* Vista previa en vivo de TODAS las imágenes con opciones */}
                     <div className="flex flex-wrap gap-5 justify-center mb-6">
