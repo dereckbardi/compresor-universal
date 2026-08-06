@@ -32,6 +32,7 @@ import {
 } from "@phosphor-icons/react";
 import { ToolTransition, HeroFade, ResultPop } from "@/components/animations";
 import ThemeToggle from "@/components/ThemeToggle";
+import ToolFaq from "@/components/ToolFaq";
 import PdfPreview from "@/components/PdfPreview";
 import ImageToPdfPreview from "@/components/ImageToPdfPreview";
 import PdfLivePreview from "@/components/PdfLivePreview";
@@ -1703,10 +1704,20 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
         </div>
       )}
 
+      {/* FAQ (solo en páginas individuales de herramienta, no en la home) */}
+      {initialMode && (
+        <ToolFaq mode={mode} />
+      )}
+
       {/* Footer */}
       <footer className="border-t border-neutral-200 dark:border-white/10">
         <div className="max-w-5xl mx-auto px-6 py-6 text-center text-xs text-neutral-600">
-          <p>COMPRIMEME — 100% gratis y sin registro.</p>
+          <p className="mb-2">COMPRIMEME — 100% gratis y sin registro.</p>
+          <div className="flex items-center justify-center gap-4">
+            <Link href="/acerca" className="hover:text-orange-600 dark:hover:text-orange-400 transition">Acerca de</Link>
+            <span aria-hidden="true">·</span>
+            <Link href="/privacidad" className="hover:text-orange-600 dark:hover:text-orange-400 transition">Política de privacidad</Link>
+          </div>
         </div>
       </footer>
 

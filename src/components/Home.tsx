@@ -577,7 +577,12 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-neutral-200 dark:border-white/10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 text-center text-xs text-neutral-600 dark:text-neutral-400">
-          <p>COMPRIMEME — 100% gratis y sin registro.</p>
+          <p className="mb-2">COMPRIMEME — 100% gratis y sin registro.</p>
+          <div className="flex items-center justify-center gap-4">
+            <Link href="/acerca" className="hover:text-orange-600 dark:hover:text-orange-400 transition">Acerca de</Link>
+            <span aria-hidden="true">·</span>
+            <Link href="/privacidad" className="hover:text-orange-600 dark:hover:text-orange-400 transition">Política de privacidad</Link>
+          </div>
         </div>
       </footer>
     </main>
