@@ -60,6 +60,13 @@ const ACTION_TEXT: Record<string, { msg: string; btn: string }> = {
   repair: { msg: "Tu PDF ha sido reparado", btn: "Descargar PDF reparado" },
   ocr: { msg: "El texto ha sido reconocido con OCR", btn: "Descargar PDF con OCR" },
   "html-pdf": { msg: "Tu HTML se ha convertido a PDF", btn: "Descargar PDF" },
+  "png-pdf": { msg: "Tus imǭgenes se han convertido a PDF", btn: "Descargar PDF" },
+  "webp-pdf": { msg: "Tus imǭgenes se han convertido a PDF", btn: "Descargar PDF" },
+  "tiff-pdf": { msg: "Tus imǭgenes se han convertido a PDF", btn: "Descargar PDF" },
+  "pdf-images": { msg: "Tus imǭgenes han sido extra��das del PDF", btn: "Descargar ZIP" },
+  "pdf-text": { msg: "El texto de tu PDF ha sido extra��do", btn: "Descargar archivo TXT" },
+  "pdf-grayscale": { msg: "Tu PDF ha sido convertido a escala de grises", btn: "Descargar PDF en gris" },
+  default: { msg: "Tu archivo ha sido procesado", btn: "Descargar resultado" },
 };
 
 const CONTINUE: Record<string, { id: string; icon: string; label: string }[]> = {
