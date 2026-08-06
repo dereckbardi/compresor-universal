@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, DownloadSimple, LinkSimple, Trash, type Icon } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, DownloadSimple, FileArchive, LinkSimple, Trash, type Icon } from "@phosphor-icons/react";
 import { formatBytes } from "@/lib/imageCompressor";
 import { TOOL_ICONS } from "@/lib/tools";
 import PdfPreview from "@/components/PdfPreview";
@@ -116,6 +116,7 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
   // Preview del primer resultado
   const previewUrl = results[0] ? URL.createObjectURL(results[0].blob) : null;
   const isImage = results[0]?.blob.type.startsWith("image/");
+  const isPdfBlob = results[0]?.blob.type === "application/pdf" || results[0]?.name.toLowerCase().endsWith(".pdf");
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -137,9 +138,15 @@ export default function ResultScreen({ mode, results, onDownloadAll, onDownloadO
         <div className="flex justify-center mb-8">
           {isImage ? (
             <img src={previewUrl} alt={results[0].name} className="max-h-72 rounded-xl shadow-xl border border-neutral-200 dark:border-white/10" />
-          ) : (
+          ) : isPdfBlob ? (
             <div className="w-full max-w-md">
               <PdfPreview file={results[0].blob} />
+            </div>
+          ) : (
+            <div className="w-full max-w-md flex flex-col items-center justify-center gap-3 rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-neutral-900 p-8 text-center">
+              <FileArchive size={44} weight="duotone" className="text-orange-500" />
+              <p className="text-sm font-semibold break-all">{results[0].name}</p>
+              <p className="text-xs text-neutral-500">Archivo generado — usa el botón de descarga</p>
             </div>
           )}
         </div>
