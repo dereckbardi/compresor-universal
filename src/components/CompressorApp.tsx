@@ -152,7 +152,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
   const isImageInput = mode === "image" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf";
   const isOfficeInput = mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf";
   const isHtmlInput = mode === "html-pdf";
-  const isPdfInput = mode === "pdf" || mode === "merge" || mode === "split" || mode === "pdf-jpg" || mode === "rotate" || mode === "extract" || mode === "remove" || mode === "watermark" || mode === "page-num" || mode === "sign" || mode === "redact" || mode === "crop" || mode === "unlock" || mode === "protect" || mode === "pdf-a" || mode === "repair" || mode === "ocr" || mode === "pdf-images" || mode === "pdf-text" || mode === "pdf-grayscale";
+  const isPdfInput = mode === "pdf" || mode === "merge" || mode === "split" || mode === "pdf-jpg" || mode === "rotate" || mode === "extract" || mode === "remove" || mode === "watermark" || mode === "page-num" || mode === "sign" || mode === "redact" || mode === "crop" || mode === "unlock" || mode === "protect" || mode === "pdf-a" || mode === "repair" || mode === "ocr" || mode === "pdf-images" || mode === "pdf-text" || mode === "pdf-grayscale" || mode === "pdf-zip";
   const isServerMode = SERVER_MODES.has(mode);
   const acceptedExt = isImageInput ? "image/*" : isOfficeInput ? ".doc,.docx,.ppt,.pptx,.xls,.xlsx,.odt,.odp,.ods,.rtf,.txt" : isHtmlInput ? ".html,.htm" : "application/pdf,.pdf";
 
@@ -327,6 +327,23 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           for (const file of files) {
             const rg = await pdfToGrayscale(file, file.name.replace(/\.pdf$/i, ""));
             rg.blobs.forEach((blob, idx) => out.push({ name: rg.names[idx], originalSize: rg.originalSize, compressedSize: rg.compressedSize, ratio: rg.compressedSize / rg.originalSize, blob }));
+          }
+          setResults(out); setProcessing(false); return;
+        }
+        case "pdf-zip": {
+          // Mete el PDF tal cual dentro de un ZIP (no se extrae ni modifica nada).
+          const out: Result[] = [];
+          for (const file of files) {
+            const JSZip = (await import("jszip")).default;
+            const zip = new JSZip();
+            zip.file(file.name, file);
+            const blob = await zip.generateAsync({ type: "blob" });
+            const base = file.name.replace(/\.pdf$/i, "");
+            out.push({
+              name: base + ".zip",
+              originalSize: file.size, compressedSize: blob.size,
+              ratio: blob.size / file.size, blob,
+            });
           }
           setResults(out); setProcessing(false); return;
         }
@@ -1117,6 +1134,18 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
         </div>
       );
     }
+    if (mode === "pdf-zip") {
+      return (
+        <div className="space-y-3">
+          <p className="text-xs text-neutral-500">
+            Tu PDF se guardará tal cual dentro de un archivo ZIP, sin extraer ni modificar nada.
+          </p>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
+            <FileArchive size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> Útil para comprimir el PDF antes de enviarlo por correo o subirlo a una plataforma.
+          </div>
+        </div>
+      );
+    }
     if (mode === "html-pdf") {
       return (
         <div className="space-y-3">
@@ -1239,7 +1268,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                   ? [{ f: "PPT", c: "text-orange-600 dark:text-orange-400 border-orange-500/40" }, { f: "PPTX", c: "text-orange-600 dark:text-orange-400 border-orange-500/40" }, { f: "ODP", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }]
                   : mode === "excel-pdf"
                   ? [{ f: "XLS", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }, { f: "XLSX", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }, { f: "ODS", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }]
-                  : mode === "unlock" || mode === "protect" || mode === "pdf-a"
+                  : mode === "unlock" || mode === "protect" || mode === "pdf-a" || mode === "pdf-zip"
                   ? [{ f: "PDF", c: "text-red-600 dark:text-red-400 border-red-500/40" }]
                   : mode === "pdf-word"
                   ? [{ f: "PDF", c: "text-red-600 dark:text-red-400 border-red-500/40" }, { f: "DOCX", c: "text-blue-600 dark:text-blue-400 border-blue-500/40" }]

@@ -66,6 +66,7 @@ const ACTION_TEXT: Record<string, { msg: string; btn: string }> = {
   "pdf-images": { msg: "Tus imágenes han sido extraídas del PDF", btn: "Descargar ZIP" },
   "pdf-text": { msg: "El texto de tu PDF ha sido extraído", btn: "Descargar archivo TXT" },
   "pdf-grayscale": { msg: "Tu PDF ha sido convertido a escala de grises", btn: "Descargar PDF en gris" },
+  "pdf-zip": { msg: "Tu PDF se ha guardado dentro de un ZIP", btn: "Descargar ZIP" },
   default: { msg: "Tu archivo ha sido procesado", btn: "Descargar resultado" },
 };
 

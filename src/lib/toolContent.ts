@@ -42,7 +42,8 @@ export type Mode =
   | "tiff-pdf"
   | "pdf-images"
   | "pdf-text"
-  | "pdf-grayscale";
+  | "pdf-grayscale"
+  | "pdf-zip";
 
 export interface ToolContent {
   title: string;
@@ -82,6 +83,7 @@ export const TOOL_CONTENT: Record<Mode, ToolContent> = {
 "pdf-images": { title: "Extraer imágenes", desc: "Extrae todas las imágenes de tu PDF en un ZIP.", slug: "extraer-imagenes-pdf" },
 "pdf-text": { title: "PDF a texto", desc: "Extrae el texto de tu PDF a un archivo .txt.", slug: "pdf-a-texto" },
 "pdf-grayscale": { title: "PDF a escala de grises", desc: "Convierte tu PDF a blanco y negro.", slug: "pdf-a-escala-de-grises" },
+"pdf-zip": { title: "PDF a ZIP", desc: "Comprime tu PDF dentro de un archivo ZIP sin extraer nada.", slug: "pdf-a-zip" },
   "html-pdf": { title: "HTML a PDF", desc: "Pega tu código HTML y conviértelo en un PDF descargable.", slug: "html-a-pdf" },
 };
 
