@@ -4,6 +4,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { ThemeProvider, THEME_STORAGE_KEY } from "@/components/ThemeProvider";
+import CookieConsent from "@/components/CookieConsent";
 
 // Fuente del logo: Outfit (800)
 const outfit = Outfit({
@@ -86,6 +87,7 @@ export default function RootLayout({
           <div id="theme-fade-overlay" aria-hidden="true" className="theme-fade-overlay" />
           <ServiceWorkerRegister />
           {children}
+          <CookieConsent />
           <Analytics />
         </ThemeProvider>
       </body>

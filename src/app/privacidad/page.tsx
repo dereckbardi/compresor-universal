@@ -74,9 +74,19 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-3">4. Cookies y almacenamiento</h2>
             <p>
-              No utilizamos cookies de seguimiento de terceros para publicidad. Usamos almacenamiento local del navegador
-              (localStorage) exclusivamente para recordar preferencias como el tema. No vendemos ni compartimos tus datos
-              con terceros.
+              Actualmente <strong>no utilizamos cookies de seguimiento de terceros para publicidad</strong>. Usamos
+              almacenamiento local del navegador (localStorage) exclusivamente para recordar preferencias como el tema
+              (claro/oscuro) y tu elección sobre las cookies. No vendemos ni compartimos tus datos con terceros.
+            </p>
+            <p className="mt-3">
+              Al visitar la web se te muestra un <strong>banner de consentimiento de cookies</strong>. Puedes aceptar o
+              rechazar. Tu elección se guarda en tu navegador y no se transmite a servidores.
+            </p>
+            <p className="mt-3">
+              Si en el futuro activamos publicidad (por ejemplo, Google AdSense), utilizaremos <strong>cookies de
+              terceros</strong> para mostrar anuncios personalizados <strong>únicamente si aceptas el consentimiento</strong>.
+              Si rechazas, seguirás viendo anuncios no personalizados o sin rastreo, y podrás cambiar tu decisión en
+              cualquier momento borrando el almacenamiento del navegador.
             </p>
           </section>
 
