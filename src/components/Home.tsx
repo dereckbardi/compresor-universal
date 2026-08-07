@@ -8,12 +8,15 @@ import {
   Browser,
   Check,
   CheckCircle,
+  CloudArrowUp,
   CurrencyDollar,
   DownloadSimple,
   Files,
+  Fingerprint,
   Image as ImageIcon,
   Infinity,
   Lightning,
+  Lock,
   LockSimple,
   PaperPlaneTilt,
   Plus,
@@ -474,6 +477,89 @@ export default function Home() {
             )}
           </motion.div>
         </AnimatePresence>
+      </section>
+
+      {/* Privacidad destacada */}
+      <section className="relative overflow-hidden border-y border-neutral-200 dark:border-white/10 bg-gradient-to-b from-transparent via-orange-500/5 to-transparent">
+        {/* Glow decorativo de fondo */}
+        <div aria-hidden="true" className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[40rem] h-40 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+          <Reveal>
+            <div className="text-center mb-10 sm:mb-14">
+              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-orange-600 dark:text-orange-400 mb-4">
+                <Lock size={16} weight="bold" /> Tu privacidad primero
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+                Tus archivos <span className="text-orange-500">nunca salen</span> de tu dispositivo
+              </h2>
+              <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto text-base sm:text-lg">
+                A diferencia de otras webs, COMPRIMEME procesa todo directamente en tu navegador.
+                Nada se sube a un servidor, nada se almacena, nada se comparte.
+              </p>
+            </div>
+          </Reveal>
+
+          <Stagger className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mb-10">
+            <StaggerItem className="h-full">
+              <motion.div whileHover={{ y: -4 }} className="h-full rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-black p-6 hover:border-orange-500/50 transition-colors">
+                <span className="w-11 h-11 rounded-xl bg-orange-500/15 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-4">
+                  <Browser size={22} weight="bold" />
+                </span>
+                <h3 className="text-sm font-semibold mb-1.5">100% en tu navegador</h3>
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">Todo el procesamiento ocurre localmente, sin servidores intermedios.</p>
+              </motion.div>
+            </StaggerItem>
+            <StaggerItem className="h-full">
+              <motion.div whileHover={{ y: -4 }} className="h-full rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-black p-6 hover:border-orange-500/50 transition-colors">
+                <span className="w-11 h-11 rounded-xl bg-orange-500/15 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-4">
+                  <CloudArrowUp size={22} weight="bold" />
+                </span>
+                <h3 className="text-sm font-semibold mb-1.5">Nada se sube</h3>
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">Sin subidas, sin almacenamiento, sin historial. Cierra la pestaña y desaparece.</p>
+              </motion.div>
+            </StaggerItem>
+            <StaggerItem className="h-full">
+              <motion.div whileHover={{ y: -4 }} className="h-full rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-black p-6 hover:border-orange-500/50 transition-colors">
+                <span className="w-11 h-11 rounded-xl bg-orange-500/15 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-4">
+                  <Fingerprint size={22} weight="bold" />
+                </span>
+                <h3 className="text-sm font-semibold mb-1.5">Control total</h3>
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">Tus documentos son solo tuyos. Tú decides, sin cuentas ni seguimiento.</p>
+              </motion.div>
+            </StaggerItem>
+          </Stagger>
+
+          {/* Escudo animado + mensaje central */}
+          <Reveal delay={0.1}>
+            <div className="relative rounded-3xl border border-orange-500/30 bg-orange-500/5 p-8 sm:p-10 text-center overflow-hidden">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="w-16 h-16 mx-auto rounded-2xl bg-orange-500 text-black flex items-center justify-center shadow-xl shadow-orange-500/30 mb-5"
+              >
+                <ShieldCheck size={32} weight="fill" />
+              </motion.div>
+              <h3 className="text-xl sm:text-2xl font-bold mb-3">Privacidad de nivel profesional</h3>
+              <p className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto mb-6">
+                La mayoría de herramientas de PDF suben tus archivos a un servidor. Nosotros no.
+                Por eso es más rápido y, sobre todo, más seguro.
+              </p>
+              <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+                {["Sin registro", "Sin límites", "Sin subidas", "100% gratis"].map((t) => (
+                  <motion.span
+                    key={t}
+                    whileHover={{ scale: 1.05 }}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-full border border-neutral-200 dark:border-white/10 bg-white/70 dark:bg-black/40"
+                  >
+                    <CheckCircle size={14} weight="fill" className="text-orange-500" /> {t}
+                  </motion.span>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+        </div>
       </section>
 
       {/* Preguntas frecuentes */}
