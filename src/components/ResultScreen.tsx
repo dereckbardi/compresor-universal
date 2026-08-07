@@ -74,6 +74,7 @@ const ACTION_TEXT: Record<string, { msg: string; btn: string }> = {
   "blank-page": { msg: "Se añadió una página en blanco", btn: "Descargar PDF" },
   "count-words": { msg: "Se generó el reporte de palabras", btn: "Descargar reporte TXT" },
   "edit-meta": { msg: "Los metadatos se han actualizado", btn: "Descargar PDF" },
+  "image-convert": { msg: "Tus imágenes se han convertido", btn: "Descargar imágenes" },
   default: { msg: "Tu archivo ha sido procesado", btn: "Descargar resultado" },
 };
 

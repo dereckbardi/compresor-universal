@@ -82,6 +82,11 @@ const FAQ_BY_MODE: Partial<Record<Mode, Faq[]>> = {
   "edit-meta": [
     { q: "¿Qué metadatos puedo cambiar?", a: "El título y el autor del PDF. Útil para organizar documentos y mejorar su identificación." },
   ],
+  "image-convert": [
+    { q: "¿Qué formatos puedo elegir?", a: "JPG, PNG y WebP. Cada uno tiene sus ventajas: JPG es ligero, PNG conserva transparencia y calidad, y WebP pesa mucho menos para la web." },
+    { q: "¿Se pierde calidad al convertir?", a: "En general no se pierde calidad visible. Al convertir a JPG el fondo transparente se rellena de blanco porque JPG no soporta transparencia." },
+    { q: "¿Puedo convertir varias imágenes a la vez?", a: "Sí, usa el botón + para agregar varias y se convierten todas al mismo formato elegido." },
+  ],
   protect: [
     { q: "¿Qué tipo de contraseña añade?", a: "Una contraseña para abrir el PDF. Solo quien la tenga podrá visualizar el documento." },
   ],

@@ -50,7 +50,8 @@ export type Mode =
   | "svg-pdf"
   | "count-words"
   | "blank-page"
-  | "edit-meta";
+  | "edit-meta"
+  | "image-convert";
 
 export interface ToolContent {
   title: string;
@@ -98,6 +99,7 @@ export const TOOL_CONTENT: Record<Mode, ToolContent> = {
 "count-words": { title: "Contador de palabras", desc: "Cuenta las palabras, caracteres y páginas de tu PDF y descárgalo como reporte.", slug: "contador-de-palabras-pdf" },
 "blank-page": { title: "Agregar página en blanco", desc: "Añade una página en blanco al final de tu PDF.", slug: "agregar-pagina-en-blanco-pdf" },
 "edit-meta": { title: "Editar metadatos", desc: "Cambia el título y autor de tu PDF.", slug: "editar-metadatos-pdf" },
+"image-convert": { title: "Convertir imagen", desc: "Convierte tus imágenes entre JPG, PNG y WebP fácilmente.", slug: "convertir-imagen" },
   "html-pdf": { title: "HTML a PDF", desc: "Pega tu código HTML y conviértelo en un PDF descargable.", slug: "html-a-pdf" },
 };
 

@@ -51,7 +51,7 @@ import { compressImage, formatBytes, formatPercent, CompressedImage } from "@/li
 import { compressPdf, CompressedPdf } from "@/lib/pdfCompressor";
 import {
   mergePdfs, splitPdf, splitByRanges, splitBySize, removePages, extractPages, rotatePdf,
-  imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, redactPdfAtPoints, repairPdf, pdfToText, pdfToGrayscale, pdfToPng, pdfToWebp, pdfToTiff, svgToPdf, addBlankPage, editMetadata, countWords, PdfResult,
+  imagesToPdf, pdfToJpg, extractImagesFromPdf, extractEachPage, addWatermark, addPageNumbers, addSignature, redactPdf, cropPdf, redactPdfAtPoints, repairPdf, pdfToText, pdfToGrayscale, pdfToPng, pdfToWebp, pdfToTiff, svgToPdf, addBlankPage, editMetadata, countWords, convertImage, PdfResult,
 } from "@/lib/pdfOps";
 import { ocrPdf } from "@/lib/ocr";
 import { officeToPdf, unlockPdf, protectPdf, toPdfA, pdfToOffice, htmlToPdf } from "@/lib/serverClient";
@@ -151,11 +151,12 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
   const [htmlInput, setHtmlInput] = useState("");
   const [metaTitle, setMetaTitle] = useState("");
   const [metaAuthor, setMetaAuthor] = useState("");
+  const [imgConvertTarget, setImgConvertTarget] = useState<"jpg" | "png" | "webp">("webp");
   const inputRef = useRef<HTMLInputElement>(null);
   const signInputRef = useRef<HTMLInputElement>(null);
 
-  const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip" || mode === "pdf-png" || mode === "pdf-webp" || mode === "pdf-tiff" || mode === "svg-pdf";
-  const isImageInput = mode === "image" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf";
+  const isMulti = mode === "merge" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf" || mode === "image" || mode === "pdf" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip" || mode === "pdf-png" || mode === "pdf-webp" || mode === "pdf-tiff" || mode === "svg-pdf" || mode === "image-convert";
+  const isImageInput = mode === "image" || mode === "jpg-pdf" || mode === "png-pdf" || mode === "webp-pdf" || mode === "tiff-pdf" || mode === "image-convert";
   const isSvgInput = mode === "svg-pdf";
   const isOfficeInput = mode === "word-pdf" || mode === "ppt-pdf" || mode === "excel-pdf";
   const isHtmlInput = mode === "html-pdf";
@@ -392,6 +393,14 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
           const r = await svgToPdf(files, "");
           setResults(r.blobs.map((blob, idx) => ({ name: r.names[idx], originalSize: r.originalSize, compressedSize: r.compressedSize, ratio: r.compressedSize / r.originalSize, blob })));
           setProcessing(false); return;
+        }
+        case "image-convert": {
+          const out: Result[] = [];
+          for (const file of files) {
+            const rc = await convertImage(file, imgConvertTarget);
+            out.push({ name: rc.names[0], originalSize: rc.originalSize, compressedSize: rc.compressedSize, ratio: rc.compressedSize / rc.originalSize, blob: rc.blobs[0] });
+          }
+          setResults(out); setProcessing(false); return;
         }
         case "blank-page": {
           const out: Result[] = [];
@@ -1262,6 +1271,33 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
         </div>
       );
     }
+    if (mode === "image-convert") {
+      return (
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm text-neutral-600 dark:text-neutral-400 block mb-2">Convertir a</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(["jpg", "png", "webp"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setImgConvertTarget(f)}
+                  className={`min-h-11 flex items-center justify-center rounded-lg border text-sm font-medium uppercase transition ${
+                    imgConvertTarget === f
+                      ? "bg-orange-500 text-black border-orange-500"
+                      : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-orange-500"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 text-orange-700 dark:text-orange-300 text-xs">
+            <FileImage size={14} weight="fill" className="inline-block align-[-2px] mr-1" /> WebP pesa mucho menos y es ideal para la web. JPG no soporta transparencia (se rellena de blanco).
+          </div>
+        </div>
+      );
+    }
     if (mode === "blank-page") {
       return (
         <div className="space-y-3">
@@ -1414,6 +1450,8 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
               >
                 {(mode === "image"
                   ? [{ f: "JPG", c: "text-blue-600 dark:text-blue-400 border-blue-500/40" }, { f: "PNG", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }, { f: "WebP", c: "text-orange-600 dark:text-orange-400 border-orange-500/40" }, { f: "GIF", c: "text-purple-600 dark:text-purple-400 border-purple-500/40" }]
+                  : mode === "image-convert"
+                  ? [{ f: "JPG", c: "text-blue-600 dark:text-blue-400 border-blue-500/40" }, { f: "PNG", c: "text-emerald-600 dark:text-emerald-400 border-emerald-500/40" }, { f: "WebP", c: "text-orange-600 dark:text-orange-400 border-orange-500/40" }]
                   : mode === "pdf"
                   ? [{ f: "PDF", c: "text-red-600 dark:text-red-400 border-red-500/40" }]
                   : mode === "word-pdf"
@@ -1542,7 +1580,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                     <p className="text-sm text-neutral-500 text-center">{files.length} imagen(es) · {formatBytes(files.reduce((s, f) => s + f.size, 0))}</p>
                     {files.length > 1 && <p className="text-[10px] text-neutral-600 text-center mt-1">Arrastra para cambiar el orden</p>}
                   </div>
-                ) : (mode === "image" || mode === "pdf" || mode === "merge" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip" || mode === "pdf-png" || mode === "pdf-webp" || mode === "pdf-tiff" || mode === "svg-pdf") ? (
+                ) : (mode === "image" || mode === "image-convert" || mode === "pdf" || mode === "merge" || mode === "pdf-jpg" || mode === "pdf-images" || mode === "pdf-zip" || mode === "pdf-png" || mode === "pdf-webp" || mode === "pdf-tiff" || mode === "svg-pdf") ? (
                   <div className="w-full">
                     {/* Miniaturas de todos los archivos a comprimir/unir/convertir + botón añadir */}
                     <div className="flex flex-wrap gap-4 justify-center mb-5">
@@ -1556,7 +1594,7 @@ function HomeContent({ initialMode }: { initialMode?: Mode }) {
                           className={`relative group flex flex-col items-center gap-1.5 cursor-grab active:cursor-grabbing transition ${dragIdx === i ? "opacity-50" : ""}`}
                         >
                           <div className="w-56 h-64 bg-white rounded-lg p-2 shadow-lg flex items-center justify-center overflow-hidden">
-                            {mode === "image" || mode === "svg-pdf" ? (
+                            {mode === "image" || mode === "image-convert" || mode === "svg-pdf" ? (
                               <img src={URL.createObjectURL(f)} alt={f.name} className="w-full h-full object-contain rounded-md" />
                             ) : (
                               <PdfThumbnail file={f} />

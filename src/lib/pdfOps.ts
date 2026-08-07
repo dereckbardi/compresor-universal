@@ -14,6 +14,31 @@ function bytesToBlob(bytes: Uint8Array, name: string): Blob {
 }
 
 /**
+ * Convierte una imagen a otro formato (JPG/PNG/WebP) vía canvas.
+ * Usa el tipo MIME real para que pdf-lib y el navegador lo entiendan bien.
+ */
+export async function convertImage(file: File, target: "jpg" | "png" | "webp"): Promise<PdfResult> {
+  const mime = target === "jpg" ? "image/jpeg" : target === "png" ? "image/png" : "image/webp";
+  const ext = target === "jpg" ? "jpg" : target;
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = () => rej(new Error("No se pudo leer la imagen")); img.src = url; });
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth || img.width;
+  canvas.height = img.naturalHeight || img.height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) { URL.revokeObjectURL(url); throw new Error("Canvas no disponible"); }
+  // Rellenar con blanco si vamos a JPG (no soporta transparencia)
+  if (target === "jpg") { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+  ctx.drawImage(img, 0, 0);
+  URL.revokeObjectURL(url);
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), mime, 0.92));
+  if (!blob) throw new Error("No se pudo convertir la imagen");
+  const base = file.name.replace(/\.[^.]+$/, "");
+  return { blobs: [blob], names: [base + "." + ext], originalSize: file.size, compressedSize: blob.size };
+}
+
+/**
  * Heurística para descartar rellenos/adornos casi de un solo color (barras,
  * fondos, gradientes exportados como raster por herramientas de diagramas)
  * que no son fotos reales. Compara una muestra de píxeles contra el color

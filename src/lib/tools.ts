@@ -74,6 +74,7 @@ export interface Tool {
 export const TOOLS: Tool[] = [
   // IMÁGENES
   { id: "image", name: "Comprimir imágenes", desc: "Reduce el peso de tus fotos JPG, PNG, WebP y GIF sin perder calidad, ideal para compartirlas más rápido.", icon: "Image", category: "imagenes", available: true, popular: true, tagline: "La forma más rápida de aligerar tus fotos" },
+  { id: "image-convert", name: "Convertir imagen", desc: "Convierte tus imágenes entre JPG, PNG y WebP fácilmente.", icon: "FileImage", category: "imagenes", available: true, popular: true, tagline: "Cambia el formato de tu foto en un clic" },
   // ORDENAR
   { id: "merge", name: "Unir PDF", desc: "Combina varios PDF en un solo archivo, en el orden que quieras.", icon: "PuzzlePiece", category: "ordenar", available: true, popular: true, tagline: "Junta varios PDF en uno solo en segundos" },
   { id: "split", name: "Dividir PDF", desc: "Extrae una o varias páginas de tu PDF, o convierte cada página del PDF en un archivo PDF independiente.", icon: "Scissors", category: "ordenar", available: true },
