@@ -73,6 +73,8 @@ export default function RootLayout({
       <head>
         {/* Verificación de Google Search Console */}
         <meta name="google-site-verification" content="K73djurIHr9zK7gIEBTp9gxWIUTYuVCUUUXGOWU9Wr0" />
+        {/* Google AdSense */}
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5573757682585483" crossOrigin="anonymous"></script>
         {/* Aplica el tema antes del primer paint para evitar parpadeo (FOUC):
             lee 'comprimeme-theme' de localStorage o, si no existe, prefers-color-scheme. */}
         <script
