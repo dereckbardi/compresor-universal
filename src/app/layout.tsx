@@ -71,6 +71,8 @@ export default function RootLayout({
       className={`${outfit.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <head>
+        {/* Verificación de Google Search Console */}
+        <meta name="google-site-verification" content="K73djurIHr9zK7gIEBTp9gxWIUTYuVCUUUXGOWU9Wr0" />
         {/* Aplica el tema antes del primer paint para evitar parpadeo (FOUC):
             lee 'comprimeme-theme' de localStorage o, si no existe, prefers-color-scheme. */}
         <script
